@@ -1,4 +1,4 @@
-using AetherBox.Configurations;
+using AetherBox;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;

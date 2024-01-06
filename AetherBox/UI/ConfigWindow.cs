@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
-using AetherBox.Configurations;
+using AetherBox;
+using AetherBox.Features.Actions;
 using Dalamud.Interface.Windowing;
 using ImGuiNET;
 
@@ -8,7 +9,7 @@ namespace AetherBox.UI;
 
 public class ConfigWindow : Window, IDisposable
 {
-    private PluginConfig Configuration;
+    public ConfigWindow Config { get; private set; }
 
     public ConfigWindow(AetherBox plugin) : base(
         "Wrong lever cronk",
@@ -18,7 +19,7 @@ public class ConfigWindow : Window, IDisposable
         this.Size = new Vector2(232, 75);
         this.SizeCondition = ImGuiCond.Always;
 
-        this.Configuration = plugin.Configuration;
+        this.Config = plugin.Config;
     }
 
     public void Dispose() { }

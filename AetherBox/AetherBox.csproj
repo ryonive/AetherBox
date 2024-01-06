@@ -12,6 +12,12 @@
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      <NoWarn>1701;1702;S125;IDE1006</NoWarn>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      <NoWarn>1701;1702;S125;IDE1006</NoWarn>
+    </PropertyGroup>
 
     <!-- Plugin Content -->
     <ItemGroup>
@@ -20,16 +26,23 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Visible>false</Visible>
         </Content>
+        <Compile Remove="UI\ConfigWindow.cs" />
+        <Compile Remove="UI\DebugWindow.cs" />
 
         <!-- manifest file -->
         <Content Include="AetherBox.json">
             <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </Content>
     </ItemGroup>
+    <ItemGroup>
+      <None Include="UI\ConfigWindow.cs" />
+      <None Include="UI\DebugWindow.cs" />
+    </ItemGroup>
 
     <!-- Package and Project References -->
     <ItemGroup>
         <!-- Package Reference -->
+        <PackageReference Include="ClickLib" Version="1.2.0.1" />
         <PackageReference Include="Svg" Version="3.4.5" />
 
         <!-- Submodule Reference -->
