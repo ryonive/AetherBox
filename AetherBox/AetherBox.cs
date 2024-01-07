@@ -1,26 +1,20 @@
 using AetherBox.UI;
-using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Game.Command;
-using Dalamud.IoC;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.DalamudServices;
-using ECommons.GameHelpers;
-using ECommons.ImGuiMethods;
 using Dalamud.Interface.Internal;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using AetherBox.Features;
 using System.Linq;
-using Lumina.Data.Parsing;
-using System.Configuration;
 using System.Reflection;
 using ImGuiNET;
 using ECommons.Automation;
+using Module = ECommons.Module;
 
 namespace AetherBox;
 #nullable disable
@@ -29,22 +23,8 @@ namespace AetherBox;
 /// The AetherBox class is the main entry point of the plugin, implementing the functionality required for the plugin.
 /// </summary>
 /// <remarks> This class implements IDalamudPlugin and IDisposable interfaces for integration with the Dalamud plugin architecture and resource management, respectively.</remarks>
-public class AetherBox : IDalamudPlugin
+public sealed class AetherBox : IDalamudPlugin
 {
-    private const string CommandName = "/atb";
-    internal WindowSystem WindowSystem;
-    internal MainWindow MainWindow;
-
-    //internal DebugWindow DebugWindow;
-    internal static AetherBox Plugin;
-
-    internal static DalamudPluginInterface pluginInterface;
-    public static Configuration Config;
-    public List<FeatureProvider> FeatureProviders = new List<FeatureProvider>();
-    private FeatureProvider provider;
-    internal TaskManager TaskManager;
-
-    public static string Name => nameof(AetherBox);
 
     public IEnumerable<BaseFeature> Features
     {
@@ -53,102 +33,231 @@ public class AetherBox : IDalamudPlugin
             return this.FeatureProviders.Where(x => !x.Disposed).SelectMany(x => x.Features).OrderBy(x => x.Name);
         }
     }
+    public List<FeatureProvider> FeatureProviders = new List<FeatureProvider>();
+    public static Configuration Config;
+    public static string Name => nameof(AetherBox);
+
+    internal WindowSystem WindowSystem;
+    internal MainWindow MainWindow;
+    internal OldMainWindow OldMainWindow;
+
+    internal TaskManager TaskManager;
+    internal static AetherBox Plugin;
+    internal static DalamudPluginInterface pluginInterface;
+
+    private FeatureProvider provider;
+    private const string CommandName = "/atb";
+
+    //internal DebugWindow DebugWindow;
 
     /// <summary>
     /// Property: Manages the commands within the Dalamud framework for this plugin.
     /// </summary>
-    private ICommandManager CommandManager { get; init; }
+    //private ICommandManager CommandManager { get; init; }
 
     /// <summary>
     /// Constructor: Initializes the AetherBox plugin with necessary dependencies.
     /// </example>
-    public AetherBox(DalamudPluginInterface pluginInterface, ICommandManager commandManager)
+    public AetherBox(DalamudPluginInterface pluginInterface)
     {
-        AetherBox.Plugin = this;
-        AetherBox.pluginInterface = pluginInterface;
-        this.Initialize();
-    }
-
-    private void Initialize()
-    {
-        ECommonsMain.Init(AetherBox.pluginInterface, Plugin, ECommons.Module.DalamudReflector);
-        this.WindowSystem = new WindowSystem();
-        var imageClosePath = Path.Combine(pluginInterface.AssemblyLocation.Directory?.FullName!, "close.png");
-        var closeImage = pluginInterface.UiBuilder.LoadImage(imageClosePath);
-        var imagePath = Path.Combine(pluginInterface.AssemblyLocation.Directory?.FullName!, "icon.png");
-        var iconImage = pluginInterface.UiBuilder.LoadImage(imagePath);
-        this.MainWindow = new MainWindow(Plugin, iconImage, closeImage);
-        //this.DebugWindow = new DebugWindow();
-        this.WindowSystem.AddWindow((Window)this.MainWindow);
-        //this.WindowSystem.AddWindow((Window)this.DebugWindow);
-        //this.TaskManager = new TaskManager();
-        if (!(AetherBox.pluginInterface.GetPluginConfig() is Configuration configuration))
-            configuration = new Configuration();
-        AetherBox.Config = configuration;
-        AetherBox.Config.Initialize(Svc.PluginInterface);
-        Svc.Commands.AddHandler("/atb", new CommandInfo(new CommandInfo.HandlerDelegate(this.OnCommand))
+        try
         {
-            HelpMessage = "Opens the " + AetherBox.Name + " menu.",
-            ShowInHelp = true
-        });
-        //PandorasBoxIPC.Init();
-        Svc.PluginInterface.UiBuilder.Draw += new Action(this.WindowSystem.Draw);
-        Svc.PluginInterface.UiBuilder.OpenConfigUi += new Action(this.DrawConfigUI);
-        //Common.Setup();
-        this.provider = new FeatureProvider(Assembly.GetExecutingAssembly());
-        this.provider.LoadFeatures();
-        this.FeatureProviders.Add(this.provider);
+            Plugin = this;
+            ECommonsMain.Init(pluginInterface, this, Module.DalamudReflector, Module.ObjectFunctions);
+            AetherBox.pluginInterface = pluginInterface;
+
+            WindowSystem = new WindowSystem(Name);
+
+            var imageClosePath = Path.Combine(pluginInterface.AssemblyLocation.Directory?.FullName!, "close.png");
+            var closeImage = pluginInterface.UiBuilder.LoadImage(imageClosePath);
+            var imagePath = Path.Combine(pluginInterface.AssemblyLocation.Directory?.FullName!, "icon.png");
+            var iconImage = pluginInterface.UiBuilder.LoadImage(imagePath);
+
+            Svc.Log.Debug($"");
+            OldMainWindow = new OldMainWindow(Plugin, iconImage, closeImage);
+
+            Svc.Log.Debug($"");
+            MainWindow = new MainWindow(Plugin);
+
+            Svc.Log.Debug($"Adding Window for MainWindow.");
+            WindowSystem.AddWindow(MainWindow);
+
+            Svc.Log.Debug($"Adding Window for OldMainWindow.");
+            WindowSystem.AddWindow(OldMainWindow);
+
+            Svc.Log.Debug($"Get a previously saved plugin configuration or null if none was saved before.");
+            if (AetherBox.pluginInterface.GetPluginConfig() is not Configuration configuration) configuration = new Configuration();
+            Config = configuration;
+
+            Svc.Log.Debug($"Initialize Config's pluginInterface");
+            Config.Initialize(Svc.PluginInterface);
+
+            Svc.Log.Debug($"Adding command /atb");
+            Svc.Commands.AddHandler("/atb", new CommandInfo(new CommandInfo.HandlerDelegate(OnCommandMainUI))
+            {
+                HelpMessage = "Opens the " + Name + " menu.",
+                ShowInHelp = true
+            });
+
+            Svc.Log.Debug($"Adding command /atbold");
+            Svc.Commands.AddHandler("/atbold", new CommandInfo(new CommandInfo.HandlerDelegate(OnCommandOldMainUI))
+            {
+                HelpMessage = "Opens the Old" + Name + " menu.",
+                ShowInHelp = true
+            });
+
+            Svc.Log.Debug($"Subscribing to UI builder's Draw events'");
+            Svc.PluginInterface.UiBuilder.Draw += new Action(WindowSystem.Draw);
+
+            Svc.Log.Debug($"Subscribing to UI builder's  OpenConfigUi events'");
+            Svc.PluginInterface.UiBuilder.OpenConfigUi += new Action(DrawConfigUI);
+
+            Svc.Log.Debug($"Subscribing to UI builder's OpenMainUI events'");
+            Svc.PluginInterface.UiBuilder.OpenMainUi -= new Action(DrawConfigUI);
+
+            Svc.Log.Debug($"Getting the assembly that the current code is running from.");
+            provider = new FeatureProvider(Assembly.GetExecutingAssembly());
+
+            Svc.Log.Debug($"loading features from assembly'");
+            provider.LoadFeatures();
+
+            Svc.Log.Debug($"Adding given object to end of this list.");
+            FeatureProviders.Add(provider);
+
+            //this.DebugWindow = new DebugWindow();
+            //this.WindowSystem.AddWindow((Window)this.DebugWindow);
+            //this.TaskManager = new TaskManager();
+            //PandorasBoxIPC.Init();
+            //Common.Setup();
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error during Plugin initialisation");
+        }
     }
 
     public void Dispose()
     {
-        MainWindow.IconImage.Dispose();
-        MainWindow.CloseButtonTexture.Dispose();
-        Svc.Commands.RemoveHandler("/atb");
-        foreach (var baseFeature in this.Features.Where(x => x != null && x.Enabled)) baseFeature.Disable();
-        this.provider.UnloadFeatures();
-        //PandorasBoxIPC.Dispose();
-        Svc.PluginInterface.UiBuilder.Draw -= new Action(this.WindowSystem.Draw);
-        Svc.PluginInterface.UiBuilder.OpenConfigUi -= new Action(this.DrawConfigUI);
-        this.WindowSystem.RemoveAllWindows();
-        this.MainWindow = (MainWindow)null;
-        //this.DebugWindow = (DebugWindow)null;
-        this.WindowSystem = (WindowSystem)null;
-        ECommonsMain.Dispose();
-        this.FeatureProviders.Clear();
-        //Common.Shutdown();
-        AetherBox.Plugin = (AetherBox)null;
+        try
+        {
+            Svc.Log.Debug($"Removing Command Handler '/atb''");
+            Svc.Commands.RemoveHandler("/atb");
+
+            Svc.Log.Debug($"Removing Command Handler '/atb'old'");
+            Svc.Commands.RemoveHandler("/atbold");
+
+            Svc.Log.Debug($"Disabling each BaseFeature");
+            foreach (var baseFeature in Features.Where(x => x != null && x.Enabled)) baseFeature.Disable();
+
+            Svc.Log.Debug($"Unloading Features");
+            provider.UnloadFeatures();
+
+            Svc.Log.Debug($"Unsubscribing from UI Builder's draw events");
+            Svc.PluginInterface.UiBuilder.Draw -= new Action(WindowSystem.Draw);
+
+            Svc.Log.Debug($"Unsubscribing from UI Builder's OpenConfigUi events");
+            Svc.PluginInterface.UiBuilder.OpenConfigUi -= new Action(DrawConfigUI);
+
+            Svc.Log.Debug($"Unsubscribing from UI Builder's OpenMainUi events");
+            Svc.PluginInterface.UiBuilder.OpenMainUi -= new Action(DrawMainUI);
+
+            Svc.Log.Debug($"Removing all windows from this Dalamud.Interface.Windowing.WindowSystem.");
+            WindowSystem.RemoveAllWindows();
+
+            Svc.Log.Debug($"Setting Property 'OldMainWindow' to null!");
+            OldMainWindow = null;
+
+            Svc.Log.Debug($"Setting Property 'MainWindow' to null!");
+            MainWindow = null;
+
+            Svc.Log.Debug($"Setting Property 'WindowSystem' to null!");
+            WindowSystem = null;
+
+            Svc.Log.Debug($"Initiating disposal of ECommons features.");
+            ECommonsMain.Dispose();
+
+            Svc.Log.Debug($"Clearing the content of the FeatureProviders list.");
+            FeatureProviders.Clear();
+
+            Svc.Log.Debug($"Setting Property 'Plugin' to null!");
+            Plugin = null;
+
+            //PandorasBoxIPC.Dispose();
+            //this.DebugWindow = (DebugWindow)null;
+            //Common.Shutdown();
+
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error during Disposing");
+        }
     }
 
 
-    private void OnCommand(string command, string args)
+    internal void OnCommandMainUI(string command, string args)
     {
-        //if ((args == "debug" || args == "d") && AetherBox.Config.showDebugFeatures)
-        //this.DebugWindow.IsOpen = !this.DebugWindow.IsOpen;
-        //else
-        this.MainWindow.IsOpen = !this.MainWindow.IsOpen;
+        try
+        {
+            //if ((args == "debug" || args == "d") && AetherBox.Config.showDebugFeatures)
+            //DebugWindow.IsOpen = !DebugWindow.IsOpen;
+            //else
+            MainWindow.IsOpen = !MainWindow.IsOpen;
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error with 'OnCommand'");
+        }
+    }
+
+    internal void OnCommandOldMainUI(string command, string args)
+    {
+        try
+        {
+            OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error with 'OnCommandMainUI'");
+        }
     }
 
     public void DrawConfigUI()
     {
         try
         {
-            this.MainWindow.IsOpen = !this.MainWindow.IsOpen;
-            if (!Svc.PluginInterface.IsDevMenuOpen || !Svc.PluginInterface.IsDev && !AetherBox.Config.showDebugFeatures || !ImGui.BeginMainMenuBar())
+            MainWindow.IsOpen = !MainWindow.IsOpen;
+            if (!Svc.PluginInterface.IsDevMenuOpen || (!Svc.PluginInterface.IsDev && !AetherBox.Config.showDebugFeatures) || !ImGui.BeginMainMenuBar())
                 return;
             if (ImGui.MenuItem(AetherBox.Name))
             {
                 //if (ImGui.GetIO().KeyShift)
                 //this.DebugWindow.IsOpen = !this.DebugWindow.IsOpen;
                 //else
-                this.MainWindow.IsOpen = !this.MainWindow.IsOpen;
+                MainWindow.IsOpen = !MainWindow.IsOpen;
             }
             ImGui.EndMainMenuBar();
         }
         catch (Exception ex)
         {
-            Svc.Log.Warning($"Error in DrawConfigUI: {ex}");
-            // You might want to handle the error differently or log it as an error
+            Svc.Log.Warning($"{ex}, Error in DrawConfigUI");
+        }
+    }
+    public void DrawMainUI()
+    {
+        try
+        {
+            OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
+            if (!Svc.PluginInterface.IsDevMenuOpen || (!Svc.PluginInterface.IsDev && !AetherBox.Config.showDebugFeatures) || !ImGui.BeginMainMenuBar())
+                return;
+            if (ImGui.MenuItem(AetherBox.Name))
+            {
+                OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
+            }
+            ImGui.EndMainMenuBar();
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Warning($"{ex}, Error in DrawMainUI");
         }
     }
 
@@ -173,25 +282,20 @@ public class AetherBox : IDalamudPlugin
                 }
                 catch (Exception ex)
                 {
-                    Svc.Log.Warning($"Error loading image: {ex}");
-                    // You might want to return null or handle the error differently here
-                    return null;
+                    Svc.Log.Warning($"{ex}, Error loading image");
+                   return null;
                 }
             }
             else
             {
-                // Handle the case where the image does not exist
-                // You could log an error or throw an exception, depending on your error handling strategy
                 Svc.Log.Error($"Image not found: {imagePath}");
-                // You might want to return null or handle the error differently here
-                return null;
+               return null;
             }
         }
         catch (Exception ex)
         {
-            Svc.Log.Warning($"Error in LoadImage: {ex}");
-            // You might want to return null or handle the error differently here
-            return null;
+            Svc.Log.Warning($"{ex}, Error in LoadImage");
+           return null;
         }
     }
 

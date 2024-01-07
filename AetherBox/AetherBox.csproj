@@ -13,10 +13,10 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      <NoWarn>1701;1702;S125;IDE1006</NoWarn>
+      <NoWarn>1701;1702;S125;IDE1006;S3010</NoWarn>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      <NoWarn>1701;1702;S125;IDE1006</NoWarn>
+      <NoWarn>1701;1702;S125;IDE1006;S3010</NoWarn>
     </PropertyGroup>
 
     <!-- Plugin Content -->

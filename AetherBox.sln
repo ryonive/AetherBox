@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AetherBox", "AetherBox\AetherBox.csproj", "{13C812E9-0D42-4B95-8646-40EEBF30636F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{94C55B32-8949-451C-A545-B015CB74A788} = {94C55B32-8949-451C-A545-B015CB74A788}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EED8CB8B-DD4A-4339-BF45-527CA541486D}"
 	ProjectSection(SolutionItems) = preProject

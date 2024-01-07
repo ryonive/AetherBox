@@ -21,18 +21,12 @@ namespace AetherBox.Features.Actions;
 
 public class AutoFollow : Feature
 {
-    private readonly 
-    #nullable disable
-    List<string> registeredCommands = new List<string>();
+    private readonly  List<string> registeredCommands = new List<string>();
     private readonly OverrideMovement movement = new OverrideMovement();
-    private
-    #nullable enable
-    Dalamud.Game.ClientState.Objects.Types.GameObject? master;
+    private Dalamud.Game.ClientState.Objects.Types.GameObject? master;
     private uint? masterObjectID;
 
-    public override
-    #nullable disable
-    string Name => "Auto Follow";
+    public override string Name => "Auto Follow";
 
     public override string Description
     {
@@ -104,7 +98,7 @@ public class AutoFollow : Feature
         }
     }
 
-    public string Command { get; set; } = "/atbautofollow";
+    public string Command { get; set; } = "/autofollow";
 
     protected void OnCommand(List<string> args)
     {

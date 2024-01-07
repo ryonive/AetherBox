@@ -23,6 +23,6 @@ namespace AetherBox
             this.pluginInterface = pluginInterface;
         }
 
-        public void Save() => this.pluginInterface.SavePluginConfig((IPluginConfiguration)this);
+        public void Save() => pluginInterface.SavePluginConfig(this);
     }
 }

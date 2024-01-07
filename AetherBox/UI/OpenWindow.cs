@@ -1,16 +1,14 @@
-#nullable disable
-namespace AetherBox.UI
+namespace AetherBox.UI;
+
+public enum OpenWindow
 {
-    public enum OpenWindow
-    {
-        None,
-        Actions,
-        UI,
-        Targets,
-        Chat,
-        Other,
-        Achievements,
-        Commands,
-        About,
-    }
+    None,
+    Actions,
+    UI,
+    Targets,
+    Chat,
+    Other,
+    Achievements,
+    Commands,
+    About,
 }

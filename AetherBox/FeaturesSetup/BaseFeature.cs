@@ -99,7 +99,7 @@ public abstract class BaseFeature
 
     public virtual void Enable()
     {
-        PluginLog.Debug("Enabling " + this.Name);
+        Svc.Log.Debug("Enabling " + this.Name);
         Svc.Framework.Update += new IFramework.OnUpdateDelegate(this.CheckJob);
         this.Enabled = true;
     }
@@ -132,7 +132,7 @@ public abstract class BaseFeature
         {
             string messageTemplate = "Failed to load config for feature " + this.Name;
             object[] objArray = Array.Empty<object>();
-            PluginLog.Error(ex, messageTemplate, objArray);
+            Svc.Log.Error(ex, messageTemplate, objArray);
             return default(T);
         }
     }
@@ -485,14 +485,14 @@ public abstract class BaseFeature
                         interpolatedStringHandler.AppendLiteral(" addon ");
                         interpolatedStringHandler.AppendFormatted<int>(index);
                         interpolatedStringHandler.AppendLiteral(" by predicate");
-                        PluginLog.Verbose(interpolatedStringHandler.ToStringAndClear());
+                        Svc.Log.Debug(interpolatedStringHandler.ToStringAndClear());
                         return addonByName;
                     }
                 }
             }
             catch (Exception ex)
             {
-                PluginLog.Error("", (object)ex);
+                Svc.Log.Error("", (object)ex);
                 return (AtkUnitBase*)null;
             }
         }
@@ -517,14 +517,14 @@ public abstract class BaseFeature
                         interpolatedStringHandler.AppendFormatted(((IEnumerable<string>)s).Print<string>());
                         interpolatedStringHandler.AppendLiteral(" addon ");
                         interpolatedStringHandler.AppendFormatted<int>(index);
-                        PluginLog.Verbose(interpolatedStringHandler.ToStringAndClear());
+                        Svc.Log.Debug(interpolatedStringHandler.ToStringAndClear());
                         return addonByName;
                     }
                 }
             }
             catch (Exception ex)
             {
-                PluginLog.Error("", (object)ex);
+                Svc.Log.Error("", (object)ex);
                 return (AtkUnitBase*)null;
             }
         }
@@ -560,7 +560,7 @@ public abstract class BaseFeature
                     interpolatedStringHandler.AppendFormatted<int>(index);
                     interpolatedStringHandler.AppendLiteral(" as requested by ");
                     interpolatedStringHandler.AppendFormatted(text.Print<string>());
-                    PluginLog.Debug(interpolatedStringHandler.ToStringAndClear());
+                    Svc.Log.Debug(interpolatedStringHandler.ToStringAndClear());
                     return true;
                 }
             }
