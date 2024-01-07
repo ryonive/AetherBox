@@ -17,7 +17,6 @@ namespace AetherBox.Features
             this.Assembly = assembly;
         }
 
-
         public bool Disposed { get; protected set; }
 
         public List<BaseFeature> Features { get; }
@@ -28,7 +27,7 @@ namespace AetherBox.Features
         {
             Type[] types = this.Assembly.GetTypes();
             if (types == null)
-            {
+            { 
                 string errorMessage = "Error loading features from assembly: " + Assembly.GetName();
                 Svc.Log.Error(errorMessage);
                 return;
@@ -47,7 +46,7 @@ namespace AetherBox.Features
 
                         if (instance.Ready && AetherBox.Config.EnabledFeatures.Contains(type.Name) || instance.FeatureType == FeatureType.Commands)
                         {
-                            if (instance.FeatureType == FeatureType.Disabled || instance.isDebug && !AetherBox.Config.showDebugFeatures)
+                            if (instance.FeatureType == FeatureType.Disabled || instance.isDebug & !AetherBox.Config.showDebugFeatures)
                                 instance.Disable();
                             else
                                 instance.Enable();
@@ -70,8 +69,6 @@ namespace AetherBox.Features
                 }
             }
         }
-
-
 
         public void UnloadFeatures()
         {
