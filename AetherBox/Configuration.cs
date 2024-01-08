@@ -4,7 +4,6 @@ using Dalamud.Plugin;
 using System;
 using System.Collections.Generic;
 
-#nullable disable
 namespace AetherBox
 {
     [Serializable]
@@ -13,16 +12,16 @@ namespace AetherBox
         public List<string> EnabledFeatures = new List<string>();
         public bool showDebugFeatures;
         [NonSerialized]
-        private DalamudPluginInterface pluginInterface;
+        private DalamudPluginInterface PluginInterface;
         //public DebugConfig Debugging = new DebugConfig();
 
         public int Version { get; set; }
 
         public void Initialize(DalamudPluginInterface pluginInterface)
         {
-            this.pluginInterface = pluginInterface;
+            PluginInterface = pluginInterface;
         }
 
-        public void Save() => pluginInterface.SavePluginConfig(this);
+        public void Save() => PluginInterface.SavePluginConfig(this);
     }
 }

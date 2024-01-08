@@ -39,6 +39,7 @@ public class FeatureProvider : IDisposable
 
                 if (instance != null)
                 {
+
                     instance.InterfaceSetup(AetherBox.Plugin, AetherBox.pluginInterface, AetherBox.Config, this);
                     instance.Setup();
 
@@ -91,8 +92,8 @@ public class FeatureProvider : IDisposable
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         UnloadFeatures();
         Disposed = true;
-        GC.SuppressFinalize(this);
     }
 }

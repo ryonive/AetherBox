@@ -2,7 +2,6 @@ using AetherBox.UI;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin;
-using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.DalamudServices;
 using Dalamud.Interface.Internal;
@@ -15,16 +14,20 @@ using System.Reflection;
 using ImGuiNET;
 using ECommons.Automation;
 using Module = ECommons.Module;
+using Lumina.Data.Parsing;
+
+#nullable disable
 
 namespace AetherBox;
-#nullable disable
 
 /// <summary>
 /// The AetherBox class is the main entry point of the plugin, implementing the functionality required for the plugin.
 /// </summary>
 /// <remarks> This class implements IDalamudPlugin and IDisposable interfaces for integration with the Dalamud plugin architecture and resource management, respectively.</remarks>
-public class AetherBox : IDalamudPlugin
+public class AetherBox : IDalamudPlugin, IDisposable
 {
+    //public List<FeatureProvider> FeatureProviders = [];
+    public List<FeatureProvider> FeatureProviders;
     public IEnumerable<BaseFeature> Features
     {
         get
@@ -32,9 +35,12 @@ public class AetherBox : IDalamudPlugin
             return this.FeatureProviders.Where(x => !x.Disposed).SelectMany(x => x.Features).OrderBy(x => x.Name);
         }
     }
-    public List<FeatureProvider> FeatureProviders = new List<FeatureProvider>();
+
+
     public static Configuration Config;
     public static string Name => nameof(AetherBox);
+
+    public DalamudPluginInterface PluginInterface { get; private set; }
 
     internal WindowSystem WindowSystem;
     internal MainWindow MainWindow;
@@ -47,36 +53,70 @@ public class AetherBox : IDalamudPlugin
     private FeatureProvider provider;
     private const string CommandName = "/atb";
 
-    //internal DebugWindow DebugWindow;
 
-    /// <summary>
-    /// Property: Manages the commands within the Dalamud framework for this plugin.
-    /// </summary>
-    //private ICommandManager CommandManager { get; init; }
 
-    /// <summary>
-    /// Constructor: Initializes the AetherBox plugin with necessary dependencies.
-    /// </example>
-    public AetherBox(DalamudPluginInterface pluginInterface)
+
+
+
+    //internal static DalamudPluginInterface PluginInterface;
+
+    //public static Configuration Config;
+
+    //private FeatureProvider provider;
+
+    ///public List<FeatureProvider> ? FeatureProviders;
+
+
+    //internal TaskManager TaskManager;
+    //public static string Name => nameof(AetherBox);
+
+    //private IEnumerable<BaseFeature> _features;
+    /*public IEnumerable<BaseFeature> Features
+    {
+        get
+        {
+            if (_features == null)
+            {
+                _features = FeatureProviders
+                                .Where(x => !x.Disposed)
+                                .SelectMany(x => x.Features)
+                                .OrderBy(x => x.Name)
+                                .ToList(); // ToList to materialize the query and avoid repeated evaluation
+}
+
+            return _features;
+        }
+    }*/
+    public AetherBox(IDalamudPlugin plugin, DalamudPluginInterface pluginInterface)
     {
         try
         {
-            Plugin = this;
-            ECommonsMain.Init(pluginInterface, this, Module.DalamudReflector, Module.ObjectFunctions);
-            AetherBox.pluginInterface = pluginInterface;
+            Svc.Log.Debug($"Setting 'Plugin' to the current instance.");
+            plugin = this;
 
+            Svc.Log.Debug($"Initializing ECommonsMain with pluginInterface, current instance, and modules.");
+            ECommonsMain.Init(PluginInterface, this, Module.DalamudReflector, Module.ObjectFunctions);
+
+            Svc.Log.Debug($"Setting AetherBox's pluginInterface.");
+            PluginInterface = pluginInterface;
+
+            Svc.Log.Debug($"Creating WindowSystem with name: {Name}.");
             WindowSystem = new WindowSystem(Name);
+            Svc.Log.Debug($"WindowSystem created successfully.");
 
-            var imageClosePath = Path.Combine(pluginInterface.AssemblyLocation.Directory?.FullName!, "close.png");
-            var closeImage = pluginInterface.UiBuilder.LoadImage(imageClosePath);
-            var imagePath = Path.Combine(pluginInterface.AssemblyLocation.Directory?.FullName!, "icon.png");
-            var iconImage = pluginInterface.UiBuilder.LoadImage(imagePath);
+            var imageClosePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "close.png");
+            var closeImage = PluginInterface.UiBuilder.LoadImage(imageClosePath);
+            var imagePath = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!, "icon.png");
+            var iconImage = PluginInterface.UiBuilder.LoadImage(imagePath);
 
-            Svc.Log.Debug($"");
+            Svc.Log.Debug($"Creating OldMainWindow with Plugin, iconImage, and closeImage.");
             OldMainWindow = new OldMainWindow(Plugin, iconImage, closeImage);
+            Svc.Log.Debug($"OldMainWindow created successfully.");
 
-            Svc.Log.Debug($"");
+
+            Svc.Log.Debug($"Creating MainWindow with Plugin.");
             MainWindow = new MainWindow(Plugin);
+            Svc.Log.Debug($"MainWindow created successfully.");
 
             Svc.Log.Debug($"Adding Window for MainWindow.");
             WindowSystem.AddWindow(MainWindow);
@@ -85,7 +125,7 @@ public class AetherBox : IDalamudPlugin
             WindowSystem.AddWindow(OldMainWindow);
 
             Svc.Log.Debug($"Get a previously saved plugin configuration or null if none was saved before.");
-            if (AetherBox.pluginInterface.GetPluginConfig() is not Configuration configuration) configuration = new Configuration();
+            if (PluginInterface.GetPluginConfig() is not Configuration configuration) configuration = new Configuration();
             Config = configuration;
 
             Svc.Log.Debug($"Initialize Config's pluginInterface");
@@ -112,7 +152,7 @@ public class AetherBox : IDalamudPlugin
             Svc.PluginInterface.UiBuilder.OpenConfigUi += new Action(DrawConfigUI);
 
             Svc.Log.Debug($"Subscribing to UI builder's OpenMainUI events'");
-            Svc.PluginInterface.UiBuilder.OpenMainUi += new Action(DrawMainUI);
+            Svc.PluginInterface.UiBuilder.OpenMainUi -= new Action(DrawConfigUI);
 
             Svc.Log.Debug($"Getting the assembly that the current code is running from.");
             provider = new FeatureProvider(Assembly.GetExecutingAssembly());
@@ -135,10 +175,22 @@ public class AetherBox : IDalamudPlugin
         }
     }
 
+    public AetherBox()
+    {
+    }
+
+    public AetherBox(List<FeatureProvider> featureProviders, FeatureProvider provider)
+    {
+        FeatureProviders = featureProviders ?? throw new ArgumentNullException(nameof(featureProviders));
+        this.provider = provider ?? throw new ArgumentNullException(nameof(provider));
+    }
+
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         try
         {
+            GC.SuppressFinalize(this);
             Svc.Log.Debug($"Removing Command Handler '/atb''");
             Svc.Commands.RemoveHandler("/atb");
 
@@ -179,12 +231,11 @@ public class AetherBox : IDalamudPlugin
             FeatureProviders.Clear();
 
             Svc.Log.Debug($"Setting Property 'Plugin' to null!");
-            Plugin = null;
+            //Plugin = null;
 
             //PandorasBoxIPC.Dispose();
             //this.DebugWindow = (DebugWindow)null;
             //Common.Shutdown();
-
         }
         catch (Exception ex)
         {
@@ -192,24 +243,7 @@ public class AetherBox : IDalamudPlugin
         }
     }
 
-    public void DrawMainUI()
-    {
-        try
-        {
-            OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
-            if (!Svc.PluginInterface.IsDevMenuOpen || (!Svc.PluginInterface.IsDev && !AetherBox.Config.showDebugFeatures) || !ImGui.BeginMainMenuBar())
-                return;
-            if (ImGui.MenuItem(AetherBox.Name))
-            {
-                OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
-            }
-            ImGui.EndMainMenuBar();
-        }
-        catch (Exception ex)
-        {
-            Svc.Log.Warning($"{ex}, Error in DrawMainUI");
-        }
-    }
+
     internal void OnCommandMainUI(string command, string args)
     {
         try
@@ -225,6 +259,17 @@ public class AetherBox : IDalamudPlugin
         }
     }
 
+    internal void OnCommandOldMainUI(string command, string args)
+    {
+        try
+        {
+            OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error with 'OnCommandMainUI'");
+        }
+    }
 
     public void DrawConfigUI()
     {
@@ -247,21 +292,25 @@ public class AetherBox : IDalamudPlugin
             Svc.Log.Warning($"{ex}, Error in DrawConfigUI");
         }
     }
-    internal void OnCommandOldMainUI(string command, string args)
+
+    public void DrawMainUI()
     {
         try
         {
             OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
+            if (!Svc.PluginInterface.IsDevMenuOpen || (!Svc.PluginInterface.IsDev && !AetherBox.Config.showDebugFeatures) || !ImGui.BeginMainMenuBar())
+                return;
+            if (ImGui.MenuItem(AetherBox.Name))
+            {
+                OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
+            }
+            ImGui.EndMainMenuBar();
         }
         catch (Exception ex)
         {
-            Svc.Log.Error($"{ex}, Error with 'OnCommandMainUI'");
+            Svc.Log.Warning($"{ex}, Error in DrawMainUI");
         }
     }
-
-
-
-
 
     /// <summary>
     /// Method: Loads an image from the 'Images' folder within the assembly directory.
@@ -271,7 +320,7 @@ public class AetherBox : IDalamudPlugin
         try
         {
             // Assuming the 'Images' folder is in the same directory as the assembly
-            var imagesDirectory = Path.Combine(pluginInterface.AssemblyLocation.Directory?.FullName!);
+            var imagesDirectory = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!);
             var imagePath = Path.Combine(imagesDirectory, imageName);
 
             // Check if the file exists before trying to load it
@@ -279,7 +328,7 @@ public class AetherBox : IDalamudPlugin
             {
                 try
                 {
-                    return pluginInterface.UiBuilder.LoadImage(imagePath);
+                    return PluginInterface.UiBuilder.LoadImage(imagePath);
                 }
                 catch (Exception ex)
                 {
@@ -299,5 +348,4 @@ public class AetherBox : IDalamudPlugin
             return null;
         }
     }
-
 }

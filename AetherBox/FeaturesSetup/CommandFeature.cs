@@ -25,7 +25,7 @@ public abstract class CommandFeature : Feature
     {
         get
         {
-            DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(3, 2);
+            var interpolatedStringHandler = new DefaultInterpolatedStringHandler(3, 2);
             interpolatedStringHandler.AppendLiteral("[");
             interpolatedStringHandler.AppendFormatted(AetherBox.Name);
             interpolatedStringHandler.AppendLiteral(" ");
@@ -64,7 +64,7 @@ public abstract class CommandFeature : Feature
             });
             this.registeredCommands.Add(this.Command);
         }
-        foreach (string alia in this.Alias)
+        foreach (var alia in this.Alias)
         {
             if (!Svc.Commands.Commands.ContainsKey(alia))
             {
@@ -80,7 +80,7 @@ public abstract class CommandFeature : Feature
 
     public override void Disable()
     {
-        foreach (string registeredCommand in this.registeredCommands)
+        foreach (var registeredCommand in this.registeredCommands)
             Svc.Commands.RemoveHandler(registeredCommand);
         this.registeredCommands.Clear();
         base.Disable();
@@ -92,7 +92,7 @@ public abstract class CommandFeature : Feature
         {
             if (!m.Value.StartsWith('"') || !m.Value.EndsWith('"'))
                 return m.Value;
-            string str = m.Value;
+            var str = m.Value;
             return str.Substring(1, str.Length - 2); // Fixed substring indices.
         }).ToList<string>();
     }

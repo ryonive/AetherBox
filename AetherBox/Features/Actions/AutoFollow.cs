@@ -21,10 +21,13 @@ namespace AetherBox.Features.Actions;
 
 public class AutoFollow : Feature
 {
-    private readonly  List<string> registeredCommands = new List<string>();
-    private readonly OverrideMovement movement = new OverrideMovement();
+#nullable disable
+    private readonly  List<string> registeredCommands = [];
+    private readonly OverrideMovement movement = new();
+#nullable enable
     private Dalamud.Game.ClientState.Objects.Types.GameObject? master;
     private uint? masterObjectID;
+#nullable disable
 
     public override string Name => "Auto Follow";
 
@@ -38,28 +41,28 @@ public class AutoFollow : Feature
 
     public override FeatureType FeatureType => FeatureType.Actions;
 
-    public AutoFollow.Configs Config { get; private set; }
+    public Configs Config { get; private set; }
 
-    protected override BaseFeature.DrawConfigDelegate DrawConfigTree
+    protected override DrawConfigDelegate DrawConfigTree
     {
         get
         {
-            return (BaseFeature.DrawConfigDelegate)((ref bool hasChanged) =>
+            return (ref bool hasChanged) =>
             {
-                if (ImGui.Checkbox("Function Only in Duty", ref this.Config.OnlyInDuty))
+                if (ImGui.Checkbox("Function Only in Duty", ref Config.OnlyInDuty))
                     hasChanged = true;
-                if (ImGui.Checkbox("Change master on chat message", ref this.Config.changeMasterOnChat))
+                if (ImGui.Checkbox("Change master on chat message", ref Config.changeMasterOnChat))
                     hasChanged = true;
                 ImGuiComponents.HelpMarker("If a party chat message contains \"autofollow\", the current master will be switched to them.");
                 ImGui.PushItemWidth(300f);
-                if (ImGui.SliderInt("Distance to Keep (yalms)", ref this.Config.distanceToKeep, 0, 30))
+                if (ImGui.SliderInt("Distance to Keep (yalms)", ref Config.distanceToKeep, 0, 30))
                     hasChanged = true;
                 ImGui.PushItemWidth(300f);
-                if (ImGui.SliderInt("Disable if Further Than (yalms)", ref this.Config.disableIfFurtherThan, 0, 300))
+                if (ImGui.SliderInt("Disable if Further Than (yalms)", ref Config.disableIfFurtherThan, 0, 300))
                     hasChanged = true;
-                DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(16, 1);
+                var interpolatedStringHandler = new DefaultInterpolatedStringHandler(16, 1);
                 interpolatedStringHandler.AppendLiteral("Current Master: ");
-                interpolatedStringHandler.AppendFormatted<SeString>(this.master != null ? this.master.Name : (SeString)"null");
+                interpolatedStringHandler.AppendFormatted(master != null ? master.Name : (SeString)"null");
                 ImGui.Text(interpolatedStringHandler.ToStringAndClear());
                 if (Svc.ClientState.LocalPlayer == null)
                 {
@@ -69,32 +72,32 @@ public class AutoFollow : Feature
                 {
                     interpolatedStringHandler = new DefaultInterpolatedStringHandler(28, 3);
                     interpolatedStringHandler.AppendLiteral("Your Position: x: ");
-                    interpolatedStringHandler.AppendFormatted<float>(Svc.ClientState.LocalPlayer.Position.X);
+                    interpolatedStringHandler.AppendFormatted(Svc.ClientState.LocalPlayer.Position.X);
                     interpolatedStringHandler.AppendLiteral(", y: ");
-                    interpolatedStringHandler.AppendFormatted<float>(Svc.ClientState.LocalPlayer.Position.Y);
+                    interpolatedStringHandler.AppendFormatted(Svc.ClientState.LocalPlayer.Position.Y);
                     interpolatedStringHandler.AppendLiteral(", z: ");
-                    interpolatedStringHandler.AppendFormatted<float>(Svc.ClientState.LocalPlayer.Position.Z);
+                    interpolatedStringHandler.AppendFormatted(Svc.ClientState.LocalPlayer.Position.Z);
                     ImGui.Text(interpolatedStringHandler.ToStringAndClear());
                 }
                 interpolatedStringHandler = new DefaultInterpolatedStringHandler(30, 3);
                 interpolatedStringHandler.AppendLiteral("Master Position: x: ");
-                interpolatedStringHandler.AppendFormatted(this.master != null ? (object)this.master.Position.X : (object)"null");
+                interpolatedStringHandler.AppendFormatted(master != null ? master.Position.X : (object)"null");
                 interpolatedStringHandler.AppendLiteral(", y: ");
-                interpolatedStringHandler.AppendFormatted(this.master != null ? (object)this.master.Position.Y : (object)"null");
+                interpolatedStringHandler.AppendFormatted(master != null ? master.Position.Y : (object)"null");
                 interpolatedStringHandler.AppendLiteral(", z: ");
-                interpolatedStringHandler.AppendFormatted(this.master != null ? (object)this.master.Position.Z : (object)"null");
+                interpolatedStringHandler.AppendFormatted(master != null ? master.Position.Z : (object)"null");
                 ImGui.Text(interpolatedStringHandler.ToStringAndClear());
                 interpolatedStringHandler = new DefaultInterpolatedStringHandler(20, 1);
                 interpolatedStringHandler.AppendLiteral("Distance to Master: ");
-                interpolatedStringHandler.AppendFormatted(!(this.master != null) || !(Svc.ClientState.LocalPlayer != null) ? (object)"null" : (object)Vector3.Distance(Svc.ClientState.LocalPlayer.Position, this.master.Position));
+                interpolatedStringHandler.AppendFormatted((master == null) || (Svc.ClientState.LocalPlayer == null) ? "null" : (object)Vector3.Distance(Svc.ClientState.LocalPlayer.Position, master.Position));
                 ImGui.Text(interpolatedStringHandler.ToStringAndClear());
                 if (ImGui.Button("Set"))
-                    this.SetMaster();
+                    SetMaster();
                 ImGui.SameLine();
                 if (!ImGui.Button("Clear"))
                     return;
-                this.ClearMaster();
-            });
+                ClearMaster();
+            };
         }
     }
 
@@ -105,9 +108,9 @@ public class AutoFollow : Feature
         try
         {
             if (Svc.Targets.Target != null)
-                this.SetMaster();
+                SetMaster();
             else
-                this.ClearMaster();
+                ClearMaster();
         }
         catch (Exception ex)
         {
@@ -118,38 +121,38 @@ public class AutoFollow : Feature
     protected virtual void OnCommandInternal(string _, string args)
     {
         args = args.ToLower();
-        this.OnCommand(((IEnumerable<string>)args.Split(' ')).ToList<string>());
+        OnCommand([.. args.Split(' ')]);
     }
 
     public override void Enable()
     {
-        this.Config = this.LoadConfig<AutoFollow.Configs>() ?? new AutoFollow.Configs();
-        if (Svc.Commands.Commands.ContainsKey(this.Command))
+        Config = LoadConfig<Configs>() ?? new Configs();
+        if (Svc.Commands.Commands.ContainsKey(Command))
         {
-            Svc.Log.Error("Command '" + this.Command + "' is already registered.");
+            Svc.Log.Error("Command '" + Command + "' is already registered.");
         }
         else
         {
-            Svc.Commands.AddHandler(this.Command, new CommandInfo(new CommandInfo.HandlerDelegate(this.OnCommandInternal))
+            Svc.Commands.AddHandler(Command, new CommandInfo(new CommandInfo.HandlerDelegate(OnCommandInternal))
             {
                 HelpMessage = "",
                 ShowInHelp = false
             });
-            this.registeredCommands.Add(this.Command);
+            registeredCommands.Add(Command);
         }
-        Svc.Framework.Update += new IFramework.OnUpdateDelegate(this.Follow);
-        Svc.Chat.ChatMessage += new IChatGui.OnMessageDelegate(this.OnChatMessage);
+        Svc.Framework.Update += new IFramework.OnUpdateDelegate(Follow);
+        Svc.Chat.ChatMessage += new IChatGui.OnMessageDelegate(OnChatMessage);
         base.Enable();
     }
 
     public override void Disable()
     {
-        this.SaveConfig<AutoFollow.Configs>(this.Config);
-        foreach (string registeredCommand in this.registeredCommands)
+        SaveConfig(Config);
+        foreach (var registeredCommand in registeredCommands)
             Svc.Commands.RemoveHandler(registeredCommand);
-        this.registeredCommands.Clear();
-        Svc.Framework.Update -= new IFramework.OnUpdateDelegate(this.Follow);
-        Svc.Chat.ChatMessage -= new IChatGui.OnMessageDelegate(this.OnChatMessage);
+        registeredCommands.Clear();
+        Svc.Framework.Update -= new IFramework.OnUpdateDelegate(Follow);
+        Svc.Chat.ChatMessage -= new IChatGui.OnMessageDelegate(OnChatMessage);
         base.Disable();
     }
 
@@ -157,10 +160,10 @@ public class AutoFollow : Feature
     {
         try
         {
-            this.master = Svc.Targets.Target;
-            this.masterObjectID = new uint?(Svc.Targets.Target.ObjectId);
+            master = Svc.Targets.Target;
+            masterObjectID = new uint?(Svc.Targets.Target.ObjectId);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             Svc.Log.Warning($"{ex}");
         }
@@ -168,66 +171,61 @@ public class AutoFollow : Feature
 
     private void ClearMaster()
     {
-        this.master = null;
-        this.masterObjectID = new uint?();
+        master = null;
+        masterObjectID = new uint?();
     }
 
     private unsafe void Follow(IFramework framework)
     {
-        this.master = Svc.Objects.FirstOrDefault(x =>
+        master = Svc.Objects.FirstOrDefault(x =>
         {
-            int objectId = (int) x.ObjectId;
-            uint? masterObjectId = this.masterObjectID;
-            int valueOrDefault = (int) masterObjectId.GetValueOrDefault();
+            var objectId = (int) x.ObjectId;
+            var masterObjectId = masterObjectID;
+            var valueOrDefault = (int) masterObjectId.GetValueOrDefault();
             return objectId == valueOrDefault & masterObjectId.HasValue;
         });
-        if (this.master == (Dalamud.Game.ClientState.Objects.Types.GameObject)null)
-            this.movement.Enabled = false;
-        else if ((double)Vector3.Distance(Svc.ClientState.LocalPlayer.Position, this.master.Position) <= (double)this.Config.distanceToKeep)
-            this.movement.Enabled = false;
-        else if (this.Config.disableIfFurtherThan > 0 && (double)Vector3.Distance(Svc.ClientState.LocalPlayer.Position, this.master.Position) > (double)this.Config.disableIfFurtherThan)
-            this.movement.Enabled = false;
-        else if (this.Config.OnlyInDuty && GameMain.Instance()->CurrentContentFinderConditionId == (ushort)0)
+        if (master == null)
+            movement.Enabled = false;
+        else if ((double)Vector3.Distance(Svc.ClientState.LocalPlayer.Position, master.Position) <= Config.distanceToKeep)
+            movement.Enabled = false;
+        else if (Config.disableIfFurtherThan > 0 && (double)Vector3.Distance(Svc.ClientState.LocalPlayer.Position, master.Position) > Config.disableIfFurtherThan)
+            movement.Enabled = false;
+        else if (Config.OnlyInDuty && GameMain.Instance()->CurrentContentFinderConditionId == 0)
         {
-            this.movement.Enabled = false;
+            movement.Enabled = false;
         }
         else
         {
-            this.movement.Enabled = true;
-            this.movement.DesiredPosition = this.master.Position;
+            movement.Enabled = true;
+            movement.DesiredPosition = master.Position;
         }
     }
 
-    private unsafe void OnChatMessage(
-      XivChatType type,
-      uint senderId,
-      ref SeString sender,
-      ref SeString message,
-      ref bool isHandled)
+    private unsafe void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
     {
         if (type != XivChatType.Party)
             return;
-        PlayerPayload playerPayload = sender.Payloads.SingleOrDefault<Payload>((Func<Payload, bool>) (x => x is PlayerPayload)) as PlayerPayload;
+        var playerPayload = sender.Payloads.SingleOrDefault( x => x is PlayerPayload) as PlayerPayload;
         if (!message.TextValue.ToLowerInvariant().Contains("autofollow", StringComparison.CurrentCultureIgnoreCase))
             return;
-        foreach (Dalamud.Game.ClientState.Objects.Types.GameObject gameObject in (IEnumerable<Dalamud.Game.ClientState.Objects.Types.GameObject>)Svc.Objects)
+        foreach (var gameObject in (IEnumerable<Dalamud.Game.ClientState.Objects.Types.GameObject>)Svc.Objects)
         {
             if (gameObject != null)
             {
-                IPluginLog log = Svc.Log;
-                DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(5, 3);
+                var log = Svc.Log;
+                var interpolatedStringHandler = new DefaultInterpolatedStringHandler(5, 3);
                 interpolatedStringHandler.AppendFormatted(gameObject.Name.TextValue);
                 interpolatedStringHandler.AppendLiteral(" == ");
                 interpolatedStringHandler.AppendFormatted(playerPayload.PlayerName);
                 interpolatedStringHandler.AppendLiteral(" ");
-                interpolatedStringHandler.AppendFormatted<bool>(gameObject.Name.TextValue.ToLowerInvariant().Equals(playerPayload.PlayerName));
-                string stringAndClear = interpolatedStringHandler.ToStringAndClear();
-                object[] objArray = Array.Empty<object>();
+                interpolatedStringHandler.AppendFormatted(gameObject.Name.TextValue.ToLowerInvariant().Equals(playerPayload.PlayerName));
+                var stringAndClear = interpolatedStringHandler.ToStringAndClear();
+                var objArray = Array.Empty<object>();
                 log.Info(stringAndClear, objArray);
                 if (gameObject.Name.TextValue.Equals(playerPayload.PlayerName) && ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)gameObject.Address)->GetIsTargetable())
                 {
                     Svc.Targets.Target = gameObject;
-                    this.SetMaster();
+                    SetMaster();
                 }
             }
         }

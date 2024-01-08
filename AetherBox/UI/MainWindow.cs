@@ -84,7 +84,7 @@ public class MainWindow : Window, IDisposable
                 {
                     if ((OpenWindow)obj != OpenWindow.None)
                     {
-                        DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(0, 1);
+                        var interpolatedStringHandler = new DefaultInterpolatedStringHandler(0, 1);
                         interpolatedStringHandler.AppendFormatted(obj);
                         if (ImGui.Selectable(interpolatedStringHandler.ToStringAndClear(), OpenWindow == (OpenWindow)obj))
                             OpenWindow = (OpenWindow)obj;
@@ -103,7 +103,7 @@ public class MainWindow : Window, IDisposable
                     if (searchString.Equals("ERP", StringComparison.CurrentCultureIgnoreCase) && !hornybonk)
                     {
                         hornybonk = true;
-                        string hornybonkurl = "https://www.youtube.com/watch?v=oO-gc3Lh-oI";
+                        var hornybonkurl = "https://www.youtube.com/watch?v=oO-gc3Lh-oI";
                         Dalamud.Utility.Util.OpenLink($"{hornybonkurl}");
                     }
                     else

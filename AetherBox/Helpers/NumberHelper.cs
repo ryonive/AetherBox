@@ -9,7 +9,7 @@ namespace AetherBox.Helpers
     {
         public static int RoundOff(this int i, int sliderIncrement)
         {
-            double num = Convert.ToDouble(sliderIncrement);
+            var num = Convert.ToDouble(sliderIncrement);
             return (int)Math.Round((double)i / num) * sliderIncrement;
         }
 
@@ -22,31 +22,31 @@ namespace AetherBox.Helpers
 #nullable disable
         string FormatTimeSpan(DateTime time)
         {
-            TimeSpan timeSpan = DateTime.UtcNow - time;
+            var timeSpan = DateTime.UtcNow - time;
             if (timeSpan.Days > 0)
             {
-                DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(9, 1);
+                var interpolatedStringHandler = new DefaultInterpolatedStringHandler(9, 1);
                 interpolatedStringHandler.AppendFormatted<int>(timeSpan.Days);
                 interpolatedStringHandler.AppendLiteral(" days ago");
                 return interpolatedStringHandler.ToStringAndClear();
             }
             if (timeSpan.Hours > 0)
             {
-                DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(10, 1);
+                var interpolatedStringHandler = new DefaultInterpolatedStringHandler(10, 1);
                 interpolatedStringHandler.AppendFormatted<int>(timeSpan.Hours);
                 interpolatedStringHandler.AppendLiteral(" hours ago");
                 return interpolatedStringHandler.ToStringAndClear();
             }
             if (timeSpan.Minutes > 0)
             {
-                DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(12, 1);
+                var interpolatedStringHandler = new DefaultInterpolatedStringHandler(12, 1);
                 interpolatedStringHandler.AppendFormatted<int>(timeSpan.Minutes);
                 interpolatedStringHandler.AppendLiteral(" minutes ago");
                 return interpolatedStringHandler.ToStringAndClear();
             }
             if (timeSpan.Seconds <= 10)
                 return "now";
-            DefaultInterpolatedStringHandler interpolatedStringHandler1 = new DefaultInterpolatedStringHandler(12, 1);
+            var interpolatedStringHandler1 = new DefaultInterpolatedStringHandler(12, 1);
             interpolatedStringHandler1.AppendFormatted<int>(timeSpan.Seconds);
             interpolatedStringHandler1.AppendLiteral(" seconds ago");
             return interpolatedStringHandler1.ToStringAndClear();
@@ -118,7 +118,7 @@ namespace AetherBox.Helpers
 
             public readonly NumberHelper.Angle Normalized()
             {
-                float rad = this.Rad;
+                var rad = this.Rad;
                 while ((double)rad < -3.1415927410125732)
                     rad += 6.28318548f;
                 while ((double)rad > 3.1415927410125732)
@@ -128,7 +128,7 @@ namespace AetherBox.Helpers
 
             public readonly bool AlmostEqual(NumberHelper.Angle other, float epsRad)
             {
-                float num = Math.Abs(this.Rad - other.Rad);
+                var num = Math.Abs(this.Rad - other.Rad);
                 return (double)num <= (double)epsRad || (double)num >= 6.2831854820251465 - (double)epsRad;
             }
 

@@ -11,7 +11,7 @@ namespace AetherBox.FeaturesSetup
             switch (configOption)
             {
                 case Vector4 vector4:
-                    Vector4 col1 = vector4;
+                    var col1 = vector4;
                     if (ImGui.ColorEdit4(name, ref col1))
                     {
                         configOption = (object)col1;
@@ -19,7 +19,7 @@ namespace AetherBox.FeaturesSetup
                     }
                     break;
                 case Vector3 vector3:
-                    Vector3 col2 = vector3;
+                    var col2 = vector3;
                     if (ImGui.ColorEdit3(name, ref col2))
                     {
                         configOption = (object)col2;

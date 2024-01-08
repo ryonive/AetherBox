@@ -26,7 +26,9 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Visible>false</Visible>
         </Content>
+        <Compile Remove="AetherBox - Copy.cs" />
         <Compile Remove="UI\ConfigWindow.cs" />
+        <Compile Remove="Features\Debugging\**" />
         <Compile Remove="UI\DebugWindow.cs" />
 
         <!-- manifest file -->
@@ -35,7 +37,9 @@
         </Content>
     </ItemGroup>
     <ItemGroup>
+      <None Include="AetherBox - Copy.cs" />
       <None Include="UI\ConfigWindow.cs" />
+        <None Include="Features\Debugging\**" />
       <None Include="UI\DebugWindow.cs" />
     </ItemGroup>
 
