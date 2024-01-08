@@ -51,7 +51,8 @@ public class FeatureProvider : IDisposable
                             instance.Enable();
                     }
 
-                    Features.Add(instance);
+
+                    Features.Add(instance); // <---- Feature is null and wont load
 
                     Svc.Log.Info("Feature loaded successfully: " + type.Name);
                 }

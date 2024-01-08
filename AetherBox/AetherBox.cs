@@ -45,14 +45,6 @@ public class AetherBox : IDalamudPlugin
     internal static DalamudPluginInterface pluginInterface;
 
     private FeatureProvider provider;
-    private const string CommandName = "/atb";
-
-    //internal DebugWindow DebugWindow;
-
-    /// <summary>
-    /// Property: Manages the commands within the Dalamud framework for this plugin.
-    /// </summary>
-    //private ICommandManager CommandManager { get; init; }
 
     /// <summary>
     /// Constructor: Initializes the AetherBox plugin with necessary dependencies.
