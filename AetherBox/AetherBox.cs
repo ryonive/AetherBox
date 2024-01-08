@@ -66,7 +66,7 @@ namespace AetherBox
             ECommonsMain.Init(pi, this, Module.All);
 
             WindowSystem = new WindowSystem(Name);
-            SetupWindows(pi);
+            SetupWindows();
             SetupCommands();
             SubscribeToEvents();
 
@@ -75,15 +75,14 @@ namespace AetherBox
         }
 
         // Sets up the plugin windows like 'main menu' and the settings window.
-        private void SetupWindows(DalamudPluginInterface pi)
+        private void SetupWindows()
         {
-            var imageClosePath = Path.Combine(pi.AssemblyLocation.Directory?.FullName!, "close.png");
-            var closeImage = LoadImage(imageClosePath);
-            var imagePath = Path.Combine(pi.AssemblyLocation.Directory?.FullName!, "icon.png");
-            var iconImage = LoadImage(imagePath);
+            var closeImage = LoadImage("close.png");
+            var iconImage = LoadImage("icon.png");
+            var bannerImage = LoadImage("banner.png");
 
             OldMainWindow = new OldMainWindow(this, iconImage, closeImage);
-            MainWindow = new MainWindow(this);
+            MainWindow = new MainWindow(this, bannerImage);
             WindowSystem.AddWindow(MainWindow);
             WindowSystem.AddWindow(OldMainWindow);
         }
@@ -104,7 +103,7 @@ namespace AetherBox
             });
         }
 
-        // // Subscribes to events such as chat commands.
+        // Subscribes to events such as chat commands.
         private void SubscribeToEvents()
         {
             PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
@@ -186,7 +185,7 @@ namespace AetherBox
         }
 
         /// <summary>
-        /// Loads an image. (note image should be the image located in the build folder)
+        /// Loads an image. (note image should be located in the build folder)
         /// </summary>
         /// <param name="imageName"></param>
         /// <returns></returns>

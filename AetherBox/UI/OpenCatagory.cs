@@ -1,6 +1,6 @@
 namespace AetherBox.UI;
 
-public enum OpenWindow
+public enum OpenCatagory
 {
     None,
     Actions,

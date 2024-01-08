@@ -1,54 +1,67 @@
-using AetherBox;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Numerics;
+using System.Runtime.CompilerServices;
 using AetherBox.Features;
 using AetherBox.FeaturesSetup;
-using AetherBox.Helpers.Extensions;
-using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ImGuiMethods;
 using ImGuiNET;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
+using AetherBox.Helpers.Extensions;
+using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility.Raii;
 
 namespace AetherBox.UI;
 
 public class MainWindow : Window, IDisposable
 {
+    private readonly IDalamudTextureWrap ? BannerImage;
     internal readonly AetherBox Plugin;
+    private static float Scale => ImGuiHelpers.GlobalScale;
 
     private string ? searchString;
-    private readonly List<BaseFeature> ? filteredFeatures;
-    private bool hornybonk;
-    public OpenWindow OpenWindow { get; private set; }
+    private readonly List<BaseFeature> ? FilteredFeatures;
+    public OpenCatagory OpenCatagory { get; private set; }
 
-    public MainWindow(AetherBox plugin) : base($"{AetherBox.Name} {AetherBox.Plugin.GetType().Assembly.GetName().Version}###{AetherBox.Name}",
-               ImGuiWindowFlags.NoScrollbar,
-               false)
+    // Constructor
+    public MainWindow(
+        AetherBox plugin,
+        IDalamudTextureWrap bannerImage)
+        : base("AetherBox Main Menu", ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding, false)
     {
         SizeCondition = ImGuiCond.FirstUseEver;
-        Size = new Vector2(300, 500);
-        SizeConstraints = new WindowSizeConstraints()
+        Size = new Vector2(750, 400);
+
+        // Window size constraints
+        var workingSpace = System.Windows.Forms.Screen.PrimaryScreen?.WorkingArea ?? new System.Drawing.Rectangle(0, 0, 3440, 1440);
+        SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(250, 300),
-            MaximumSize = new Vector2(5000, 5000)
+            MinimumSize = new Vector2(300, 150),
+            MaximumSize = new Vector2(workingSpace.Width - 100, workingSpace.Height - 100) // Margin
         };
+
+        // Other properties
         RespectCloseHotkey = true;
-
+        BannerImage = bannerImage; // Use the passed banner image
         Plugin = plugin;
+        OnCloseSfxId = 24;
+        OnOpenSfxId = 23;
+        AllowPinning = true;
+        AllowClickthrough = true;
+
+        BannerImageTexture = AetherBox.LoadImage("banner.png");
     }
 
-    public void Dispose()
-    {
-        Svc.Log.Debug($"Nothing here");
-    }
+
 
     public override void Draw()
     {
@@ -80,14 +93,14 @@ public class MainWindow : Window, IDisposable
                 Y = y
             }, false, ImGuiWindowFlags.NoDecoration))
             {
-                foreach (var obj in Enum.GetValues(typeof(OpenWindow)))
+                foreach (var obj in Enum.GetValues(typeof(OpenCatagory)))
                 {
-                    if ((OpenWindow)obj != OpenWindow.None)
+                    if ((OpenCatagory)obj != OpenCatagory.None)
                     {
                         var interpolatedStringHandler = new DefaultInterpolatedStringHandler(0, 1);
                         interpolatedStringHandler.AppendFormatted(obj);
-                        if (ImGui.Selectable(interpolatedStringHandler.ToStringAndClear(), OpenWindow == (OpenWindow)obj))
-                            OpenWindow = (OpenWindow)obj;
+                        if (ImGui.Selectable(interpolatedStringHandler.ToStringAndClear(), OpenWindow == (OpenCatagory)obj))
+                            OpenWindow = (OpenCatagory)obj;
                     }
                 }
                 ImGui.Spacing();
@@ -100,21 +113,13 @@ public class MainWindow : Window, IDisposable
                 ImGuiEx.SetNextItemFullWidth();
                 if (ImGui.InputText("###FeatureSearch", ref searchString, 500U))
                 {
-                    if (searchString.Equals("ERP", StringComparison.CurrentCultureIgnoreCase) && !hornybonk)
-                    {
-                        hornybonk = true;
-                        var hornybonkurl = "https://www.youtube.com/watch?v=oO-gc3Lh-oI";
-                        Dalamud.Utility.Util.OpenLink($"{hornybonkurl}");
-                    }
-                    else
-                        hornybonk = false;
-                    filteredFeatures.Clear();
+                    filteredFeatures?.Clear();
                     if (searchString.Length > 0)
                     {
                         foreach (var feature in AetherBox.Plugin.Features)
                         {
                             if (feature.FeatureType != FeatureType.Commands && feature.FeatureType != FeatureType.Disabled && (feature.Description.Contains(searchString, StringComparison.CurrentCultureIgnoreCase) || feature.Name.Contains(searchString, StringComparison.CurrentCultureIgnoreCase)))
-                                filteredFeatures.Add(feature);
+                                filteredFeatures?.Add(feature);
                         }
                     }
                 }
@@ -132,7 +137,7 @@ public class MainWindow : Window, IDisposable
                 {
                     switch (OpenWindow)
                     {
-                        case OpenWindow.Actions:
+                        case OpenCatagory.Actions:
                             DrawFeatures(AetherBox.Plugin.Features.Where(x =>
                             {
                                 if (x.FeatureType != FeatureType.Actions)
@@ -140,22 +145,22 @@ public class MainWindow : Window, IDisposable
                                 return !x.isDebug || AetherBox.Config.showDebugFeatures;
                             }).ToArray());
                             break;
-                        case OpenWindow.UI:
+                        case OpenCatagory.UI:
                             DrawFeatures(AetherBox.Plugin.Features.Where(x => { if (x.FeatureType != FeatureType.UI) return false; return !x.isDebug || AetherBox.Config.showDebugFeatures; }).ToArray());
                             break;
-                        case OpenWindow.Targets:
+                        case OpenCatagory.Targets:
                             DrawFeatures(AetherBox.Plugin.Features.Where(x => { if (x.FeatureType != FeatureType.Targeting) return false; return !x.isDebug || AetherBox.Config.showDebugFeatures; }).ToArray());
                             break;
-                        case OpenWindow.Chat:
+                        case OpenCatagory.Chat:
                             DrawFeatures(AetherBox.Plugin.Features.Where(x => { if (x.FeatureType != FeatureType.ChatFeature) return false; return !x.isDebug || AetherBox.Config.showDebugFeatures; }).ToArray());
                             break;
-                        case OpenWindow.Other:
+                        case OpenCatagory.Other:
                             DrawFeatures(AetherBox.Plugin.Features.Where(x => { if (x.FeatureType != FeatureType.Other) return false; return !x.isDebug || AetherBox.Config.showDebugFeatures; }).ToArray());
                             break;
-                        case OpenWindow.Achievements:
+                        case OpenCatagory.Achievements:
                             DrawFeatures(AetherBox.Plugin.Features.Where(x => { if (x.FeatureType != FeatureType.Achievements) return false; return !x.isDebug || AetherBox.Config.showDebugFeatures; }).ToArray());
                             break;
-                        case OpenWindow.Commands:
+                        case OpenCatagory.Commands:
                             DrawCommands(AetherBox.Plugin.Features.Where(x =>
                             {
                                 if (x.FeatureType != FeatureType.Commands)
@@ -163,7 +168,7 @@ public class MainWindow : Window, IDisposable
                                 return !x.isDebug || AetherBox.Config.showDebugFeatures;
                             }).ToArray());
                             break;
-                        case OpenWindow.About:
+                        case OpenCatagory.About:
                             DrawAbout();
                             break;
                     }
@@ -312,4 +317,34 @@ public class MainWindow : Window, IDisposable
 
     }
 
+
+    /// <summary>
+    /// Code to be executed when the window is closed.
+    /// </summary>
+    public override void OnClose()
+    {
+        try
+        {
+            AetherBox.Config.InfoSave();
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error at OnClose");
+        }
+
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            GC.SuppressFinalize(this);
+            BannerImage?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error at Dispose");
+        }
+
+    }
 }

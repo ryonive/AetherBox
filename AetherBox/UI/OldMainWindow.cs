@@ -27,7 +27,10 @@ internal class OldMainWindow : Window, IDisposable
     private bool isCategorySettingsOpen = false;
     private string? selectedCategory;
 
-    public OldMainWindow(AetherBox plugin, IDalamudTextureWrap iconImage, IDalamudTextureWrap closeButtonTexture) : base("AetherBox Menu", ImGuiWindowFlags.NoScrollbar, false)
+    public OldMainWindow(
+        AetherBox plugin,
+        IDalamudTextureWrap iconImage,
+        IDalamudTextureWrap closeButtonTexture) : base("AetherBox Settings", ImGuiWindowFlags.NoScrollbar, false)
     {
         SizeCondition = ImGuiCond.FirstUseEver;
         Size = new Vector2(420, 300);
@@ -238,7 +241,7 @@ internal class OldMainWindow : Window, IDisposable
     private PluginSettingsUI pluginSettingsUI = new();
 
     /// <summary>
-    /// Draws thee left collum
+    /// Draws the left collum
     /// </summary>
     private void DrawBody()
     {
@@ -280,7 +283,6 @@ internal class OldMainWindow : Window, IDisposable
 
     }
 
-
     /// <summary>
     /// Code to be executed when the window is closed.
     /// </summary>
@@ -301,6 +303,7 @@ internal class OldMainWindow : Window, IDisposable
     {
         try
         {
+            GC.SuppressFinalize(this);
             IconImage?.Dispose();
             CloseButtonTexture?.Dispose();
         }
