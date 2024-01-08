@@ -6,7 +6,9 @@
     <!-- General properties -->
     <PropertyGroup>
         <Authors>Kirbo</Authors>
+        <InternalName>AetherBox</InternalName>
         <Version>0.0.0.5</Version>
+        <LangVersion>latest</LangVersion>
         <Description>Multi Purpose Private Plugin. Don't get this tho, it doesn't do anything yet...</Description>
         <PackageProjectUrl>https://github.com/BrakusTapus/AetherBox</PackageProjectUrl>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
@@ -26,7 +28,8 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Visible>false</Visible>
         </Content>
-        <Compile Remove="AetherBox - Copy.cs" />
+        <Compile Remove="AetherBox - old.cs" />
+        <Compile Remove="GlobalSuppressions.cs" />
         <Compile Remove="UI\ConfigWindow.cs" />
         <Compile Remove="Features\Debugging\**" />
         <Compile Remove="UI\DebugWindow.cs" />
@@ -37,9 +40,9 @@
         </Content>
     </ItemGroup>
     <ItemGroup>
-      <None Include="AetherBox - Copy.cs" />
+      <None Include="GlobalSuppressions.cs" />
       <None Include="UI\ConfigWindow.cs" />
-        <None Include="Features\Debugging\**" />
+       <None Include="Features\Debugging\**" />
       <None Include="UI\DebugWindow.cs" />
     </ItemGroup>
 

@@ -30,21 +30,28 @@ internal class OldMainWindow : Window, IDisposable
     public OldMainWindow(AetherBox plugin, IDalamudTextureWrap iconImage, IDalamudTextureWrap closeButtonTexture) : base("AetherBox Menu", ImGuiWindowFlags.NoScrollbar, false)
     {
         SizeCondition = ImGuiCond.FirstUseEver;
-        Size = new Vector2(300, 500);
+        Size = new Vector2(420, 300);
+        // Get the working area of the primary screen, safely handling potential null references
+        var workingSpace = System.Windows.Forms.Screen.PrimaryScreen?.WorkingArea ?? new Rectangle(0, 0, 3440, 1440);
+
+        // Set the window size constraints
         SizeConstraints = new WindowSizeConstraints()
         {
             MinimumSize = new Vector2(250, 300),
-            MaximumSize = new Vector2(5000, 5000)
+            MaximumSize = new Vector2(workingSpace.Width - 100, workingSpace.Height - 100) // Subtracting 100 as a margin
         };
         RespectCloseHotkey = true;
-
         IconImage = iconImage;
         CloseButtonTexture = closeButtonTexture;
         Plugin = plugin;
+        OnCloseSfxId = 24;
+        OnOpenSfxId = 23;
+        AllowPinning = true;
+        AllowClickthrough = true;
 
         // Load the close button image using the new method in AetherBoxPlugin
         // Just pass the image name, the method will handle the path
-        CloseButtonTexture = plugin.LoadImage("close.png");
+        CloseButtonTexture = AetherBox.LoadImage("close.png");
     }
 
     public override void Draw()
@@ -170,7 +177,7 @@ internal class OldMainWindow : Window, IDisposable
                 if (AetherBox.Config != null)
                 {
                     // Save the settings
-                    AetherBox.Config.Save();
+                    AetherBox.Config.InfoSave();
 
                     // Ensure 'Svc.Log' is not null before logging
                     // Log the information
@@ -281,7 +288,7 @@ internal class OldMainWindow : Window, IDisposable
     {
         try
         {
-            AetherBox.Config.Save();
+            AetherBox.Config.InfoSave();
         }
         catch (Exception ex)
         {

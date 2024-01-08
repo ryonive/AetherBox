@@ -124,7 +124,7 @@ public abstract class BaseFeature
     {
         try
         {
-            var path = Path.Combine(AetherBox.pluginInterface.GetPluginConfigDirectory(), key + ".json");
+            var path = Path.Combine(AetherBox.PluginInterface.GetPluginConfigDirectory(), key + ".json");
             return !File.Exists(path) ? default(T) : JsonConvert.DeserializeObject<T>(File.ReadAllText(path));
         }
         catch (Exception ex)
@@ -145,7 +145,7 @@ public abstract class BaseFeature
     {
         try
         {
-            File.WriteAllText(Path.Combine(AetherBox.pluginInterface.GetPluginConfigDirectory(), key + ".json"), JsonConvert.SerializeObject((object)config, Formatting.Indented));
+            File.WriteAllText(Path.Combine(AetherBox.PluginInterface.GetPluginConfigDirectory(), key + ".json"), JsonConvert.SerializeObject((object)config, Formatting.Indented));
         }
         catch (Exception ex)
         {

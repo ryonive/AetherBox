@@ -29,7 +29,7 @@ public class MainWindow : Window, IDisposable
     private bool hornybonk;
     public OpenWindow OpenWindow { get; private set; }
 
-    public MainWindow(AetherBox? plugin = null) : base($"{AetherBox.Name} {AetherBox.Plugin.GetType().Assembly.GetName().Version}###{AetherBox.Name}",
+    public MainWindow(AetherBox plugin) : base($"{AetherBox.Name} {AetherBox.Plugin.GetType().Assembly.GetName().Version}###{AetherBox.Name}",
                ImGuiWindowFlags.NoScrollbar,
                false)
     {
@@ -296,7 +296,7 @@ public class MainWindow : Window, IDisposable
                             Svc.Log.Error(ex, "Failed to enabled " + feature.Name);
                         }
                     }
-                    AetherBox.Config.Save();
+                    AetherBox.Config.InfoSave();
                 }
                 ImGui.SameLine();
                 feature.DrawConfig(ref enabled);

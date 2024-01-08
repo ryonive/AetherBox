@@ -40,7 +40,7 @@ public class FeatureProvider : IDisposable
                 if (instance != null)
                 {
 
-                    instance.InterfaceSetup(AetherBox.Plugin, AetherBox.pluginInterface, AetherBox.Config, this);
+                    instance.InterfaceSetup(AetherBox.Plugin, AetherBox.PluginInterface, AetherBox.Config, this);
                     instance.Setup();
 
                     if (instance.Ready && AetherBox.Config.EnabledFeatures.Contains(type.Name) || instance.FeatureType == FeatureType.Commands)

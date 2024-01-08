@@ -1,6 +1,7 @@
 //using AetherBox.Debugging;
 using Dalamud.Configuration;
 using Dalamud.Plugin;
+using ECommons.Logging;
 using System;
 using System.Collections.Generic;
 
@@ -22,6 +23,10 @@ namespace AetherBox
             PluginInterface = pluginInterface;
         }
 
-        public void Save() => PluginInterface.SavePluginConfig(this);
+        public void InfoSave()
+        {
+            PluginInterface.SavePluginConfig(this);
+            DuoLog.Information($"Config saved.");
+        }
     }
 }
