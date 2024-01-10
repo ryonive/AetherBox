@@ -1,47 +1,345 @@
 using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
 using System.Numerics;
-using AetherBox.Configurations;
-using AetherBox.Helpers.Extensions;
-using Dalamud.Interface.Colors;
+using System.Runtime.CompilerServices;
+using AetherBox.Features;
+using AetherBox.FeaturesSetup;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+using Dalamud.Utility;
+using ECommons;
 using ECommons.DalamudServices;
+using ECommons.ImGuiMethods;
 using ImGuiNET;
 
 namespace AetherBox.UI;
 
-public class MainWindow : Window, IDisposable
+public class MainWindow : Window
 {
     private readonly IDalamudTextureWrap ? IconImage;
-    private readonly IDalamudTextureWrap ? CloseButtonTexture;
-    private readonly AetherBox Plugin;
+    private readonly IDalamudTextureWrap ? BannerImage;
+    //internal readonly AetherBox Plugin;
     private static float Scale => ImGuiHelpers.GlobalScale;
 
-    // Add flags for each category's open state
-    private bool isCategoryInfoOpen = false;
-    private bool isCategorySettingsOpen = false;
-    private string? selectedCategory;
 
-    public MainWindow(AetherBox plugin, IDalamudTextureWrap iconImage, IDalamudTextureWrap closeButtonTexture) : base("AetherBox Menu", ImGuiWindowFlags.NoScrollbar, false)
+    private string searchString = string.Empty;
+    private readonly List<BaseFeature> FilteredFeatures = new List<BaseFeature>();
+    private bool hornybonk;
+    public OpenCatagory OpenCatagory { get; private set; }
+
+    public MainWindow( IDalamudTextureWrap bannerImage, IDalamudTextureWrap iconImage)
+        : base($"{AetherBox.Name} {AetherBox.Plugin.GetType().Assembly.GetName().Version}###{AetherBox.Name}",
+               ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding,
+               false)
     {
+        // Set initial size and size condition
         SizeCondition = ImGuiCond.FirstUseEver;
-        Size = new Vector2(300, 500);
-        SizeConstraints = new WindowSizeConstraints()
+        Size = new Vector2(750, 400);
+
+        // Set window size constraints
+        var workingSpace = System.Windows.Forms.Screen.PrimaryScreen?.WorkingArea ?? new System.Drawing.Rectangle(0, 0, 3440, 1440);
+        SizeConstraints = new WindowSizeConstraints
         {
-            MinimumSize = new Vector2(250, 300),
-            MaximumSize = new Vector2(5000, 5000)
+            MinimumSize = new Vector2(300, 150),
+            MaximumSize = new Vector2(workingSpace.Width - 100, workingSpace.Height - 100) // Margin for maximum size
         };
+
+        // Initialize other properties
         RespectCloseHotkey = true;
+        IconImage = iconImage;
+        BannerImage = bannerImage; // Assign the passed banner image
+        OnCloseSfxId = 24;
+        OnOpenSfxId = 23;
+        AllowPinning = true;
+        AllowClickthrough = true;
+    }
 
-        this.IconImage = iconImage;
-        this.CloseButtonTexture = closeButtonTexture;
-        this.Plugin = plugin;
+    public static void Dispose()
+    {
+    }
 
-        // Load the close button image using the new method in AetherBoxPlugin
-        // Just pass the image name, the method will handle the path
-        CloseButtonTexture = plugin.LoadImage("close.png");
+    public override void Draw()
+    {
+        DrawHeader();
+        var contentRegionAvail = ImGui.GetContentRegionAvail();
+        _ = ref ImGui.GetStyle().ItemSpacing;
+        var topLeftSideHeight = contentRegionAvail.Y;
+        if (!ImGui.BeginTable("$" + global::AetherBox.AetherBox.Name + "TableContainer", 2, ImGuiTableFlags.Resizable))
+        {
+            return;
+        }
+        try
+        {
+            ImGui.TableSetupColumn("###LeftColumn", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
+            ImGui.TableNextColumn();
+            Vector2 regionSize = ImGui.GetContentRegionAvail();
+            ImGui.PushStyleVar(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
+            string str_id = "###" + global::AetherBox.AetherBox.Name + "Left";
+            Vector2 size = regionSize;
+            size.Y = topLeftSideHeight;
+            if (ImGui.BeginChild(str_id, size, border: false, ImGuiWindowFlags.NoDecoration))
+            {
+                foreach (object window in Enum.GetValues(typeof(OpenCatagory)))
+                {
+                    if ((OpenCatagory)window != 0 && ImGui.Selectable($"{window}", OpenCatagory == (OpenCatagory)window))
+                    {
+                        OpenCatagory = (OpenCatagory)window;
+                    }
+                }
+                ImGui.Spacing();
+                ImGui.SetCursorPosY(ImGui.GetContentRegionMax().Y - 45f);
+                ImGuiEx.ImGuiLineCentered("###Search", delegate
+                {
+                    ImGui.Text("Search");
+                    ImGuiComponents.HelpMarker("Searches feature names and descriptions for a given word or phrase.");
+                });
+                ImGuiEx.SetNextItemFullWidth();
+                if (ImGui.InputText("###FeatureSearch", ref searchString, 500u))
+                {
+                    if (searchString.Equals("ERP", StringComparison.CurrentCultureIgnoreCase) && !hornybonk)
+                    {
+                        hornybonk = true;
+                        var YTurl = "https://www.youtube.com/watch?v=UsCwVqtF0-Q";
+                        Util.OpenLink(YTurl);
+                    }
+                    else
+                    {
+                        hornybonk = false;
+                    }
+                    FilteredFeatures.Clear();
+                    if (searchString.Length > 0)
+                    {
+                        foreach (BaseFeature feature in global::AetherBox.AetherBox.Plugin.Features)
+                        {
+                            if (feature.FeatureType != FeatureType.Commands && feature.FeatureType != 0 && (feature.Description.Contains(searchString, StringComparison.CurrentCultureIgnoreCase) || feature.Name.Contains(searchString, StringComparison.CurrentCultureIgnoreCase)))
+                            {
+                                FilteredFeatures.Add(feature);
+                            }
+                        }
+                    }
+                }
+            }
+            ImGui.EndChild();
+            ImGui.PopStyleVar();
+            ImGui.TableNextColumn();
+            if (ImGui.BeginChild("###" + AetherBox.Name + "Right", Vector2.Zero, false, ImGuiWindowFlags.NoDecoration))
+            {
+                if (FilteredFeatures?.Count > 0)
+                {
+                    DrawFeatures(FilteredFeatures?.ToArray());
+                }
+                else
+                {
+                    switch (OpenCatagory)
+                    {
+                        case OpenCatagory.Actions:
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Actions && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.UI:
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.UI && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.Other:
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Other && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.Targets:
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Targeting && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.Chat:
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.ChatFeature && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.Achievements:
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Achievements && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.Commands:
+                            DrawCommands(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Commands && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.About:
+                            DrawAbout();
+                            break;
+                    }
+                }
+            }
+            ImGui.EndChild();
+        }
+        catch (Exception ex)
+        {
+            ex.Log();
+            ImGui.EndTable();
+        }
+        ImGui.EndTable();
+    }
+
+    private static void DrawAbout()
+    {
+        try
+        {
+            ImGui.TextWrapped("This is where I test features for Pandora's Box, learn to break the game, or store features ill suited for anything else.");
+            ImGui.Spacing();
+            ImGui.TextWrapped("If any feature you see here is in Pandora's Box, it means I'm testing modifications to that feature. If you enable it here, make sure the Pandora version is disabled or there will probably be problems.");
+            ImGui.Text("Icon by Kadmas");
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error at DrawAbout");
+        }
+    }
+
+    private static void DrawCommands(BaseFeature[] features)
+    {
+        try
+        {
+            if (features == null || !features.Any() || features.Length == 0)
+                return;
+            var interpolatedStringHandler1 = new DefaultInterpolatedStringHandler(13, 1);
+            interpolatedStringHandler1.AppendLiteral("featureHeader");
+            interpolatedStringHandler1.AppendFormatted(features.First().FeatureType);
+            ImGuiEx.ImGuiLineCentered(interpolatedStringHandler1.ToStringAndClear(), () =>
+            {
+                var interpolatedStringHandler2 = new DefaultInterpolatedStringHandler(0, 1);
+                interpolatedStringHandler2.AppendFormatted(features.First().FeatureType);
+                ImGui.Text(interpolatedStringHandler2.ToStringAndClear());
+            });
+            ImGui.Separator();
+            if (!ImGui.BeginTable("###CommandsTable", 5, ImGuiTableFlags.Borders))
+                return;
+            ImGui.TableSetupColumn("Name");
+            ImGui.TableSetupColumn("Command");
+            ImGui.TableSetupColumn("Parameters");
+            ImGui.TableSetupColumn("Description");
+            ImGui.TableSetupColumn("Aliases");
+            ImGui.TableHeadersRow();
+            foreach (var commandFeature in features.Cast<CommandFeature>())
+            {
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(commandFeature.Name);
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(commandFeature.Command);
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(string.Join(", ", (IEnumerable<string>)commandFeature.Parameters));
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(commandFeature.Description ?? "");
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(string.Join(", ", commandFeature.Alias) ?? "");
+            }
+            ImGui.EndTable();
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error at DrawCommands");
+        }
+    }
+
+    private void DrawFeatures(IEnumerable<BaseFeature> features)
+    {
+        try
+        {
+            if (features == null || !features.Any() || !features.Any())
+                return;
+            var interpolatedStringHandler1 = new DefaultInterpolatedStringHandler(13, 1);
+            interpolatedStringHandler1.AppendLiteral("featureHeader");
+            interpolatedStringHandler1.AppendFormatted(features.First().FeatureType);
+            ImGuiEx.ImGuiLineCentered(interpolatedStringHandler1.ToStringAndClear(), () =>
+            {
+                if (FilteredFeatures?.Count > 0)
+                {
+                    ImGui.Text("Search Results");
+                }
+                else
+                {
+                    var interpolatedStringHandler2 = new DefaultInterpolatedStringHandler(0, 1);
+                    interpolatedStringHandler2.AppendFormatted(features.First().FeatureType);
+                    ImGui.Text(interpolatedStringHandler2.ToStringAndClear());
+                }
+            });
+            ImGui.Separator();
+            foreach (var feature1 in features)
+            {
+                var feature = feature1;
+                var enabled = feature.Enabled;
+                if (ImGui.Checkbox("###" + feature.Name, ref enabled))
+                {
+                    if (enabled)
+                    {
+                        try
+                        {
+                            feature.Enable();
+                            if (feature.Enabled)
+                                AetherBox.Config.EnabledFeatures.Add(feature.GetType().Name);
+                        }
+                        catch (Exception ex)
+                        {
+                            Svc.Log.Error(ex, "Failed to enabled " + feature.Name);
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            feature.Disable();
+                            AetherBox.Config.EnabledFeatures.RemoveAll(x => x == feature.GetType().Name);
+                        }
+                        catch (Exception ex)
+                        {
+                            Svc.Log.Error(ex, "Failed to enabled " + feature.Name);
+                        }
+                    }
+                    AetherBox.Config.Save();
+                }
+                ImGui.SameLine();
+                feature.DrawConfig(ref enabled);
+                ImGui.Spacing();
+                ImGui.TextWrapped(feature.Description ?? "");
+                ImGui.Separator();
+            }
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error at DrawFeatures");
+        }
+    }
+
+    private void DrawHeader()
+    {
+        try
+        {
+            // Calculate the available width for the header and constrain the image to that width while maintaining aspect ratio
+            var availableWidth = ImGui.GetContentRegionAvail().X;
+            if (IconImage != null)
+            {
+                var aspectRatio = (float)IconImage.Width / IconImage.Height;
+                var imageWidth = availableWidth;
+                var imageHeight = imageWidth / aspectRatio;
+
+                // Ensure the image is not taller than a certain threshold, e.g., 100 pixels
+                var maxHeight = 100.0f * Scale;
+                if (imageHeight > maxHeight)
+                {
+                    imageHeight = maxHeight;
+                    imageWidth = imageHeight * aspectRatio;
+                }
+
+                // Center the image in the available space
+                var spaceBeforeImage = (availableWidth - imageWidth) * 0.5f;
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + spaceBeforeImage);
+
+                // Draw the image
+                ImGui.Image(this.IconImage.ImGuiHandle, new Vector2(imageWidth, imageHeight));
+            }
+            else
+            {
+                Svc.Log.Error("Icon Image is Null!");
+            }
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error at DrawHeader");
+        }
+
     }
 
     /// <summary>
@@ -49,224 +347,26 @@ public class MainWindow : Window, IDisposable
     /// </summary>
     public override void OnClose()
     {
-        Plugin.Configuration.Save();
-        base.OnClose();
-    }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    public void Dispose()
-    {
-        this.IconImage.Dispose();
-        this.CloseButtonTexture.Dispose();
-    }
-
-    /// <summary>
-    /// Code to be executed every time the window renders.
-    /// </summary>
-    /// <remarks>In this method, implement your drawing code. You do NOT need to ImGui.Begin your window.</remarks>
-    public override void Draw()
-    {
-        using var style = ImRaii.PushStyle(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
         try
         {
-            var leftTop = ImGui.GetWindowPos() + ImGui.GetCursorPos();
-            var rightDown = leftTop + ImGui.GetWindowSize();
-            var screenSize = ImGuiHelpers.MainViewport.Size;
-            if ((leftTop.X <= 0 || leftTop.Y <= 0 || rightDown.X >= screenSize.X || rightDown.Y >= screenSize.Y)
-                && !ImGui.GetIO().ConfigFlags.HasFlag(ImGuiConfigFlags.ViewportsEnable))
-            {
-                var str = string.Empty;
-                for (var i = 0; i < 150; i++)
-                {
-                    str += "Move Screen!";
-                }
-
-                using var font = ImRaii.PushFont(ImGuiExtra.GetFont(24));
-                using var color = ImRaii.PushColor(ImGuiCol.Text, ImGui.ColorConvertFloat4ToU32(ImGuiColors.DalamudYellow));
-                ImGui.TextWrapped(str);
-            }
-            else
-            {
-                using var table = ImRaii.Table("AetherBox Config Table", 2, ImGuiTableFlags.Resizable);
-                if (table)
-                {
-                    // Set the width of the navigation panel column
-                    var navigationPanelWidth = 150 * Scale;
-                    ImGui.TableSetupColumn("AetherBox Config Side Bar", ImGuiTableColumnFlags.WidthFixed, navigationPanelWidth);
-                    ImGui.TableNextColumn();
-
-                    // Draw the icon at the top
-                    DrawHeader();
-
-                    ImGui.Spacing();
-                    ImGui.Separator();
-                    ImGui.Spacing();
-
-                    try
-                    {
-                        DrawNavigationpanel();
-                    }
-                    catch (Exception ex)
-                    {
-                        Svc.Log.Warning(ex, "Something wrong with navigation panel");
-                    }
-
-                    ImGui.TableNextColumn();
-
-                    try
-                    {
-                        DrawBody();
-                    }
-                    catch (Exception ex)
-                    {
-                        Svc.Log.Warning(ex, "Something wrong with body");
-                    }
-
-                }
-            }
+            AetherBox.Config.Save();
         }
         catch (Exception ex)
         {
-            Svc.Log.Warning(ex, "Something wrong with config window.");
+            Svc.Log.Error($"{ex}, Error at OnClose");
         }
     }
 
-    /// <summary>
-    /// Draw the navigation panel
-    /// </summary>
-    private void DrawNavigationpanel()
+    /*public void Dispose()
     {
-        // Info
-        if (ImGui.Selectable("Info", isCategoryInfoOpen))
+        try
         {
-            isCategoryInfoOpen = !isCategoryInfoOpen; // Toggle the state
-            if (isCategoryInfoOpen)
-            {
-                selectedCategory = "Info";
-            }
-            else if (selectedCategory == "Info")
-            {
-                selectedCategory = null;
-            }
+            GC.SuppressFinalize(this);
+            BannerImage?.Dispose();
         }
-
-        //Settings
-        if (ImGui.Selectable("Settings", isCategorySettingsOpen))
+        catch (Exception ex)
         {
-            isCategorySettingsOpen = !isCategorySettingsOpen; // Toggle the state
-            if (isCategorySettingsOpen)
-            {
-                selectedCategory = "Settings";
-            }
-            else if (selectedCategory == "Settings")
-            {
-                selectedCategory = null;
-            }
+            Svc.Log.Error($"{ex}, Error at Dispose");
         }
-
-        // ... additional categories with the same pattern
-
-
-
-        // Calculate the space available for the button, or set a fixed size
-        var spaceForButton = 50.0f * Scale; // Example size, adjust as needed
-
-        // Assuming 'CloseButtonTexture' is the variable holding your loaded texture
-        if (CloseButtonTexture != null)
-        {
-            // Calculate the center position for the button
-            var windowWidth = ImGui.GetContentRegionAvail().X;
-            var windowHeight = ImGui.GetWindowHeight();
-            var buttonPosX = (windowWidth - spaceForButton) * 0.5f; // Center the button horizontally
-            var offsetX = 9.5f; // Adjust this value as needed to align the button correctly
-            buttonPosX += offsetX; // Apply the offset
-            var buttonPosY = windowHeight - spaceForButton - ImGui.GetStyle().ItemSpacing.Y; // Position the button at the bottom
-
-            // Set the cursor position to the calculated X and Y positions
-            ImGui.SetCursorPosX(buttonPosX);
-            ImGui.SetCursorPosY(buttonPosY);
-
-            // Draw the image button without padding and background color
-            if (ImGuiExtra.NoPaddingNoColorImageButton(CloseButtonTexture.ImGuiHandle, new Vector2(spaceForButton, spaceForButton)))
-            {
-                // Ensure 'Plugin.Configuration' is not null before saving
-                if (Plugin.Configuration != null)
-                {
-                    // Save the settings
-                    Plugin.Configuration.Save();
-
-                    // Ensure 'Svc.Log' is not null before logging
-                    // Log the information
-                    Svc.Log?.Information("Settings have been saved.");
-
-                    // Close the window by toggling the visibility off
-                    this.IsOpen = false; // Assuming 'IsOpen' is a property that controls the window's visibility
-                }
-
-            }
-        }
-
-    }
-
-    /// <summary>
-    /// Draws the Top left Icon
-    /// </summary>
-    private void DrawHeader()
-    {
-        // Calculate the available width for the header and constrain the image to that width while maintaining aspect ratio
-        var availableWidth = ImGui.GetContentRegionAvail().X;
-        var aspectRatio = (float)this.IconImage.Width / this.IconImage.Height;
-        var imageWidth = availableWidth;
-        var imageHeight = imageWidth / aspectRatio;
-
-        // Ensure the image is not taller than a certain threshold, e.g., 100 pixels
-        var maxHeight = 100.0f * Scale;
-        if (imageHeight > maxHeight)
-        {
-            imageHeight = maxHeight;
-            imageWidth = imageHeight * aspectRatio;
-        }
-
-        // Center the image in the available space
-        var spaceBeforeImage = (availableWidth - imageWidth) * 0.5f;
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + spaceBeforeImage);
-
-        // Draw the image
-        ImGui.Image(this.IconImage.ImGuiHandle, new Vector2(imageWidth, imageHeight));
-    }
-
-    private PluginInfoUI pluginInfoUI = new();
-    private PluginSettingsUI pluginSettingsUI = new();
-
-    /// <summary>
-    /// Draws thee left collum
-    /// </summary>
-    private void DrawBody()
-    {
-        if (selectedCategory != null)
-        {
-            switch (selectedCategory)
-            {
-                case "Info":
-                    pluginInfoUI.DrawUI();
-                    break;
-                case "Settings":
-                    pluginSettingsUI.DrawUI();
-                    break;
-                    // Add more cases as needed for additional categories
-            }
-        }
-    }
-
-    private void DrawPluginSettings()
-    {
-        // Your code to draw the contents of the Settings category
-        ImGui.Text("This is the content for the Settings category.");
-        // Add more ImGui calls to build out this category's UI
-    }
-
-
-
+    }*/
 }
