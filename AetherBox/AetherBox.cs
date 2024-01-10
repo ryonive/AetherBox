@@ -117,7 +117,7 @@ namespace AetherBox
         {
             Svc.Commands.AddHandler("/atb", new CommandInfo(OnCommandToggleUI)
             {
-                HelpMessage = "Toggles main menu UI\n /atb c -> Toggles settings menu",
+                HelpMessage = "Toggles main menu UI\n/atb c → Toggles settings menu\n/atb d → Toggles debug menu\"",
                 ShowInHelp = true
             });
 
