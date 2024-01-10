@@ -5,14 +5,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-#nullable disable
 namespace AetherBox.Features;
 
 public class FeatureProvider : IDisposable
 {
     public FeatureProvider(Assembly assembly)
     {
-        Assembly = assembly;
+        this.Assembly = assembly; // Direct assignment to the property
+        this.Features = new List<BaseFeature>();
     }
 
     public bool Disposed { get; protected set; }

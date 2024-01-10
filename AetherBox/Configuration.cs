@@ -1,4 +1,3 @@
-//using AetherBox.Debugging;
 using Dalamud.Configuration;
 using Dalamud.Plugin;
 using ECommons.Logging;
@@ -14,13 +13,12 @@ namespace AetherBox
         public bool showDebugFeatures;
         [NonSerialized]
         private DalamudPluginInterface PluginInterface;
-        //public DebugConfig Debugging = new DebugConfig();
 
         public int Version { get; set; }
 
         public void Initialize(DalamudPluginInterface pluginInterface)
         {
-            PluginInterface = pluginInterface;
+            this.PluginInterface = pluginInterface;
         }
 
         public void InfoSave()

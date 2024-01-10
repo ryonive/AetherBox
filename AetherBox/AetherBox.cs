@@ -19,6 +19,8 @@ using Module = ECommons.Module;
 using ECommons.ChatMethods;
 using System.Windows.Forms;
 using ECommons.Logging;
+using Microsoft.VisualBasic.ApplicationServices;
+using static System.Windows.Forms.LinkLabel;
 
 namespace AetherBox
 {
@@ -132,7 +134,7 @@ namespace AetherBox
         private void DisposePlugin()
         {
             UnsubscribeFromEvents();
-            UnloadFeatures();
+            UnloadFeatures();                   //AetherBox\AetherBox\AetherBox.cs:line 135
             ClearResources();
             ECommonsMain.Dispose();
         }
@@ -151,10 +153,16 @@ namespace AetherBox
         // Unloads all the plugin features like 'Auto Follow'
         private void UnloadFeatures()
         {
-            foreach (var baseFeature in Features.Where(x => x != null && x.Enabled))
-                baseFeature.Disable();
+            if (Features != null)
+            {
+                foreach (var baseFeature in Features.Where(x => x != null && x.Enabled))
+                    baseFeature.Disable();
+            }
+            if (provider != null)
+            {
+                provider.UnloadFeatures();
+            }
 
-            provider.UnloadFeatures();
         }
 
         /// <summary>

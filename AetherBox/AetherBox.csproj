@@ -29,6 +29,9 @@
             <Visible>false</Visible>
         </Content>
         <Compile Remove="AetherBox - old.cs" />
+        <Compile Remove="Features\Actions\ClickToMove.cs" />
+        <Compile Remove="Features\Actions\InstantGroundTarget.cs" />
+        <Compile Remove="Features\Actions\ISLock&amp;Move.cs" />
         <Compile Remove="GlobalSuppressions.cs" />
         <Compile Remove="UI\ConfigWindow.cs" />
         <Compile Remove="Features\Debugging\**" />
@@ -40,6 +43,9 @@
         </Content>
     </ItemGroup>
     <ItemGroup>
+      <None Include="Features\Actions\ClickToMove.cs" />
+      <None Include="Features\Actions\InstantGroundTarget.cs" />
+      <None Include="Features\Actions\ISLock&amp;Move.cs" />
       <None Include="GlobalSuppressions.cs" />
       <None Include="UI\ConfigWindow.cs" />
        <None Include="Features\Debugging\**" />

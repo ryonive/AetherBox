@@ -7,7 +7,6 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Components;
-using Dalamud.Logging;
 using Dalamud.Memory;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -160,7 +159,7 @@ public abstract class BaseFeature
         var flag1 = false;
         try
         {
-            var config =  
+            var config =
                  GetType().GetProperties()
                 .FirstOrDefault( p => p.PropertyType.IsSubclassOf(typeof (FeatureConfig)))
                 .GetValue( this);

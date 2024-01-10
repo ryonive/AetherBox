@@ -57,6 +57,9 @@ internal class OldMainWindow : Window, IDisposable
         CloseButtonTexture = AetherBox.LoadImage("close.png");
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
     public override void Draw()
     {
         using var style = ImRaii.PushStyle(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
@@ -104,6 +107,7 @@ internal class OldMainWindow : Window, IDisposable
             Svc.Log.Warning(ex, "Something wrong with config window.");
         }
     }
+
     private void DrawNavigationpanel()
     {
         try
@@ -313,6 +317,4 @@ internal class OldMainWindow : Window, IDisposable
         }
 
     }
-
-
 }
