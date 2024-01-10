@@ -21,6 +21,7 @@ using System.Windows.Forms;
 using ECommons.Logging;
 using Microsoft.VisualBasic.ApplicationServices;
 using static System.Windows.Forms.LinkLabel;
+using AetherBox.IPC;
 
 namespace AetherBox
 {
@@ -34,15 +35,17 @@ namespace AetherBox
 
         internal OldMainWindow OldMainWindow;
 
+        internal DebugWindow DebugWindow;
+
         internal static AetherBox Plugin;
 
         internal static DalamudPluginInterface PluginInterface;
 
-        // public static Configuration Config;
-        private static Configuration config;
+        public static Configuration ? Config;
+        // private static Configuration config;
 
         // public List<FeatureProvider> FeatureProviders = new List<FeatureProvider>();
-        private List<FeatureProvider> featureProviders = new List<FeatureProvider>();
+        public List<FeatureProvider> FeatureProviders = new List<FeatureProvider>();
 
         private FeatureProvider provider;
 
@@ -53,7 +56,8 @@ namespace AetherBox
         public IEnumerable<BaseFeature> Features => from x in FeatureProviders.Where((x) => !x.Disposed).SelectMany((x) => x.Features)
                                                     orderby x.Name
                                                     select x;
-        private List<FeatureProvider> FeatureProviders
+
+        /*private List<FeatureProvider> FeatureProviders
         {
             get => featureProviders;
             set => featureProviders = value ?? throw new ArgumentNullException(nameof(value));
@@ -63,25 +67,32 @@ namespace AetherBox
         {
             get => config;
             private set => config = value ?? throw new ArgumentNullException(nameof(value));
-        }
+        }*/
 
         public AetherBox(DalamudPluginInterface pluginInterface)
         {
-            InitializePlugin(pluginInterface);
+            Plugin = this;
+            PluginInterface = pluginInterface;
+            InitializePlugin();
         }
 
-        private void InitializePlugin(DalamudPluginInterface pi)
+        private void InitializePlugin()
         {
-            Plugin = this;
-            PluginInterface = pi;
-            ECommonsMain.Init(pi, this, Module.All);
-
+            ECommonsMain.Init(PluginInterface, this, Module.DalamudReflector);
             WindowSystem = new WindowSystem(Name);
+
             SetupWindows();
+
             SetupCommands();
+
+            PandorasBoxIPC.Init();
+
             SubscribeToEvents();
 
+            Common.Setup();
+
             provider = new FeatureProvider(Assembly.GetExecutingAssembly());
+
             LoadFeatures();
         }
 
@@ -92,10 +103,13 @@ namespace AetherBox
             var iconImage = LoadImage("icon.png");
             var bannerImage = LoadImage("banner.png");
 
-            OldMainWindow = new OldMainWindow(this, iconImage, closeImage);
-            MainWindow = new MainWindow(this, bannerImage);
+            MainWindow = new MainWindow(bannerImage, iconImage);
+            OldMainWindow = new OldMainWindow(iconImage, closeImage);
+            DebugWindow = new DebugWindow();
+
             WindowSystem.AddWindow(MainWindow);
             WindowSystem.AddWindow(OldMainWindow);
+            WindowSystem.AddWindow(DebugWindow);
         }
 
         // Sets up Commands to toggle the visible state of main menu and settings window.
@@ -110,8 +124,9 @@ namespace AetherBox
             Svc.Commands.AddHandler("/atbdev", new CommandInfo(TestCommand)
             {
                 HelpMessage = "Test command - just displays a message.",
-                ShowInHelp = false
+                ShowInHelp = true
             });
+
         }
 
         // Subscribes to events such as chat commands.
@@ -142,10 +157,12 @@ namespace AetherBox
         // Collective Dispose method
         private void DisposePlugin()
         {
+            PandorasBoxIPC.Dispose();
             UnsubscribeFromEvents();
             UnloadFeatures();                   //AetherBox\AetherBox\AetherBox.cs:line 135
             ClearResources();
             ECommonsMain.Dispose();
+            Common.Shutdown();
         }
 
         // Unsubscribes from events such as chat commands.
@@ -180,6 +197,7 @@ namespace AetherBox
         private void ClearResources()
         {
             WindowSystem.RemoveAllWindows();
+            DebugWindow = null;
             OldMainWindow = null;
             MainWindow = null;
             WindowSystem = null;
@@ -188,7 +206,7 @@ namespace AetherBox
         /// <summary>
         /// Code to be executed when the window is closed.
         /// </summary>
-        public static void OnClose()
+        /*public static void OnClose()
         {
             try
             {
@@ -199,7 +217,7 @@ namespace AetherBox
                 Svc.Log.Error($"{ex},");
             }
 
-        }
+        }*/
 
         /// <summary>
         /// Loads an image. (note image should be located in the build folder)
@@ -248,6 +266,11 @@ namespace AetherBox
                 {
                     // Toggle settings UI
                     OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
+                }
+                else if (args.Equals("d", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Toggle settings UI
+                    DebugWindow.IsOpen = !DebugWindow.IsOpen;
                 }
             }
             catch (Exception ex)

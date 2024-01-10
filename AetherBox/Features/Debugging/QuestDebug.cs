@@ -24,98 +24,86 @@ namespace AetherBox.Features.Debugging
 {
     public class QuestDebug : DebugHelper
     {
-        private readonly 
-    #nullable disable
-    FeatureProvider provider = new FeatureProvider(Assembly.GetExecutingAssembly());
+        private readonly FeatureProvider provider = new FeatureProvider(Assembly.GetExecutingAssembly());
+
         private QuestManager qm;
+
         private unsafe QuestManager* _qm = QuestManager.Instance();
+
         private int selectedQuestID;
+
         private string questName = "";
+
         private readonly ExcelSheet<Quest> questSheet;
-        private static readonly 
-    #nullable enable
-    Dictionary<uint, 
-    #nullable disable
-    Quest>
-    #nullable enable
-    ? QuestSheet;
-        private readonly 
-    #nullable disable
-    List<SeString> questNames = Svc.Data.GetExcelSheet<Quest>(Svc.ClientState.ClientLanguage).Select<Quest, SeString>((Func<Quest, SeString>) (x => x.Name)).ToList<SeString>();
 
-        public override string Name => nameof(QuestDebug).Replace("Debug", "") + " Debugging";
+        private static readonly Dictionary<uint, Quest>? QuestSheet = Svc.Data?.GetExcelSheet<Quest>()?.Where((Quest x) => x.Id.RawString.Length > 0).ToDictionary((Quest i) => i.RowId, (Quest i) => i);
 
-        public override unsafe void Draw()
+        private readonly List<SeString> questNames = (from x in Svc.Data.GetExcelSheet<Quest>(Svc.ClientState.ClientLanguage)
+                                                      select x.Name).ToList();
+
+        public override string Name => "QuestDebug".Replace("Debug", "") + " Debugging";
+
+        public unsafe override void Draw()
         {
-            ImGui.Text(this.Name ?? "");
+            ImGui.Text(Name ?? "");
             ImGui.Separator();
-            AtkUnitBase* AddonPtr;
-            if (ImGui.Button("Very Easy") && GenericHelpers.TryGetAddonByName<AtkUnitBase>("DifficultySelectYesNo", out AddonPtr))
-                Callback.Fire(AddonPtr, true, (object)0, (object)2);
-            ImGui.InputText("###QuestNameInput", ref this.questName, 500U);
-            DefaultInterpolatedStringHandler interpolatedStringHandler;
-            if (this.questName != "")
+            if (ImGui.Button("Very Easy") && GenericHelpers.TryGetAddonByName<AtkUnitBase>("DifficultySelectYesNo", out var addon))
             {
-                Quest quest = this.TrySearchQuest(this.questName);
-                interpolatedStringHandler = new DefaultInterpolatedStringHandler(9, 1);
-                interpolatedStringHandler.AppendLiteral("QuestID: ");
-                interpolatedStringHandler.AppendFormatted<int>((int)quest.RowId);
-                ImGui.Text(interpolatedStringHandler.ToStringAndClear());
+                Callback.Fire(addon, true, 0, 2);
             }
-            ImGui.InputInt("###QuestIDInput", ref this.selectedQuestID, 500);
-            if (this.selectedQuestID != 0)
+            ImGui.InputText("###QuestNameInput", ref questName, 500u);
+            if (questName != "")
             {
-                interpolatedStringHandler = new DefaultInterpolatedStringHandler(20, 1);
-                interpolatedStringHandler.AppendLiteral("Is Quest Accepted?: ");
-                interpolatedStringHandler.AppendFormatted<bool>(this.qm.IsQuestAccepted((ushort)this.selectedQuestID));
-                ImGui.Text(interpolatedStringHandler.ToStringAndClear());
-                interpolatedStringHandler = new DefaultInterpolatedStringHandler(20, 1);
-                interpolatedStringHandler.AppendLiteral("Is Quest Complete?: ");
-                interpolatedStringHandler.AppendFormatted<bool>(QuestManager.IsQuestComplete((ushort)this.selectedQuestID));
-                ImGui.Text(interpolatedStringHandler.ToStringAndClear());
-                interpolatedStringHandler = new DefaultInterpolatedStringHandler(24, 1);
-                interpolatedStringHandler.AppendLiteral("Current Quest Sequence: ");
-                interpolatedStringHandler.AppendFormatted<byte>(QuestManager.GetQuestSequence((ushort)this.selectedQuestID));
-                ImGui.Text(interpolatedStringHandler.ToStringAndClear());
+                Quest quest2 = TrySearchQuest(questName);
+                ImGui.Text($"QuestID: {quest2.RowId}");
+            }
+            ImGui.InputInt("###QuestIDInput", ref selectedQuestID, 500);
+            if (selectedQuestID != 0)
+            {
+                ImGui.Text($"Is Quest Accepted?: {qm.IsQuestAccepted((ushort)selectedQuestID)}");
+                ImGui.Text($"Is Quest Complete?: {QuestManager.IsQuestComplete((ushort)selectedQuestID)}");
+                ImGui.Text($"Current Quest Sequence: {QuestManager.GetQuestSequence((ushort)selectedQuestID)}");
             }
             ImGui.Separator();
             ImGuiEx.TextUnderlined("Accepted Quests");
-            Span<QuestWork> normalQuestsSpan = this._qm->NormalQuestsSpan;
-            for (int index = 0; index < normalQuestsSpan.Length; ++index)
+            Span<QuestWork> normalQuestsSpan = _qm->NormalQuestsSpan;
+            for (int i = 0; i < normalQuestsSpan.Length; i++)
             {
-                QuestWork questWork = normalQuestsSpan[index];
-                if (questWork.QuestId != (ushort)0)
+                QuestWork quest = normalQuestsSpan[i];
+                if (quest.QuestId != 0)
                 {
-                    interpolatedStringHandler = new DefaultInterpolatedStringHandler(18, 4);
-                    interpolatedStringHandler.AppendFormatted<ushort>(questWork.QuestId);
-                    interpolatedStringHandler.AppendLiteral(": ");
-                    interpolatedStringHandler.AppendFormatted(QuestDebug.NameOfQuest(questWork.QuestId));
-                    interpolatedStringHandler.AppendLiteral("\n   seq: ");
-                    interpolatedStringHandler.AppendFormatted<byte>(questWork.Sequence);
-                    interpolatedStringHandler.AppendLiteral(" flag: ");
-                    interpolatedStringHandler.AppendFormatted<byte>(questWork.Flags);
-                    ImGui.Text(interpolatedStringHandler.ToStringAndClear());
+                    ImGui.Text($"{quest.QuestId}: {NameOfQuest(quest.QuestId)}\n   seq: {quest.Sequence} flag: {quest.Flags}");
                 }
             }
         }
 
         public static string NameOfQuest(ushort id)
         {
-            if (id > (ushort)0)
+            if (id > 0)
             {
                 int digits = id.ToString().Length;
-                if (QuestDebug.QuestSheet.Any<KeyValuePair<uint, Quest>>((Func<KeyValuePair<uint, Quest>, bool>)(x => (int)Convert.ToInt16(x.Value.Id.RawString.GetLast(digits)) == (int)id)))
-                    return QuestDebug.QuestSheet.First<KeyValuePair<uint, Quest>>((Func<KeyValuePair<uint, Quest>, bool>)(x => (int)Convert.ToInt16(x.Value.Id.RawString.GetLast(digits)) == (int)id)).Value.Name.RawString.Replace("\uE0BE", "").Trim();
+                if (QuestSheet.Any((KeyValuePair<uint, Quest> x) => Convert.ToInt16(x.Value.Id.RawString.GetLast(digits)) == id))
+                {
+                    return QuestSheet.First((KeyValuePair<uint, Quest> x) => Convert.ToInt16(x.Value.Id.RawString.GetLast(digits)) == id).Value.Name.RawString.Replace("\ue0be", "").Trim();
+                }
             }
             return "";
         }
 
         private Quest TrySearchQuest(string input)
         {
-            List<(SeString, int)> list = this.questNames.Select<SeString, (SeString, int)>((Func<SeString, int, (SeString, int)>) ((n, i) => (n, i))).Where<(SeString, int)>((Func<(SeString, int), bool>) (t => !string.IsNullOrEmpty((string) t.n) && QuestDebug.IsMatch(input, (string) t.n))).ToList<(SeString, int)>();
-            if (list.Count > 1)
-                list = list.OrderByDescending<(SeString, int), object>((Func<(SeString, int), object>)(t => QuestDebug.MatchingScore((string)t.n, input))).ToList<(SeString, int)>();
-            return list.Count <= 0 ? (Quest)null : this.questSheet.GetRow((uint)list.First<(SeString, int)>().Item2);
+            List<(SeString, int)> matchingRows = (from t in questNames.Select((SeString n, int i) => (n: n, i: i))
+                                                  where !string.IsNullOrEmpty(t.n) && IsMatch(input, t.n)
+                                                  select t).ToList();
+            if (matchingRows.Count > 1)
+            {
+                matchingRows = matchingRows.OrderByDescending<(SeString, int), object>(((SeString n, int i) t) => MatchingScore(t.n, input)).ToList();
+            }
+            if (matchingRows.Count <= 0)
+            {
+                return null;
+            }
+            return questSheet.GetRow((uint)matchingRows.First().Item2);
         }
 
         private static bool IsMatch(string x, string y)
@@ -125,26 +113,12 @@ namespace AetherBox.Features.Debugging
 
         private static object MatchingScore(string item, string line)
         {
-            int num = 0;
+            int score = 0;
             if (line.Contains(item))
-                num += item.Length;
-            return (object)num;
-        }
-
-        static QuestDebug()
-        {
-            IDataManager data = Svc.Data;
-            Dictionary<uint, Quest> dictionary;
-            if (data == null)
             {
-                dictionary = (Dictionary<uint, Quest>)null;
+                score += item.Length;
             }
-            else
-            {
-                ExcelSheet<Quest> excelSheet = data.GetExcelSheet<Quest>();
-                dictionary = excelSheet != null ? excelSheet.Where<Quest>((Func<Quest, bool>)(x => x.Id.RawString.Length > 0)).ToDictionary<Quest, uint, Quest>((Func<Quest, uint>)(i => i.RowId), (Func<Quest, Quest>)(i => i)) : (Dictionary<uint, Quest>)null;
-            }
-            QuestDebug.QuestSheet = dictionary;
+            return score;
         }
     }
 }

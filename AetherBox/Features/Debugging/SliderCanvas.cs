@@ -4,7 +4,6 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 
-#nullable disable
 namespace AetherBox.Features.Debugging
 {
     public class SliderCanvas : DebugHelper

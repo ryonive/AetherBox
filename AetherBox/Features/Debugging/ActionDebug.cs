@@ -16,45 +16,48 @@ namespace AetherBox.Features.Debugging
 {
     public class ActionDebug : DebugHelper
     {
-        private readonly unsafe ActionManager* inst = ActionManager.Instance();
+        private unsafe readonly ActionManager* inst = ActionManager.Instance();
+
         private ActionType actionType;
+
         private uint actionID;
 
-        public override string Name => nameof(ActionDebug).Replace("Debug", "") + " Debugging";
+        public override string Name => "ActionDebug".Replace("Debug", "") + " Debugging";
 
-        public unsafe float AnimationLock => AddressHelper.ReadField<float>((void*)this.inst, 8);
+        public unsafe float AnimationLock => AddressHelper.ReadField<float>(inst, 8);
 
-        public override unsafe void Draw()
+        public unsafe override void Draw()
         {
-            ImGui.Text(this.Name ?? "");
+            ImGui.Text(Name ?? "");
             ImGui.Separator();
-            DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(11, 1);
-            interpolatedStringHandler.AppendLiteral("Anim lock: ");
-            interpolatedStringHandler.AppendFormatted<float>(this.AnimationLock, "f3");
-            ImGui.Text(interpolatedStringHandler.ToStringAndClear());
-            ActionManager.Instance()->UseActionLocation(this.actionType, this.actionID, 3758096384UL, (Vector3*)null, 0U);
-            List<ActionType> list = ((IEnumerable<ActionType>) Enum.GetValues(typeof (ActionType))).ToList<ActionType>();
-            ActionType actionType = list[0];
-            int index1 = 0;
-            if (ImGui.BeginCombo("Action Type", actionType.ToString()))
+            ImGui.Text($"Anim lock: {AnimationLock:f3}");
+            ActionManager.Instance()->UseActionLocation(actionType, actionID, 3758096384uL, null);
+            List<ActionType> actionTypes = ((ActionType[])Enum.GetValues(typeof(ActionType))).ToList();
+            ActionType prevType = actionTypes[0];
+            int selectedTypeIndex = 0;
+            if (ImGui.BeginCombo("Action Type", prevType.ToString()))
             {
-                for (int index2 = 0; index2 < list.Count; ++index2)
+                for (int i = 0; i < actionTypes.Count; i++)
                 {
-                    if (ImGui.Selectable(list[index2].ToString(), index1 == index2))
+                    if (ImGui.Selectable(actionTypes[i].ToString(), selectedTypeIndex == i))
                     {
-                        index1 = index2;
-                        int num = (int) list[index1];
+                        selectedTypeIndex = i;
+                        _ = actionTypes[selectedTypeIndex];
                     }
                 }
                 ImGui.EndCombo();
             }
-            AtkUnitBase* AddonPtr;
-            if (!ImGui.Button("mail delete") || !GenericHelpers.TryGetAddonByName<AtkUnitBase>("LetterViewer", out AddonPtr))
-                return;
-            if (AddonPtr->UldManager.NodeList[2]->GetAsAtkComponentButton()->IsEnabled)
-                Svc.Log.Info("del button enabled");
-            else
-                Svc.Log.Info("disabled");
+            if (ImGui.Button("mail delete") && GenericHelpers.TryGetAddonByName<AtkUnitBase>("LetterViewer", out var addon))
+            {
+                if (addon->UldManager.NodeList[2]->GetAsAtkComponentButton()->IsEnabled)
+                {
+                    Svc.Log.Info("del button enabled");
+                }
+                else
+                {
+                    Svc.Log.Info("disabled");
+                }
+            }
         }
     }
 }

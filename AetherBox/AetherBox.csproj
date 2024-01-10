@@ -65,21 +65,32 @@
     <!-- Plugin Content -->
     <ItemGroup>
         <Compile Remove="AetherBox - old.cs" />
-        <Compile Remove="Features\Actions\ClickToMove.cs" />
-        <Compile Remove="Features\Actions\InstantGroundTarget.cs" />
-        <Compile Remove="Features\Actions\ISLock&amp;Move.cs" />
         <Compile Remove="GlobalSuppressions.cs" />
         <Compile Remove="UI\ConfigWindow.cs" />
         <Compile Remove="Features\Debugging\**" />
-        <Compile Remove="UI\DebugWindow.cs" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="Features\Actions\ClickToMove.cs" />
-        <None Include="Features\Actions\InstantGroundTarget.cs" />
-        <None Include="Features\Actions\ISLock&amp;Move.cs" />
         <None Include="UI\ConfigWindow.cs" />
         <None Include="Features\Debugging\**" />
-        <None Include="UI\DebugWindow.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Features\Debugging\ActionDebug.cs" />
+      <None Remove="Features\Debugging\DebugManager.cs" />
+      <None Remove="Features\Debugging\FeatureDebug.cs" />
+      <None Remove="Features\Debugging\IslandDebug.cs" />
+      <None Remove="Features\Debugging\PositionDebug.cs" />
+      <None Remove="Features\Debugging\QuestDebug.cs" />
+      <None Remove="Features\Debugging\SliderCanvas.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Include="Features\Debugging\ActionDebug.cs" />
+      <Compile Include="Features\Debugging\FeatureDebug.cs" />
+      <Compile Include="Features\Debugging\IslandDebug.cs" />
+      <Compile Include="Features\Debugging\PositionDebug.cs" />
+      <Compile Include="Features\Debugging\QuestDebug.cs" />
+      <Compile Include="Features\Debugging\SliderCanvas.cs" />
     </ItemGroup>
 </Project>

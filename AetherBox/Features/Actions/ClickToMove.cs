@@ -1,73 +1,62 @@
+using System.Numerics;
 using AetherBox.FeaturesSetup;
 using AetherBox.Helpers;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
 using ImGuiNET;
-using System;
-using System.Numerics;
-using System.Runtime.CompilerServices;
 
-#nullable disable
-namespace AetherBox.Features.Actions
+namespace AetherBox.Features.Actions;
+
+public class ClickToMove : Feature
 {
-    public class ClickToMove : Feature
+    public class Configs : FeatureConfig
     {
-        private readonly OverrideMovement movement = new OverrideMovement();
+        [FeatureConfigOption("Distance to Keep", "", 1, null, IntMin = 0, IntMax = 30, EditorSize = 300)]
+        public VirtualKey keybind;
+    }
 
-        public override string Name => "Click to Move";
+    private readonly OverrideMovement movement = new OverrideMovement();
 
-        public override string Description => "Like those other games.";
+    public override string Name => "Click to Move";
 
-        public override FeatureType FeatureType => FeatureType.Disabled;
+    public override string Description => "Like those other games.";
 
-        public ClickToMove.Configs Config { get; private set; }
+    public override FeatureType FeatureType => FeatureType.Disabled;
 
-        protected override BaseFeature.DrawConfigDelegate DrawConfigTree
+    public Configs Config { get; private set; }
+
+    protected override DrawConfigDelegate DrawConfigTree => delegate
+    {
+    };
+
+    public override void Enable()
+    {
+        Config = LoadConfig<Configs>() ?? new Configs();
+        Svc.Framework.Update += MoveTo;
+        base.Enable();
+    }
+
+    public override void Disable()
+    {
+        SaveConfig(Config);
+        Svc.Framework.Update -= MoveTo;
+        base.Disable();
+    }
+
+    private static bool CheckHotkeyState(VirtualKey key)
+    {
+        return !Svc.KeyState[key];
+    }
+
+    private void MoveTo(IFramework framework)
+    {
+        if (CheckHotkeyState(VirtualKey.LBUTTON))
         {
-            get => (BaseFeature.DrawConfigDelegate)((ref bool hasChanged) => { });
-        }
-
-        public override void Enable()
-        {
-            this.Config = this.LoadConfig<ClickToMove.Configs>() ?? new ClickToMove.Configs();
-            Svc.Framework.Update += new IFramework.OnUpdateDelegate(this.MoveTo);
-            base.Enable();
-        }
-
-        public override void Disable()
-        {
-            this.SaveConfig<ClickToMove.Configs>(this.Config);
-            Svc.Framework.Update -= new IFramework.OnUpdateDelegate(this.MoveTo);
-            base.Disable();
-        }
-
-        private static bool CheckHotkeyState(VirtualKey key) => !Svc.KeyState[key];
-
-        private void MoveTo(IFramework framework)
-        {
-            if (!ClickToMove.CheckHotkeyState(VirtualKey.LBUTTON))
-                return;
-            Vector3 worldPos;
-            Svc.GameGui.ScreenToWorld(ImGui.GetIO().MousePos, out worldPos);
-            IPluginLog log = Svc.Log;
-            DefaultInterpolatedStringHandler interpolatedStringHandler = new DefaultInterpolatedStringHandler(26, 3);
-            interpolatedStringHandler.AppendLiteral("m1 pressed, moving to ");
-            interpolatedStringHandler.AppendFormatted<float>(worldPos.X);
-            interpolatedStringHandler.AppendLiteral(", ");
-            interpolatedStringHandler.AppendFormatted<float>(worldPos.Y);
-            interpolatedStringHandler.AppendLiteral(", ");
-            interpolatedStringHandler.AppendFormatted<float>(worldPos.Z);
-            string stringAndClear = interpolatedStringHandler.ToStringAndClear();
-            object[] objArray = Array.Empty<object>();
-            log.Info(stringAndClear, objArray);
-            this.movement.DesiredPosition = worldPos;
-        }
-
-        public class Configs : FeatureConfig
-        {
-            [FeatureConfigOption("Distance to Keep", "", 1, null, IntMin = 0, IntMax = 30, EditorSize = 300)]
-            public VirtualKey keybind;
+            Vector2 mousePos = ImGui.GetIO().MousePos;
+            Svc.GameGui.ScreenToWorld(mousePos, out var pos);
+            Svc.Log.Info($"m1 pressed, moving to {pos.X}, {pos.Y}, {pos.Z}");
+            movement.DesiredPosition = pos;
         }
     }
 }

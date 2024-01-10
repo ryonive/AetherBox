@@ -29,13 +29,13 @@ namespace AetherBox.FeaturesSetup
 
         public int IntMax { get; set; } = int.MaxValue;
 
-        public FeatureConfigOptionAttribute.NumberEditType IntType { get; set; }
+        public NumberEditType IntType { get; set; }
 
         public float FloatMin { get; set; } = float.MinValue;
 
-        public float FloatMax { get; set; } = (float)int.MaxValue;
+        public float FloatMax { get; set; } = int.MaxValue;
 
-        public FeatureConfigOptionAttribute.NumberEditType FloatType { get; set; }
+        public NumberEditType FloatType { get; set; }
 
         public bool EnforcedLimit { get; set; } = true;
 
@@ -43,7 +43,7 @@ namespace AetherBox.FeaturesSetup
 
         public uint SelectedValue { get; set; }
 
-        public FeatureConfigOptionAttribute(string name) => this.Name = name;
+        public FeatureConfigOptionAttribute(string name) => Name = name;
 
         public FeatureConfigOptionAttribute(
           string name,
@@ -51,16 +51,16 @@ namespace AetherBox.FeaturesSetup
           int priority = 0,
           string localizeKey = null)
         {
-            this.Name = name;
-            this.Priority = priority;
-            this.LocalizeKey = localizeKey ?? name;
-            this.Editor = typeof(FeatureConfigEditor).GetMethod(editorType + nameof(Editor), BindingFlags.Static | BindingFlags.Public);
+            Name = name;
+            Priority = priority;
+            LocalizeKey = localizeKey ?? name;
+            Editor = typeof(FeatureConfigEditor).GetMethod(editorType + nameof(Editor), BindingFlags.Static | BindingFlags.Public);
         }
 
         public FeatureConfigOptionAttribute(string name, uint selectedValue = 0)
         {
-            this.Name = name;
-            this.SelectedValue = selectedValue;
+            Name = name;
+            SelectedValue = selectedValue;
         }
 
         public delegate bool ConfigOptionEditor(string name, ref object configOption);

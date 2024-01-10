@@ -1,6 +1,5 @@
 using AetherBox.Helpers;
 using Dalamud.Hooking;
-using Dalamud.Logging;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using FFXIVClientStructs.FFXIV.Client.System.String;

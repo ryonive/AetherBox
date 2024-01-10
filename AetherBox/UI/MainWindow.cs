@@ -20,8 +20,9 @@ namespace AetherBox.UI;
 
 public class MainWindow : Window
 {
-    private readonly IDalamudTextureWrap? BannerImage;
-    internal readonly AetherBox Plugin;
+    private readonly IDalamudTextureWrap ? IconImage;
+    private readonly IDalamudTextureWrap ? BannerImage;
+    //internal readonly AetherBox Plugin;
     private static float Scale => ImGuiHelpers.GlobalScale;
 
 
@@ -30,8 +31,8 @@ public class MainWindow : Window
     private bool hornybonk;
     public OpenCatagory OpenCatagory { get; private set; }
 
-    public MainWindow(AetherBox plugin, IDalamudTextureWrap bannerImage)
-        : base($"{AetherBox.Name} {plugin.GetType().Assembly.GetName().Version}###{AetherBox.Name}",
+    public MainWindow( IDalamudTextureWrap bannerImage, IDalamudTextureWrap iconImage)
+        : base($"{AetherBox.Name} {AetherBox.Plugin.GetType().Assembly.GetName().Version}###{AetherBox.Name}",
                ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding,
                false)
     {
@@ -49,8 +50,8 @@ public class MainWindow : Window
 
         // Initialize other properties
         RespectCloseHotkey = true;
+        IconImage = iconImage;
         BannerImage = bannerImage; // Assign the passed banner image
-        Plugin = plugin;
         OnCloseSfxId = 24;
         OnOpenSfxId = 23;
         AllowPinning = true;
@@ -63,6 +64,7 @@ public class MainWindow : Window
 
     public override void Draw()
     {
+        DrawHeader();
         var contentRegionAvail = ImGui.GetContentRegionAvail();
         _ = ref ImGui.GetStyle().ItemSpacing;
         var topLeftSideHeight = contentRegionAvail.Y;
@@ -286,7 +288,7 @@ public class MainWindow : Window
                             Svc.Log.Error(ex, "Failed to enabled " + feature.Name);
                         }
                     }
-                    AetherBox.Config.InfoSave();
+                    AetherBox.Config.Save();
                 }
                 ImGui.SameLine();
                 feature.DrawConfig(ref enabled);
@@ -301,6 +303,44 @@ public class MainWindow : Window
         }
     }
 
+    private void DrawHeader()
+    {
+        try
+        {
+            // Calculate the available width for the header and constrain the image to that width while maintaining aspect ratio
+            var availableWidth = ImGui.GetContentRegionAvail().X;
+            if (IconImage != null)
+            {
+                var aspectRatio = (float)IconImage.Width / IconImage.Height;
+                var imageWidth = availableWidth;
+                var imageHeight = imageWidth / aspectRatio;
+
+                // Ensure the image is not taller than a certain threshold, e.g., 100 pixels
+                var maxHeight = 100.0f * Scale;
+                if (imageHeight > maxHeight)
+                {
+                    imageHeight = maxHeight;
+                    imageWidth = imageHeight * aspectRatio;
+                }
+
+                // Center the image in the available space
+                var spaceBeforeImage = (availableWidth - imageWidth) * 0.5f;
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + spaceBeforeImage);
+
+                // Draw the image
+                ImGui.Image(this.IconImage.ImGuiHandle, new Vector2(imageWidth, imageHeight));
+            }
+            else
+            {
+                Svc.Log.Error("Icon Image is Null!");
+            }
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error at DrawHeader");
+        }
+
+    }
 
     /// <summary>
     /// Code to be executed when the window is closed.
@@ -309,7 +349,7 @@ public class MainWindow : Window
     {
         try
         {
-            AetherBox.Config.InfoSave();
+            AetherBox.Config.Save();
         }
         catch (Exception ex)
         {

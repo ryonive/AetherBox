@@ -28,7 +28,6 @@ internal class OldMainWindow : Window, IDisposable
     private string? selectedCategory;
 
     public OldMainWindow(
-        AetherBox plugin,
         IDalamudTextureWrap iconImage,
         IDalamudTextureWrap closeButtonTexture) : base("AetherBox Settings", ImGuiWindowFlags.NoScrollbar, false)
     {
@@ -46,7 +45,6 @@ internal class OldMainWindow : Window, IDisposable
         RespectCloseHotkey = true;
         IconImage = iconImage;
         CloseButtonTexture = closeButtonTexture;
-        Plugin = plugin;
         OnCloseSfxId = 24;
         OnOpenSfxId = 23;
         AllowPinning = true;
@@ -184,7 +182,7 @@ internal class OldMainWindow : Window, IDisposable
                 if (AetherBox.Config != null)
                 {
                     // Save the settings
-                    AetherBox.Config.InfoSave();
+                    AetherBox.Config.Save();
 
                     // Ensure 'Svc.Log' is not null before logging
                     // Log the information
@@ -294,7 +292,7 @@ internal class OldMainWindow : Window, IDisposable
     {
         try
         {
-            AetherBox.Config.InfoSave();
+            AetherBox.Config.Save();
         }
         catch (Exception ex)
         {

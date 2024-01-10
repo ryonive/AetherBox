@@ -1,5 +1,5 @@
-// Automaton, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// Automaton.Helpers.IHookWrapper
+// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
+// AetherBox.Helpers.IHookWrapper
 using System;
 
 namespace AetherBox.Helpers;
