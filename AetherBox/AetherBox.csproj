@@ -14,20 +14,56 @@
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
+
+    <!-- Debug build config -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      <NoWarn>1701;1702;S125;IDE1006;S3010</NoWarn>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      <NoWarn>1701;1702;S125;IDE1006;S3010</NoWarn>
+        <NoWarn>1701;1702;S125;IDE1006;S3010</NoWarn>
     </PropertyGroup>
 
-    <!-- Plugin Content -->
+    <!-- Release build config -->
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+        <NoWarn>1701;1702;S125;IDE1006;S3010</NoWarn>
+    </PropertyGroup>
+
+    <!-- Important files -->
     <ItemGroup>
+        <!-- Manifest file is MANDATORY and used by the packager-->
+        <Content Include="AetherBox.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Visible>false</Visible>
+        </Content>
+        <!-- Points to  Dalamud folder for essential references and project settings -->
+        <None Include="Dalamud.Plugin.Bootstrap.targets">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Visible>false</Visible>
+        </None>
+        <!-- Doesnt need to be included on the repo, should be build on its own -->
+        <None Include="packages.lock.json">
+            <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+            <Visible>false</Visible>
+        </None>
+        <!-- References -->
+        <Reference Include="..\..\Libraries\addon\*.dll">
+        </Reference>
         <!-- images -->
         <Content Include="..\images\*.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Visible>false</Visible>
         </Content>
+    </ItemGroup>
+
+    <!-- Package and Project References -->
+    <ItemGroup>
+        <!-- Package Reference -->
+        <PackageReference Include="AngleSharp" Version="1.0.7" />
+        <PackageReference Include="NAudio" Version="2.2.1" />
+        <PackageReference Include="NAudio.Core" Version="2.2.1" />
+        <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
+        <PackageReference Include="Svg" Version="3.4.6" />
+    </ItemGroup>
+
+    <!-- Plugin Content -->
+    <ItemGroup>
         <Compile Remove="AetherBox - old.cs" />
         <Compile Remove="Features\Actions\ClickToMove.cs" />
         <Compile Remove="Features\Actions\InstantGroundTarget.cs" />
@@ -36,43 +72,14 @@
         <Compile Remove="UI\ConfigWindow.cs" />
         <Compile Remove="Features\Debugging\**" />
         <Compile Remove="UI\DebugWindow.cs" />
-
-        <!-- manifest file -->
-        <Content Include="AetherBox.json">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-    <ItemGroup>
-      <None Include="Features\Actions\ClickToMove.cs" />
-      <None Include="Features\Actions\InstantGroundTarget.cs" />
-      <None Include="Features\Actions\ISLock&amp;Move.cs" />
-      <None Include="GlobalSuppressions.cs" />
-      <None Include="UI\ConfigWindow.cs" />
-       <None Include="Features\Debugging\**" />
-      <None Include="UI\DebugWindow.cs" />
     </ItemGroup>
 
-    <!-- Package and Project References -->
     <ItemGroup>
-        <!-- Package Reference -->
-        <PackageReference Include="ClickLib" Version="1.2.0.1" />
-        <PackageReference Include="Svg" Version="3.4.5" />
-
-        <!-- Submodule Reference -->
-        <ProjectReference Include="..\ECommons\ECommons\ECommons.csproj" />
+        <None Include="Features\Actions\ClickToMove.cs" />
+        <None Include="Features\Actions\InstantGroundTarget.cs" />
+        <None Include="Features\Actions\ISLock&amp;Move.cs" />
+        <None Include="UI\ConfigWindow.cs" />
+        <None Include="Features\Debugging\**" />
+        <None Include="UI\DebugWindow.cs" />
     </ItemGroup>
-
-    <!-- Content 
-    <ItemGroup>
-        <Compile Remove="Helpers\**" />
-        <Compile Remove="UI\ImGuiExtensions\**" />
-        <Compile Remove="Attributes\LinkDescriptionAttribute.cs" />
-        <Compile Remove="UI\ConfigWindow.cs" />
-        <Compile Remove="UI\MainWindowConfigWindowTab.cs" />
-        <EmbeddedResource Remove="Helpers\**" />
-        <EmbeddedResource Remove="UI\ImGuiExtensions\**" />
-        <None Remove="Helpers\**" />
-        <None Remove="UI\ImGuiExtensions\**" />
-    </ItemGroup>     -->
-
 </Project>

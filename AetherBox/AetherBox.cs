@@ -24,24 +24,35 @@ using static System.Windows.Forms.LinkLabel;
 
 namespace AetherBox
 {
-#nullable disable
-
-    public class AetherBox : IDalamudPlugin
+    public class AetherBox : IDalamudPlugin, IDisposable
     {
-        private List<FeatureProvider> featureProviders = new List<FeatureProvider>();
+        private const string CommandName = "/atb";
+
+        internal WindowSystem WindowSystem;
+
+        internal MainWindow MainWindow;
+
+        internal OldMainWindow OldMainWindow;
+
+        internal static AetherBox Plugin;
+
+        internal static DalamudPluginInterface PluginInterface;
+
+        // public static Configuration Config;
         private static Configuration config;
-        private static string name = nameof(AetherBox);
-        internal WindowSystem WindowSystem { get; private set; }
-        internal MainWindow MainWindow { get; private set; }
-        internal OldMainWindow OldMainWindow { get; private set; }
-        internal TaskManager TaskManager { get; private set; }
-        internal static AetherBox Plugin { get; private set; }
-        internal static DalamudPluginInterface PluginInterface { get; private set; }
+
+        // public List<FeatureProvider> FeatureProviders = new List<FeatureProvider>();
+        private List<FeatureProvider> featureProviders = new List<FeatureProvider>();
+
         private FeatureProvider provider;
 
-        public IEnumerable<BaseFeature> Features =>
-            featureProviders.Where(x => !x.Disposed).SelectMany(x => x.Features).OrderBy(x => x.Name);
+        internal TaskManager TaskManager;
 
+        public static string Name => "AetherBox";
+
+        public IEnumerable<BaseFeature> Features => from x in FeatureProviders.Where((x) => !x.Disposed).SelectMany((x) => x.Features)
+                                                    orderby x.Name
+                                                    select x;
         private List<FeatureProvider> FeatureProviders
         {
             get => featureProviders;
@@ -53,8 +64,6 @@ namespace AetherBox
             get => config;
             private set => config = value ?? throw new ArgumentNullException(nameof(value));
         }
-
-        public static string Name => name;
 
         public AetherBox(DalamudPluginInterface pluginInterface)
         {

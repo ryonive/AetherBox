@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -9,335 +10,323 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Windowing;
+using Dalamud.Utility;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ImGuiMethods;
 using ImGuiNET;
 
-namespace AetherBox.UI
+namespace AetherBox.UI;
+
+public class MainWindow : Window
 {
-    public class MainWindow : Window, IDisposable
+    private readonly IDalamudTextureWrap? BannerImage;
+    internal readonly AetherBox Plugin;
+    private static float Scale => ImGuiHelpers.GlobalScale;
+
+
+    private string searchString = string.Empty;
+    private readonly List<BaseFeature> FilteredFeatures = new List<BaseFeature>();
+    private bool hornybonk;
+    public OpenCatagory OpenCatagory { get; private set; }
+
+    public MainWindow(AetherBox plugin, IDalamudTextureWrap bannerImage)
+        : base($"{AetherBox.Name} {plugin.GetType().Assembly.GetName().Version}###{AetherBox.Name}",
+               ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding,
+               false)
     {
-        private readonly IDalamudTextureWrap? BannerImage;
-        internal readonly AetherBox Plugin;
-        private static float Scale => ImGuiHelpers.GlobalScale;
+        // Set initial size and size condition
+        SizeCondition = ImGuiCond.FirstUseEver;
+        Size = new Vector2(750, 400);
 
-        private string? searchString;
-        private readonly List<BaseFeature>? FilteredFeatures;
-        public OpenCatagory OpenCatagory { get; private set; }
-
-        public MainWindow(AetherBox plugin, IDalamudTextureWrap bannerImage)
-            : base($"{AetherBox.Name} {plugin.GetType().Assembly.GetName().Version}###{AetherBox.Name}",
-                   ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding,
-                   false)
+        // Set window size constraints
+        var workingSpace = System.Windows.Forms.Screen.PrimaryScreen?.WorkingArea ?? new System.Drawing.Rectangle(0, 0, 3440, 1440);
+        SizeConstraints = new WindowSizeConstraints
         {
-            // Set initial size and size condition
-            SizeCondition = ImGuiCond.FirstUseEver;
-            Size = new Vector2(750, 400);
+            MinimumSize = new Vector2(300, 150),
+            MaximumSize = new Vector2(workingSpace.Width - 100, workingSpace.Height - 100) // Margin for maximum size
+        };
 
-            // Set window size constraints
-            var workingSpace = System.Windows.Forms.Screen.PrimaryScreen?.WorkingArea ?? new System.Drawing.Rectangle(0, 0, 3440, 1440);
-            SizeConstraints = new WindowSizeConstraints
-            {
-                MinimumSize = new Vector2(300, 150),
-                MaximumSize = new Vector2(workingSpace.Width - 100, workingSpace.Height - 100) // Margin for maximum size
-            };
+        // Initialize other properties
+        RespectCloseHotkey = true;
+        BannerImage = bannerImage; // Assign the passed banner image
+        Plugin = plugin;
+        OnCloseSfxId = 24;
+        OnOpenSfxId = 23;
+        AllowPinning = true;
+        AllowClickthrough = true;
+    }
 
-            // Initialize other properties
-            RespectCloseHotkey = true;
-            BannerImage = bannerImage; // Assign the passed banner image
-            Plugin = plugin;
-            OnCloseSfxId = 24;
-            OnOpenSfxId = 23;
-            AllowPinning = true;
-            AllowClickthrough = true;
+    public static void Dispose()
+    {
+    }
+
+    public override void Draw()
+    {
+        var contentRegionAvail = ImGui.GetContentRegionAvail();
+        _ = ref ImGui.GetStyle().ItemSpacing;
+        var topLeftSideHeight = contentRegionAvail.Y;
+        if (!ImGui.BeginTable("$" + global::AetherBox.AetherBox.Name + "TableContainer", 2, ImGuiTableFlags.Resizable))
+        {
+            return;
         }
-
-        public override void Draw()
+        try
         {
-            var contentRegionAvail1 = ImGui.GetContentRegionAvail();
-            ref var local = ref ImGui.GetStyle().ItemSpacing;
-            var y = contentRegionAvail1.Y;
-
-            try
+            ImGui.TableSetupColumn("###LeftColumn", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
+            ImGui.TableNextColumn();
+            Vector2 regionSize = ImGui.GetContentRegionAvail();
+            ImGui.PushStyleVar(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
+            string str_id = "###" + global::AetherBox.AetherBox.Name + "Left";
+            Vector2 size = regionSize;
+            size.Y = topLeftSideHeight;
+            if (ImGui.BeginChild(str_id, size, border: false, ImGuiWindowFlags.NoDecoration))
             {
-                if (!ImGui.BeginTable("$" + AetherBox.Name + "TableContainer", 2, ImGuiTableFlags.Resizable))
+                foreach (object window in Enum.GetValues(typeof(OpenCatagory)))
                 {
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                Svc.Log.Error(ex.Message);
-            }
-
-
-            try
-            {
-                ImGui.TableSetupColumn("###LeftColumn", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
-                ImGui.TableNextColumn();
-                var contentRegionAvail2 = ImGui.GetContentRegionAvail();
-                ImGui.PushStyleVar(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
-                if (ImGui.BeginChild("###" + AetherBox.Name + "Left", contentRegionAvail2 with
-                {
-                    Y = y
-                }, false, ImGuiWindowFlags.NoDecoration))
-                {
-                    foreach (var obj in Enum.GetValues(typeof(OpenCatagory)))
+                    if ((OpenCatagory)window != 0 && ImGui.Selectable($"{window}", OpenCatagory == (OpenCatagory)window))
                     {
-                        if ((OpenCatagory)obj != OpenCatagory.None)
-                        {
-                            var interpolatedStringHandler = new DefaultInterpolatedStringHandler(0, 1);
-                            interpolatedStringHandler.AppendFormatted(obj);
-                            if (ImGui.Selectable(interpolatedStringHandler.ToStringAndClear(), OpenCatagory == (OpenCatagory)obj))
-                                OpenCatagory = (OpenCatagory)obj;
-                        }
+                        OpenCatagory = (OpenCatagory)window;
                     }
-                    ImGui.Spacing();
-                    ImGui.SetCursorPosY(ImGui.GetContentRegionMax().Y - 45f);
-                    ImGuiEx.ImGuiLineCentered("###Search", () =>
+                }
+                ImGui.Spacing();
+                ImGui.SetCursorPosY(ImGui.GetContentRegionMax().Y - 45f);
+                ImGuiEx.ImGuiLineCentered("###Search", delegate
+                {
+                    ImGui.Text("Search");
+                    ImGuiComponents.HelpMarker("Searches feature names and descriptions for a given word or phrase.");
+                });
+                ImGuiEx.SetNextItemFullWidth();
+                if (ImGui.InputText("###FeatureSearch", ref searchString, 500u))
+                {
+                    if (searchString.Equals("ERP", StringComparison.CurrentCultureIgnoreCase) && !hornybonk)
                     {
-                        ImGui.Text("Search");
-                        ImGuiComponents.HelpMarker("Searches feature names and descriptions for a given word or phrase.");
-                    });
-                    ImGuiEx.SetNextItemFullWidth();
-                    if (ImGui.InputText("###FeatureSearch", ref searchString, 500U))
+                        hornybonk = true;
+                        var YTurl = "https://www.youtube.com/watch?v=UsCwVqtF0-Q";
+                        Util.OpenLink(YTurl);
+                    }
+                    else
                     {
-                        FilteredFeatures?.Clear();
-                        if (searchString.Length > 0)
+                        hornybonk = false;
+                    }
+                    FilteredFeatures.Clear();
+                    if (searchString.Length > 0)
+                    {
+                        foreach (BaseFeature feature in global::AetherBox.AetherBox.Plugin.Features)
                         {
-                            foreach (var feature in AetherBox.Plugin.Features)
+                            if (feature.FeatureType != FeatureType.Commands && feature.FeatureType != 0 && (feature.Description.Contains(searchString, StringComparison.CurrentCultureIgnoreCase) || feature.Name.Contains(searchString, StringComparison.CurrentCultureIgnoreCase)))
                             {
-                                if (feature.FeatureType != FeatureType.Commands && feature.FeatureType != FeatureType.Disabled && (feature.Description.Contains(searchString, StringComparison.CurrentCultureIgnoreCase) || feature.Name.Contains(searchString, StringComparison.CurrentCultureIgnoreCase)))
-                                    FilteredFeatures?.Add(feature);
+                                FilteredFeatures.Add(feature);
                             }
                         }
                     }
                 }
-                ImGui.EndChild();
-                ImGui.PopStyleVar();
-                ImGui.TableNextColumn();
-                if (ImGui.BeginChild("###" + AetherBox.Name + "Right", Vector2.Zero, false, ImGuiWindowFlags.NoDecoration))
+            }
+            ImGui.EndChild();
+            ImGui.PopStyleVar();
+            ImGui.TableNextColumn();
+            if (ImGui.BeginChild("###" + AetherBox.Name + "Right", Vector2.Zero, false, ImGuiWindowFlags.NoDecoration))
+            {
+                if (FilteredFeatures?.Count > 0)
                 {
-                    if (FilteredFeatures?.Count > 0)
+                    DrawFeatures(FilteredFeatures?.ToArray());
+                }
+                else
+                {
+                    switch (OpenCatagory)
                     {
-                        DrawFeatures(FilteredFeatures?.ToArray());
-                    }
-                    else
-                    {
-                        switch (OpenCatagory)
-                        {
-                            case OpenCatagory.Actions:
-                                DrawFeatures(AetherBox.Plugin.Features.Where(x =>
-                                {
-                                    if (x.FeatureType != FeatureType.Actions)
-                                        return false;
-                                    return !x.isDebug || AetherBox.Config.showDebugFeatures;
-                                }).ToArray());
-                                break;
-
-                            case OpenCatagory.UI:
-                                DrawFeatures(AetherBox.Plugin.Features.Where(x => { if (x.FeatureType != FeatureType.UI) return false; return !x.isDebug || AetherBox.Config.showDebugFeatures; }).ToArray());
-                                break;
-
-                            case OpenCatagory.Targets:
-                                DrawFeatures(AetherBox.Plugin.Features.Where(x => { if (x.FeatureType != FeatureType.Targeting) return false; return !x.isDebug || AetherBox.Config.showDebugFeatures; }).ToArray());
-                                break;
-
-                            case OpenCatagory.Chat:
-                                DrawFeatures(AetherBox.Plugin.Features.Where(x => { if (x.FeatureType != FeatureType.ChatFeature) return false; return !x.isDebug || AetherBox.Config.showDebugFeatures; }).ToArray());
-                                break;
-
-                            case OpenCatagory.Other:
-                                DrawFeatures(AetherBox.Plugin.Features.Where(x => { if (x.FeatureType != FeatureType.Other) return false; return !x.isDebug || AetherBox.Config.showDebugFeatures; }).ToArray());
-                                break;
-
-                            case OpenCatagory.Achievements:
-                                DrawFeatures(AetherBox.Plugin.Features.Where(x => { if (x.FeatureType != FeatureType.Achievements) return false; return !x.isDebug || AetherBox.Config.showDebugFeatures; }).ToArray());
-                                break;
-
-                            case OpenCatagory.Commands:
-                                DrawCommands(AetherBox.Plugin.Features.Where(x =>
-                                {
-                                    if (x.FeatureType != FeatureType.Commands)
-                                        return false;
-                                    return !x.isDebug || AetherBox.Config.showDebugFeatures;
-                                }).ToArray());
-                                break;
-
-                            case OpenCatagory.About:
-                                DrawAbout();
-                                break;
-                        }
+                        case OpenCatagory.Actions:
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Actions && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.UI:
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.UI && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.Other:
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Other && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.Targets:
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Targeting && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.Chat:
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.ChatFeature && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.Achievements:
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Achievements && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.Commands:
+                            DrawCommands(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Commands && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            break;
+                        case OpenCatagory.About:
+                            DrawAbout();
+                            break;
                     }
                 }
-                ImGui.EndChild();
             }
-            catch (Exception ex)
+            ImGui.EndChild();
+        }
+        catch (Exception ex)
+        {
+            ex.Log();
+            ImGui.EndTable();
+        }
+        ImGui.EndTable();
+    }
+
+    private static void DrawAbout()
+    {
+        try
+        {
+            ImGui.TextWrapped("This is where I test features for Pandora's Box, learn to break the game, or store features ill suited for anything else.");
+            ImGui.Spacing();
+            ImGui.TextWrapped("If any feature you see here is in Pandora's Box, it means I'm testing modifications to that feature. If you enable it here, make sure the Pandora version is disabled or there will probably be problems.");
+            ImGui.Text("Icon by Kadmas");
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error at DrawAbout");
+        }
+    }
+
+    private static void DrawCommands(BaseFeature[] features)
+    {
+        try
+        {
+            if (features == null || !features.Any() || features.Length == 0)
+                return;
+            var interpolatedStringHandler1 = new DefaultInterpolatedStringHandler(13, 1);
+            interpolatedStringHandler1.AppendLiteral("featureHeader");
+            interpolatedStringHandler1.AppendFormatted(features.First().FeatureType);
+            ImGuiEx.ImGuiLineCentered(interpolatedStringHandler1.ToStringAndClear(), () =>
             {
-                ex.Log();
-                ImGui.EndTable();
+                var interpolatedStringHandler2 = new DefaultInterpolatedStringHandler(0, 1);
+                interpolatedStringHandler2.AppendFormatted(features.First().FeatureType);
+                ImGui.Text(interpolatedStringHandler2.ToStringAndClear());
+            });
+            ImGui.Separator();
+            if (!ImGui.BeginTable("###CommandsTable", 5, ImGuiTableFlags.Borders))
+                return;
+            ImGui.TableSetupColumn("Name");
+            ImGui.TableSetupColumn("Command");
+            ImGui.TableSetupColumn("Parameters");
+            ImGui.TableSetupColumn("Description");
+            ImGui.TableSetupColumn("Aliases");
+            ImGui.TableHeadersRow();
+            foreach (var commandFeature in features.Cast<CommandFeature>())
+            {
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(commandFeature.Name);
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(commandFeature.Command);
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(string.Join(", ", (IEnumerable<string>)commandFeature.Parameters));
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(commandFeature.Description ?? "");
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(string.Join(", ", commandFeature.Alias) ?? "");
             }
             ImGui.EndTable();
         }
-
-        private static void DrawAbout()
+        catch (Exception ex)
         {
-            try
-            {
-                ImGui.TextWrapped("This is where I test features for Pandora's Box, learn to break the game, or store features ill suited for anything else.");
-                ImGui.Spacing();
-                ImGui.TextWrapped("If any feature you see here is in Pandora's Box, it means I'm testing modifications to that feature. If you enable it here, make sure the Pandora version is disabled or there will probably be problems.");
-                ImGui.Text("Icon by Kadmas");
-            }
-            catch (Exception ex)
-            {
-                Svc.Log.Error($"{ex}, Error at DrawAbout");
-            }
+            Svc.Log.Error($"{ex}, Error at DrawCommands");
         }
+    }
 
-        private static void DrawCommands(BaseFeature[] features)
+    private void DrawFeatures(IEnumerable<BaseFeature> features)
+    {
+        try
         {
-            try
+            if (features == null || !features.Any() || !features.Any())
+                return;
+            var interpolatedStringHandler1 = new DefaultInterpolatedStringHandler(13, 1);
+            interpolatedStringHandler1.AppendLiteral("featureHeader");
+            interpolatedStringHandler1.AppendFormatted(features.First().FeatureType);
+            ImGuiEx.ImGuiLineCentered(interpolatedStringHandler1.ToStringAndClear(), () =>
             {
-                if (features == null || !features.Any() || features.Length == 0)
-                    return;
-                var interpolatedStringHandler1 = new DefaultInterpolatedStringHandler(13, 1);
-                interpolatedStringHandler1.AppendLiteral("featureHeader");
-                interpolatedStringHandler1.AppendFormatted(features.First().FeatureType);
-                ImGuiEx.ImGuiLineCentered(interpolatedStringHandler1.ToStringAndClear(), () =>
+                if (FilteredFeatures?.Count > 0)
+                {
+                    ImGui.Text("Search Results");
+                }
+                else
                 {
                     var interpolatedStringHandler2 = new DefaultInterpolatedStringHandler(0, 1);
                     interpolatedStringHandler2.AppendFormatted(features.First().FeatureType);
                     ImGui.Text(interpolatedStringHandler2.ToStringAndClear());
-                });
-                ImGui.Separator();
-                if (!ImGui.BeginTable("###CommandsTable", 5, ImGuiTableFlags.Borders))
-                    return;
-                ImGui.TableSetupColumn("Name");
-                ImGui.TableSetupColumn("Command");
-                ImGui.TableSetupColumn("Parameters");
-                ImGui.TableSetupColumn("Description");
-                ImGui.TableSetupColumn("Aliases");
-                ImGui.TableHeadersRow();
-                foreach (var commandFeature in features.Cast<CommandFeature>())
-                {
-                    ImGui.TableNextRow();
-                    ImGui.TableNextColumn();
-                    ImGui.TextWrapped(commandFeature.Name);
-                    ImGui.TableNextColumn();
-                    ImGui.TextWrapped(commandFeature.Command);
-                    ImGui.TableNextColumn();
-                    ImGui.TextWrapped(string.Join(", ", (IEnumerable<string>)commandFeature.Parameters));
-                    ImGui.TableNextColumn();
-                    ImGui.TextWrapped(commandFeature.Description ?? "");
-                    ImGui.TableNextColumn();
-                    ImGui.TextWrapped(string.Join(", ", commandFeature.Alias) ?? "");
                 }
-                ImGui.EndTable();
-            }
-            catch (Exception ex)
+            });
+            ImGui.Separator();
+            foreach (var feature1 in features)
             {
-                Svc.Log.Error($"{ex}, Error at DrawCommands");
-            }
-        }
-
-        private void DrawFeatures(IEnumerable<BaseFeature> features)
-        {
-            try
-            {
-                if (features == null || !features.Any() || !features.Any())
-                    return;
-                var interpolatedStringHandler1 = new DefaultInterpolatedStringHandler(13, 1);
-                interpolatedStringHandler1.AppendLiteral("featureHeader");
-                interpolatedStringHandler1.AppendFormatted(features.First().FeatureType);
-                ImGuiEx.ImGuiLineCentered(interpolatedStringHandler1.ToStringAndClear(), () =>
+                var feature = feature1;
+                var enabled = feature.Enabled;
+                if (ImGui.Checkbox("###" + feature.Name, ref enabled))
                 {
-                    if (FilteredFeatures?.Count > 0)
+                    if (enabled)
                     {
-                        ImGui.Text("Search Results");
+                        try
+                        {
+                            feature.Enable();
+                            if (feature.Enabled)
+                                AetherBox.Config.EnabledFeatures.Add(feature.GetType().Name);
+                        }
+                        catch (Exception ex)
+                        {
+                            Svc.Log.Error(ex, "Failed to enabled " + feature.Name);
+                        }
                     }
                     else
                     {
-                        var interpolatedStringHandler2 = new DefaultInterpolatedStringHandler(0, 1);
-                        interpolatedStringHandler2.AppendFormatted(features.First().FeatureType);
-                        ImGui.Text(interpolatedStringHandler2.ToStringAndClear());
-                    }
-                });
-                ImGui.Separator();
-                foreach (var feature1 in features)
-                {
-                    var feature = feature1;
-                    var enabled = feature.Enabled;
-                    if (ImGui.Checkbox("###" + feature.Name, ref enabled))
-                    {
-                        if (enabled)
+                        try
                         {
-                            try
-                            {
-                                feature.Enable();
-                                if (feature.Enabled)
-                                    AetherBox.Config.EnabledFeatures.Add(feature.GetType().Name);
-                            }
-                            catch (Exception ex)
-                            {
-                                Svc.Log.Error(ex, "Failed to enabled " + feature.Name);
-                            }
+                            feature.Disable();
+                            AetherBox.Config.EnabledFeatures.RemoveAll(x => x == feature.GetType().Name);
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            try
-                            {
-                                feature.Disable();
-                                AetherBox.Config.EnabledFeatures.RemoveAll(x => x == feature.GetType().Name);
-                            }
-                            catch (Exception ex)
-                            {
-                                Svc.Log.Error(ex, "Failed to enabled " + feature.Name);
-                            }
+                            Svc.Log.Error(ex, "Failed to enabled " + feature.Name);
                         }
-                        AetherBox.Config.InfoSave();
                     }
-                    ImGui.SameLine();
-                    feature.DrawConfig(ref enabled);
-                    ImGui.Spacing();
-                    ImGui.TextWrapped(feature.Description ?? "");
-                    ImGui.Separator();
+                    AetherBox.Config.InfoSave();
                 }
-            }
-            catch (Exception ex)
-            {
-                Svc.Log.Error($"{ex}, Error at DrawFeatures");
-            }
-        }
-
-
-        /// <summary>
-        /// Code to be executed when the window is closed.
-        /// </summary>
-        public override void OnClose()
-        {
-            try
-            {
-                AetherBox.Config.InfoSave();
-            }
-            catch (Exception ex)
-            {
-                Svc.Log.Error($"{ex}, Error at OnClose");
+                ImGui.SameLine();
+                feature.DrawConfig(ref enabled);
+                ImGui.Spacing();
+                ImGui.TextWrapped(feature.Description ?? "");
+                ImGui.Separator();
             }
         }
-
-        public void Dispose()
+        catch (Exception ex)
         {
-            try
-            {
-                GC.SuppressFinalize(this);
-                BannerImage?.Dispose();
-            }
-            catch (Exception ex)
-            {
-                Svc.Log.Error($"{ex}, Error at Dispose");
-            }
+            Svc.Log.Error($"{ex}, Error at DrawFeatures");
         }
     }
+
+
+    /// <summary>
+    /// Code to be executed when the window is closed.
+    /// </summary>
+    public override void OnClose()
+    {
+        try
+        {
+            AetherBox.Config.InfoSave();
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error at OnClose");
+        }
+    }
+
+    /*public void Dispose()
+    {
+        try
+        {
+            GC.SuppressFinalize(this);
+            BannerImage?.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error at Dispose");
+        }
+    }*/
 }

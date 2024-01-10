@@ -4,9 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.7.34221.43
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AetherBox", "AetherBox\AetherBox.csproj", "{13C812E9-0D42-4B95-8646-40EEBF30636F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{94C55B32-8949-451C-A545-B015CB74A788} = {94C55B32-8949-451C-A545-B015CB74A788}
-	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EED8CB8B-DD4A-4339-BF45-527CA541486D}"
 	ProjectSection(SolutionItems) = preProject
@@ -16,10 +13,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		SeFonts Test.cs = SeFonts Test.cs
 		ToDo.txt = ToDo.txt
 	EndProjectSection
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ECommons", "ECommons\ECommons\ECommons.csproj", "{44C70908-7998-4172-BE94-199933A5D1E1}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickLib", "ClickLib\ClickLib\ClickLib.csproj", "{94C55B32-8949-451C-A545-B015CB74A788}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OOBlugin", "..\OOBlugin\OOBlugin.csproj", "{E9090C1E-9CFF-404C-95E8-F904DC789A77}"
 EndProject
@@ -39,18 +32,6 @@ Global
 		{13C812E9-0D42-4B95-8646-40EEBF30636F}.Release|Any CPU.Build.0 = Release|x64
 		{13C812E9-0D42-4B95-8646-40EEBF30636F}.Release|x64.ActiveCfg = Release|x64
 		{13C812E9-0D42-4B95-8646-40EEBF30636F}.Release|x64.Build.0 = Release|x64
-		{44C70908-7998-4172-BE94-199933A5D1E1}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{44C70908-7998-4172-BE94-199933A5D1E1}.Debug|x64.ActiveCfg = Debug|x64
-		{44C70908-7998-4172-BE94-199933A5D1E1}.Debug|x64.Build.0 = Debug|x64
-		{44C70908-7998-4172-BE94-199933A5D1E1}.Release|Any CPU.ActiveCfg = Release|x64
-		{44C70908-7998-4172-BE94-199933A5D1E1}.Release|x64.ActiveCfg = Release|x64
-		{44C70908-7998-4172-BE94-199933A5D1E1}.Release|x64.Build.0 = Release|x64
-		{94C55B32-8949-451C-A545-B015CB74A788}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{94C55B32-8949-451C-A545-B015CB74A788}.Debug|x64.ActiveCfg = Debug|x64
-		{94C55B32-8949-451C-A545-B015CB74A788}.Debug|x64.Build.0 = Debug|x64
-		{94C55B32-8949-451C-A545-B015CB74A788}.Release|Any CPU.ActiveCfg = Release|x64
-		{94C55B32-8949-451C-A545-B015CB74A788}.Release|x64.ActiveCfg = Release|x64
-		{94C55B32-8949-451C-A545-B015CB74A788}.Release|x64.Build.0 = Release|x64
 		{E9090C1E-9CFF-404C-95E8-F904DC789A77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E9090C1E-9CFF-404C-95E8-F904DC789A77}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E9090C1E-9CFF-404C-95E8-F904DC789A77}.Debug|x64.ActiveCfg = Debug|x64
