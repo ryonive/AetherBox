@@ -1,10 +1,13 @@
 using System.Numerics;
 using AetherBox;
 using AetherBox.Debugging;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
 namespace AetherBox.UI;
 internal class DebugWindow : Window
 {
+
+
     public DebugWindow()
         : base($"{AetherBox.Name} - Debug {AetherBox.Plugin.GetType().Assembly.GetName().Version}###{AetherBox.Name}{"DebugWindow"}")
     {

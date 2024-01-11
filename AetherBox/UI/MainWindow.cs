@@ -22,7 +22,7 @@ public class MainWindow : Window
 {
     private readonly IDalamudTextureWrap ? IconImage;
     private readonly IDalamudTextureWrap ? BannerImage;
-    //internal readonly AetherBox Plugin;
+    // internal readonly AetherBox Plugin;
     private static float Scale => ImGuiHelpers.GlobalScale;
 
 

@@ -19,6 +19,8 @@ internal class OldMainWindow : Window, IDisposable
 {
     private readonly IDalamudTextureWrap ? IconImage;
     private readonly IDalamudTextureWrap ? CloseButtonTexture;
+    private readonly IDalamudTextureWrap ? BannerImage;
+
     internal readonly AetherBox Plugin;
     private static float Scale => ImGuiHelpers.GlobalScale;
 
@@ -27,9 +29,11 @@ internal class OldMainWindow : Window, IDisposable
     private bool isCategorySettingsOpen = false;
     private string? selectedCategory;
 
-    public OldMainWindow(
-        IDalamudTextureWrap iconImage,
-        IDalamudTextureWrap closeButtonTexture) : base("AetherBox Settings", ImGuiWindowFlags.NoScrollbar, false)
+
+
+    public OldMainWindow(IDalamudTextureWrap iconImage, IDalamudTextureWrap closeButtonTexture)
+            : base($"{AetherBox.Name} - {AetherBox.Plugin.GetType().Assembly.GetName().Version}###{AetherBox.Name}{"OldMainWindow"}",
+    ImGuiWindowFlags.NoScrollbar, false)
     {
         SizeCondition = ImGuiCond.FirstUseEver;
         Size = new Vector2(420, 300);
@@ -50,9 +54,9 @@ internal class OldMainWindow : Window, IDisposable
         AllowPinning = true;
         AllowClickthrough = true;
 
-        // Load the close button image using the new method in AetherBoxPlugin
-        // Just pass the image name, the method will handle the path
+        // Load the close button image using the new method in AetherBoxPlugin, Just pass the image name, the method will handle the path
         CloseButtonTexture = AetherBox.LoadImage("close.png");
+        BannerImage = AetherBox.LoadImage("banner.png");
     }
 
     /// <summary>

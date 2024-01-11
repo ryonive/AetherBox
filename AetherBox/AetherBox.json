@@ -1,6 +1,6 @@
 {
-    "Author": "Kirbo",
     "Name": "AetherBox",
+    "Author": "Kirbo",
     "Punchline": "Toolkit for your favorite game!",
     "Description": "Multi purpose plugin for private use.",
     "InternalName": "AetherBox",
@@ -8,7 +8,7 @@
     "ApplicableVersion": "any",
     "Tags": [
         "Utility",
-        "plugin"
+        "Plugin"
     ],
     "DalamudApiLevel": 9,
     "AcceptsFeedback": false,
@@ -16,5 +16,5 @@
     "ImageUrls": [
         "https://raw.githubusercontent.com/BrakusTapus/AetherBox/main/images/image1.png"
     ],
-    "Changelog": "Changelog button to see whats new"
+    "Changelog": "v1.0.0.2 working on UI stuff mostly for now."
 }

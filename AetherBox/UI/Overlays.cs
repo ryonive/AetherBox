@@ -3,7 +3,6 @@ using Dalamud.Interface.Windowing;
 using ImGuiNET;
 using System.Numerics;
 
-#nullable disable
 namespace AetherBox.UI
 {
     internal class Overlays : Window
@@ -11,22 +10,29 @@ namespace AetherBox.UI
         private Feature Feature { get; set; }
 
         public Overlays(Feature t)
-          : base("###Overlay" + t.Name, ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysUseWindowPadding, true)
+            : base("###Overlay" + t.Name, ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysUseWindowPadding, forceMainWindow: true)
         {
-            Position = new Vector2?(new Vector2(0.0f, 0.0f));
+            base.Position = new Vector2(0f, 0f);
             Feature = t;
-            IsOpen = true;
-            ShowCloseButton = false;
-            RespectCloseHotkey = false;
-            SizeConstraints = new Window.WindowSizeConstraints?(new WindowSizeConstraints()
+            base.IsOpen = true;
+            base.ShowCloseButton = false;
+            base.RespectCloseHotkey = false;
+            base.DisableWindowSounds = true;
+            base.SizeConstraints = new WindowSizeConstraints
             {
-                MaximumSize = new Vector2(0.0f, 0.0f)
-            });
-            AetherBox.Plugin.WindowSystem.AddWindow(this);
+                MaximumSize = new Vector2(0f, 0f)
+            };
+            global::AetherBox.AetherBox.Plugin.WindowSystem.AddWindow(this);
         }
 
-        public override void Draw() => Feature.Draw();
+        public override void Draw()
+        {
+            Feature.Draw();
+        }
 
-        public override bool DrawConditions() => Feature.Enabled;
+        public override bool DrawConditions()
+        {
+            return Feature.Enabled;
+        }
     }
 }

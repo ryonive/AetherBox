@@ -115,16 +115,32 @@ namespace AetherBox
         // Sets up Commands to toggle the visible state of main menu and settings window.
         private void SetupCommands()
         {
-            Svc.Commands.AddHandler("/atb", new CommandInfo(OnCommandToggleUI)
+            // Add a command handler for "/AetherBox"
+            Svc.Commands.AddHandler("/AetherBox", new CommandInfo(OnCommandToggleUI)
             {
-                HelpMessage = "Toggles main menu UI\n/atb c → Toggles settings menu\n/atb d → Toggles debug menu\"",
-                ShowInHelp = true
+                HelpMessage = "This command is used to toggle various UI elements:\n" +
+                                "/atb                         → alias for '/Aetherbox' \n" +
+                              "/atb menu or m    → Toggles the main menu UI.\n" +
+                              "/atb debug or d     → Toggles the debug menu.\n" +
+                              "/atb old or o           → Toggles the old main menu UI.\n\n",
+                ShowInHelp = true,
             });
 
-            Svc.Commands.AddHandler("/atbdev", new CommandInfo(TestCommand)
+            Svc.Commands.AddHandler("/aetherbox", new CommandInfo(OnCommandToggleUI)
             {
-                HelpMessage = "Test command - just displays a message.",
-                ShowInHelp = true
+                ShowInHelp = false,
+            });
+
+            Svc.Commands.AddHandler("/atb", new CommandInfo(OnCommandToggleUI)
+            {
+                ShowInHelp = false,
+            });
+
+            // Add a reserved command handler for "/atb text"
+            Svc.Commands.AddHandler("/atbtext", new CommandInfo(TestCommand)
+            {
+                HelpMessage = "Sends a test message in the chatbox.\n",
+                ShowInHelp = false
             });
 
         }
@@ -134,7 +150,7 @@ namespace AetherBox
         {
             PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
             PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
-            PluginInterface.UiBuilder.OpenConfigUi += ToggleSettingsUI;
+            PluginInterface.UiBuilder.OpenConfigUi += ToggleDebugUI;
         }
 
         // Loads all the plugin features like 'Auto Follow'
@@ -170,9 +186,12 @@ namespace AetherBox
         {
             PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
             PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUI;
-            PluginInterface.UiBuilder.OpenConfigUi -= ToggleSettingsUI;
+            PluginInterface.UiBuilder.OpenConfigUi -= ToggleDebugUI;
+
+            Svc.Commands.RemoveHandler("/AetherBox");
+            Svc.Commands.RemoveHandler("/aetherbox");
             Svc.Commands.RemoveHandler("/atb");
-            Svc.Commands.RemoveHandler("/atbdev");
+            Svc.Commands.RemoveHandler("/atbtext");
 
         }
 
@@ -249,7 +268,7 @@ namespace AetherBox
         }
 
         /// <summary>
-        /// Toggle main UI without arguments - Toggle settings UI if command is used with a - 'c'
+        /// Toggle main UI without arguments
         /// </summary>
         /// <param name="command"></param>
         /// <param name="args"></param>
@@ -262,20 +281,40 @@ namespace AetherBox
                     // Toggle main UI
                     MainWindow.IsOpen = !MainWindow.IsOpen;
                 }
-                else if (args.Equals("c", StringComparison.OrdinalIgnoreCase))
+                else if (args.Equals("menu", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Toggle settings UI
-                    OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
+                    // Toggle main UI
+                    MainWindow.IsOpen = !MainWindow.IsOpen;
+                }
+                else if (args.Equals("m", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Toggle main UI
+                    MainWindow.IsOpen = !MainWindow.IsOpen;
+                }
+                else if (args.Equals("debug", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Toggle Debug UI
+                    DebugWindow.IsOpen = !DebugWindow.IsOpen;
                 }
                 else if (args.Equals("d", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Toggle settings UI
+                    // Toggle Debug UI
                     DebugWindow.IsOpen = !DebugWindow.IsOpen;
+                }
+                else if (args.Equals("old", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Toggle OldMainWindow UI
+                    OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
+                }
+                else if (args.Equals("o", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Toggle OldMainWindow UI
+                    OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
                 }
             }
             catch (Exception ex)
             {
-                Svc.Log.Error($"{ex}, Error with '/atb' command");
+                Svc.Log.Error($"{ex}, Error with 'OnCommandToggleUI' command");
             }
         }
 
@@ -308,20 +347,20 @@ namespace AetherBox
         /// <summary>
         /// Opens the settings UI window via the 'settings' button in the Plugin Installer Menu
         /// </summary>
-        private void ToggleSettingsUI()
+        private void ToggleDebugUI()
         {
             try
             {
-                OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
+                DebugWindow.IsOpen = !DebugWindow.IsOpen;
             }
             catch (Exception ex)
             {
-                Svc.Log.Error($"{ex}, Error with 'ToggleSettingsUI'");
+                Svc.Log.Error($"{ex}, Error with 'DebugWindow'");
             }
         }
 
         /// <summary>
-        /// Sends a test message!
+        /// Sends a test message , with /atb text
         /// </summary>
         /// <param name="command"></param>
         /// <param name="args"></param>
@@ -329,13 +368,17 @@ namespace AetherBox
         {
             try
             {
-                Svc.Chat.Print("This is a test message!", "AetherBox ", (ushort?)UIColor._color541);
-                DuoLog.Information("This is a test message!");
+                if (string.IsNullOrWhiteSpace(args))
+                {
+                    Svc.Chat.Print("This is a test message!", "AetherBox ", (ushort?)UIColor._color541);
+                    DuoLog.Information("This is a test message!");
+                }
             }
             catch (Exception ex)
             {
                 Svc.Log.Error($"{ex}, Error with 'TestCommand'");
             }
+
         }
     }
 }

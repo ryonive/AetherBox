@@ -1,3 +1,4 @@
+using System;
 using Dalamud.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 
@@ -9,5 +10,5 @@ public class SetupAddonArgs
 
     public unsafe AtkUnitBase* Addon { get; init; }
 
-    public unsafe string AddonName => addonName ?? (addonName = MemoryHelper.ReadString(new nint(Addon->Name), 32).Split('\0')[0]);
+    public unsafe string AddonName => addonName ?? (addonName = MemoryHelper.ReadString(new IntPtr(Addon->Name), 32).Split('\0')[0]);
 }
