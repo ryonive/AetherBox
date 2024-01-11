@@ -43,8 +43,9 @@
         </None>
         <None Include="UI\ConfigWindow.cs" />
         <!-- References -->
-        <Reference Include="..\..\Libraries\addon\*.dll">
-        </Reference>
+        <Reference Include="..\..\Libraries\addon\ClickLib.dll"/>
+        <Reference Include="..\..\Libraries\addon\ECommons.dll"/>
+        <Reference Include="..\..\Libraries\addon\SocketIOClient.dll"/>
         <!-- images -->
         <Content Include="..\images\*.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
