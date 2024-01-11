@@ -1,5 +1,3 @@
-// Automaton, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// Automaton.Helpers.Node
 using System.Linq;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 

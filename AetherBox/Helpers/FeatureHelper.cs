@@ -1,17 +1,19 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using AetherBox.Features;
 using AetherBox;
+using AetherBox.Features;
 using AetherBox.Features.UI;
 using ECommons.Reflection;
+
 namespace AetherBox.Helpers;
+
 public static class FeatureHelper
 {
 	internal static bool IsBusy
 	{
 		get
-		{ 
+		{
 			if (!global::AetherBox.AetherBox.Plugin.TaskManager.IsBusy)
 			{
 				return WorkshopTurnin.active;
@@ -34,10 +36,12 @@ public static class FeatureHelper
 
 	public static void EnableFeature<T>() where T : BaseFeature
 	{
-		Type t = (from x in Assembly.GetExecutingAssembly().GetTypes()
+		Type t;
+		t = (from x in Assembly.GetExecutingAssembly().GetTypes()
 			where x == typeof(T)
 			select x).First();
-		BaseFeature f = global::AetherBox.AetherBox.Plugin.Features.Where((BaseFeature x) => x.GetType().Name == t.Name).FirstOrDefault();
+		BaseFeature f;
+		f = global::AetherBox.AetherBox.Plugin.Features.Where((BaseFeature x) => x.GetType().Name == t.Name).FirstOrDefault();
 		if (f != null && !f.Enabled)
 		{
 			f.Enable();
@@ -46,10 +50,12 @@ public static class FeatureHelper
 
 	public static void DisableFeature<T>() where T : BaseFeature
 	{
-		Type t = (from x in Assembly.GetExecutingAssembly().GetTypes()
+		Type t;
+		t = (from x in Assembly.GetExecutingAssembly().GetTypes()
 			where x == typeof(T)
 			select x).First();
-		BaseFeature f = AetherBox.Plugin.Features.Where((BaseFeature x) => x.GetType().Name == t.Name).FirstOrDefault();
+		BaseFeature f;
+		f = global::AetherBox.AetherBox.Plugin.Features.Where((BaseFeature x) => x.GetType().Name == t.Name).FirstOrDefault();
 		if (f != null && f.Enabled)
 		{
 			f.Disable();
@@ -58,13 +64,16 @@ public static class FeatureHelper
 
 	public static FeatureConfig GetConfig<T>() where T : BaseFeature
 	{
-		Type t = (from x in Assembly.GetExecutingAssembly().GetTypes()
+		Type t;
+		t = (from x in Assembly.GetExecutingAssembly().GetTypes()
 			where x == typeof(T)
 			select x).First();
-		BaseFeature f = global::AetherBox.AetherBox.Plugin.Features.Where((BaseFeature x) => x.GetType().Name == t.Name).FirstOrDefault();
+		BaseFeature f;
+		f = global::AetherBox.AetherBox.Plugin.Features.Where((BaseFeature x) => x.GetType().Name == t.Name).FirstOrDefault();
 		if (f != null)
 		{
-			object config = f.GetType().GetProperties().FirstOrDefault((PropertyInfo x) => x.PropertyType.IsSubclassOf(typeof(FeatureConfig)))
+			object config;
+			config = f.GetType().GetProperties().FirstOrDefault((PropertyInfo x) => x.PropertyType.IsSubclassOf(typeof(FeatureConfig)))
 				.GetValue(f);
 			if (config != null)
 			{

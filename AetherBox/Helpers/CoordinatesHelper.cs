@@ -12,7 +12,9 @@ using ECommons.DalamudServices;
 using ECommons.Logging;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
+
 namespace AetherBox.Helpers;
+
 public static class CoordinatesHelper
 {
 	public class MapLinkMessage
@@ -57,28 +59,35 @@ public static class CoordinatesHelper
 
 	public static string GetNearestAetheryte(MapLinkMessage maplinkMessage)
 	{
-		string aetheryteName = "";
-		double distance = 0.0;
+		string aetheryteName;
+		aetheryteName = "";
+		double distance;
+		distance = 0.0;
 		foreach (Aetheryte data in Aetherytes)
 		{
 			if (!data.IsAetheryte || data.Territory.Value == null || data.PlaceName.Value == null)
 			{
 				continue;
 			}
-			float scale = maplinkMessage.Scale;
+			float scale;
+			scale = maplinkMessage.Scale;
 			if (data.Territory.Value.RowId != maplinkMessage.TerritoryId)
 			{
 				continue;
 			}
-			MapMarker mapMarker = AetherytesMap.FirstOrDefault((MapMarker m) => m.DataType == 3 && m.DataKey == data.RowId);
+			MapMarker mapMarker;
+			mapMarker = AetherytesMap.FirstOrDefault((MapMarker m) => m.DataType == 3 && m.DataKey == data.RowId);
 			if (mapMarker == null)
 			{
 				PluginLog.Error($"Cannot find aetherytes position for {maplinkMessage.PlaceName}#{data.PlaceName.Value.Name}");
 				continue;
 			}
-			float AethersX = ConvertMapMarkerToMapCoordinate(mapMarker.X, scale);
-			float AethersY = ConvertMapMarkerToMapCoordinate(mapMarker.Y, scale);
-			double temp_distance = Math.Pow(AethersX - maplinkMessage.X, 2.0) + Math.Pow(AethersY - maplinkMessage.Y, 2.0);
+			float AethersX;
+			AethersX = ConvertMapMarkerToMapCoordinate(mapMarker.X, scale);
+			float AethersY;
+			AethersY = ConvertMapMarkerToMapCoordinate(mapMarker.Y, scale);
+			double temp_distance;
+			temp_distance = Math.Pow(AethersX - maplinkMessage.X, 2.0) + Math.Pow(AethersY - maplinkMessage.Y, 2.0);
 			if (aetheryteName == "" || temp_distance < distance)
 			{
 				distance = temp_distance;
@@ -90,25 +99,29 @@ public static class CoordinatesHelper
 
 	public static string GetNearestAetheryte(Vector3 pos, TerritoryType map)
 	{
-		MapLinkPayload MapLink = new MapLinkPayload(map.RowId, map.Map.Row, (int)pos.X * 1000, (int)pos.Z * 1000);
+		MapLinkPayload MapLink;
+		MapLink = new MapLinkPayload(map.RowId, map.Map.Row, (int)pos.X * 1000, (int)pos.Z * 1000);
 		return GetNearestAetheryte(new MapLinkMessage(0, "", "", MapLink.XCoord, MapLink.YCoord, 100f, map.RowId, "", DateTime.Now));
 	}
 
 	private static float ConvertMapMarkerToMapCoordinate(int pos, float scale)
 	{
-		float num = scale / 100f;
+		float num;
+		num = scale / 100f;
 		return ConvertRawPositionToMapCoordinate((int)((float)((double)pos - 1024.0) / num * 1000f), scale);
 	}
 
 	private static float ConvertRawPositionToMapCoordinate(int pos, float scale)
 	{
-		float num = scale / 100f;
+		float num;
+		num = scale / 100f;
 		return (float)(((double)((float)pos / 1000f * num) + 1024.0) / 2048.0 * 41.0 / (double)num + 1.0);
 	}
 
 	public static void TeleportToAetheryte(MapLinkMessage maplinkMessage)
 	{
-		string aetheryteName = GetNearestAetheryte(maplinkMessage);
+		string aetheryteName;
+		aetheryteName = GetNearestAetheryte(maplinkMessage);
 		if (aetheryteName != "")
 		{
 			PluginLog.Log("Teleporting to " + aetheryteName);
@@ -120,26 +133,33 @@ public static class CoordinatesHelper
 
 	public static SeString? CreateMapLink(uint zoneId, int zonePoiId, int? instance, FaloopSession session)
 	{
-		TerritoryType zone = Svc.Data.GetExcelSheet<TerritoryType>()?.GetRow(zoneId);
-		Map map = zone?.Map.Value;
+		TerritoryType zone;
+		zone = Svc.Data.GetExcelSheet<TerritoryType>()?.GetRow(zoneId);
+		Map map;
+		map = zone?.Map.Value;
 		if (zone == null || map == null)
 		{
 			PluginLog.Debug("CreateMapLink: zone == null || map == null");
 			return null;
 		}
-		ZoneLocationData location = session.EmbedData.ZoneLocations.FirstOrDefault((ZoneLocationData x) => x.Id == zonePoiId);
+		ZoneLocationData location;
+		location = session.EmbedData.ZoneLocations.FirstOrDefault((ZoneLocationData x) => x.Id == zonePoiId);
 		if (location == null)
 		{
 			PluginLog.Debug("CreateMapLink: location == null");
 			return null;
 		}
-		double i = 41.0 / ((double)(int)map.SizeFactor / 100.0);
-		List<float> loc = (from x in location.Location.Split(new char[1] { ',' }, 2).Select(int.Parse)
+		double i;
+		i = 41.0 / ((double)(int)map.SizeFactor / 100.0);
+		List<float> loc;
+		loc = (from x in location.Location.Split(new char[1] { ',' }, 2).Select(int.Parse)
 			select (double)x / 2048.0 * i + 1.0 into x
 			select Math.Round(x, 1) into x
 			select (float)x).ToList();
-		SeString mapLink = SeString.CreateMapLink(zone.RowId, zone.Map.Row, loc[0], loc[1]);
-		TextPayload instanceIcon = GetInstanceIcon(instance);
+		SeString mapLink;
+		mapLink = SeString.CreateMapLink(zone.RowId, zone.Map.Row, loc[0], loc[1]);
+		TextPayload instanceIcon;
+		instanceIcon = GetInstanceIcon(instance);
 		if (instanceIcon == null)
 		{
 			return mapLink;

@@ -1,9 +1,9 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Helpers.Structs
 using System.Numerics;
 using System.Runtime.InteropServices;
 using AetherBox.Helpers;
+
 namespace AetherBox.Helpers;
+
 public static class Structs
 {
 	[StructLayout(LayoutKind.Explicit)]

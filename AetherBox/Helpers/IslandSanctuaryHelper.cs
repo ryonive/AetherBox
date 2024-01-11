@@ -1,5 +1,3 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Helpers.IslandSanctuaryHelper
 using System;
 using System.Runtime.InteropServices;
 using AetherBox.Helpers;
@@ -9,16 +7,18 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using FFXIVClientStructs.Interop;
 using FFXIVClientStructs.STD;
 using Lumina.Excel.GeneratedSheets;
+
 namespace AetherBox.Helpers;
+
 internal static class IslandSanctuaryHelper
 {
 	private unsafe delegate nint ReceiveEventDelegate(AtkEventListener* eventListener, AtkEventType eventType, uint eventParam, void* eventData, void* inputData);
 
 	public enum ScheduleListEntryType
 	{
-		NormalEntry,
-		LastEntry,
-		Category
+		NormalEntry = 0,
+		LastEntry = 1,
+		Category = 2
 	}
 
 	[StructLayout(LayoutKind.Explicit, Size = 8)]
@@ -44,7 +44,8 @@ internal static class IslandSanctuaryHelper
 		{
 			for (int i = 0; i < NumEntries; i++)
 			{
-				ScheduleListEntry* p = Entries.Span[i].Value->Value;
+				ScheduleListEntry* p;
+				p = Entries.Span[i].Value->Value;
 				if (p->Type != ScheduleListEntryType.Category && p->Value == rowId - 1)
 				{
 					return i;
@@ -69,7 +70,8 @@ internal static class IslandSanctuaryHelper
 		maxWorkshops = 0;
 		try
 		{
-			byte currentRank = MJIManager.Instance()->IslandState.CurrentRank;
+			byte currentRank;
+			currentRank = MJIManager.Instance()->IslandState.CurrentRank;
 			switch (w)
 			{
 			case 1:

@@ -1,10 +1,10 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Helpers.TextAdvanceManager
 using System.Collections.Generic;
 using AetherBox;
 using AetherBox.Helpers;
 using ECommons.DalamudServices;
+
 namespace AetherBox.Helpers;
+
 internal static class TextAdvanceManager
 {
 	private static bool WasChanged;

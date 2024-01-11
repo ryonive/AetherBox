@@ -1,8 +1,8 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Helpers.CustomNodes
 using System.Collections.Generic;
 using AetherBox.Features;
+
 namespace AetherBox.Helpers;
+
 public static class CustomNodes
 {
 	private static readonly Dictionary<string, uint> NodeIds = new Dictionary<string, uint>();

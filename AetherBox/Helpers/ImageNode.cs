@@ -1,9 +1,9 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Helpers.ImageNode
 using System.Numerics;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 namespace AetherBox.Helpers;
+
 public static class ImageNode
 {
 	private unsafe static IMemorySpace* UISpace => IMemorySpace.GetUISpace();

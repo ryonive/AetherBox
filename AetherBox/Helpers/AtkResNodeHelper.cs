@@ -1,7 +1,9 @@
 using System;
 using System.Numerics;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 namespace AetherBox.Helpers;
+
 internal static class AtkResNodeHelper
 {
 	public unsafe static bool GetAtkUnitBase(this nint ptr, out AtkUnitBase* atkUnitBase)
@@ -17,7 +19,8 @@ internal static class AtkResNodeHelper
 
 	public unsafe static Vector2 GetNodePosition(AtkResNode* node)
 	{
-		Vector2 pos = new Vector2(node->X, node->Y);
+		Vector2 pos;
+		pos = new Vector2(node->X, node->Y);
 		for (AtkResNode* par = node->ParentNode; par != null; par = par->ParentNode)
 		{
 			pos *= new Vector2(par->ScaleX, par->ScaleY);
@@ -32,7 +35,8 @@ internal static class AtkResNodeHelper
 		{
 			return new Vector2(1f, 1f);
 		}
-		Vector2 scale = new Vector2(node->ScaleX, node->ScaleY);
+		Vector2 scale;
+		scale = new Vector2(node->ScaleX, node->ScaleY);
 		while (node->ParentNode != null)
 		{
 			node = node->ParentNode;
