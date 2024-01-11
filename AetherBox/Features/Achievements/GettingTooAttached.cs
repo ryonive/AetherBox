@@ -1,11 +1,9 @@
 using System;
 using System.Linq;
 using System.Numerics;
-using AetherBox;
-using AetherBox.Features;
 using AetherBox.FeaturesSetup;
-using AetherBox.UI;
 using AetherBox.Helpers;
+using AetherBox.UI;
 using ClickLib.Clicks;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Text.SeStringHandling;
@@ -70,7 +68,8 @@ public class GettingTooAttached : Feature
         {
             return;
         }
-        AtkResNode* node = addon->UldManager.NodeList[1];
+		AtkResNode* node;
+		node = addon->UldManager.NodeList[1];
         if (!node->IsVisible)
         {
             return;
@@ -114,7 +113,8 @@ public class GettingTooAttached : Feature
 
     private void CheckForErrors(ref SeString message, ref bool isHandled)
     {
-        string msg = message.ExtractText();
+		string msg;
+		msg = message.ExtractText();
         if (new int[2] { 7701, 7707 }.Any((int x) => msg == Svc.Data.GetExcelSheet<LogMessage>().FirstOrDefault((LogMessage y) => y.RowId == x)?.Text.ExtractText()))
         {
             PrintModuleMessage("Error while melding. Aborting Tasks.");
