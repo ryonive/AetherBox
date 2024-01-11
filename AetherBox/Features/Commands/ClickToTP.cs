@@ -1,5 +1,3 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Commands.ClickToTP
 using System.Collections.Generic;
 using AetherBox.Features;
 using AetherBox.Features.Debugging;
@@ -7,7 +5,9 @@ using AetherBox.FeaturesSetup;
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
 using ImGuiNET;
+
 namespace AetherBox.Features.Commands;
+
 public class ClickToTP : CommandFeature
 {
 	private bool active;

@@ -1,5 +1,3 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.UI.AutoSelectGardening
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +18,9 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+
 namespace AetherBox.Features.UI;
+
 public class AutoSelectGardening : Feature
 {
 	public class Configs : FeatureConfig

@@ -1,5 +1,3 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.UI.DefaultChatChannel
 using System;
 using System.Collections.Generic;
 using AetherBox.Features;
@@ -12,7 +10,9 @@ using ECommons.Automation;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
+
 namespace AetherBox.Features.UI;
+
 public class DefaultChatChannel : Feature
 {
 	public class Configs : FeatureConfig

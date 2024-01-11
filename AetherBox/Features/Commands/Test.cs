@@ -1,12 +1,12 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Commands.Test
 using System.Collections.Generic;
 using AetherBox.Features;
 using AetherBox.FeaturesSetup;
 using AetherBox.Helpers;
 using ECommons;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 namespace AetherBox.Features.Commands;
+
 public class Test : CommandFeature
 {
 	public override string Name => "Testing";

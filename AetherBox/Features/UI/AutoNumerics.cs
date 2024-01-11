@@ -1,5 +1,3 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.UI.AutoNumerics
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -15,7 +13,9 @@ using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+
 namespace AetherBox.Features.UI;
+
 public class AutoNumerics : Feature
 {
 	public class Configs : FeatureConfig

@@ -1,5 +1,3 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.UI.MarketUpdater
 using System;
 using System.Numerics;
 using AetherBox.Features;
@@ -14,7 +12,9 @@ using ECommons.Throttlers;
 using ECommons.UIHelpers.Implementations;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
+
 namespace AetherBox.Features.UI;
+
 public class MarketUpdater : Feature
 {
 	private Overlays overlay;

@@ -1,5 +1,3 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Actions.ISLockAndMove
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +13,9 @@ using ECommons.DalamudServices;
 using ECommons.GameHelpers;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.MJI;
+
 namespace AetherBox.Features.Actions;
+
 public class ISLockAndMove : Feature
 {
 	private bool lockingOn;

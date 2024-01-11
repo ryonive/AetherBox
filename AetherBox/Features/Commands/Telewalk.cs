@@ -1,5 +1,3 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Commands.Telewalk
 using System;
 using System.Collections.Generic;
 using System.Numerics;
@@ -11,7 +9,9 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Plugin.Services;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
+
 namespace AetherBox.Features.Commands;
+
 public class Telewalk : CommandFeature
 {
 	private bool active;

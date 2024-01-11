@@ -1,12 +1,12 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Commands.TeleportGrandCompany
 using System.Collections.Generic;
 using AetherBox.Features;
 using AetherBox.FeaturesSetup;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.GeneratedSheets;
+
 namespace AetherBox.Features.Commands;
+
 public class TeleportGrandCompany : CommandFeature
 {
 	public override string Name => "Teleport to Grand Company";

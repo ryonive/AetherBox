@@ -1,12 +1,12 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Commands.TeleportToFlag
 using System;
 using System.Collections.Generic;
 using AetherBox.Features;
 using AetherBox.FeaturesSetup;
 using AetherBox.Helpers;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
+
 namespace AetherBox.Features.Commands;
+
 public class TeleportToFlag : CommandFeature
 {
 	public override string Name => "Teleport to Flag";

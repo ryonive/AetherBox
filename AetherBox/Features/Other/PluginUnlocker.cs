@@ -1,5 +1,3 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Other.PluginUnlocker
 using System;
 using System.Collections;
 using System.Linq;
@@ -11,7 +9,9 @@ using AetherBox.FeaturesSetup;
 using Dalamud.Plugin;
 using ECommons.DalamudServices;
 using ECommons.Logging;
+
 namespace AetherBox.Features.Other;
+
 public class PluginUnlocker : Feature
 {
 	public class Configs : FeatureConfig

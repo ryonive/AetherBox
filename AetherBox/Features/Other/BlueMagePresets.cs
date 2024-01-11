@@ -1,5 +1,3 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Other.BlueMagePresets
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +16,9 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using ImGuiNET;
+
 namespace AetherBox.Features.Other;
+
 public class BlueMagePresets : Feature
 {
 	public class Configs : FeatureConfig

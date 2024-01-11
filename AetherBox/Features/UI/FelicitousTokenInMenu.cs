@@ -1,5 +1,3 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.UI.FelicitousTokenInMenu
 using System.Numerics;
 using AetherBox;
 using AetherBox.Features;
@@ -10,7 +8,9 @@ using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 namespace AetherBox.Features.UI;
+
 public class FelicitousTokenInMenu : Feature
 {
 	private Overlays overlay;

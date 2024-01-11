@@ -1,5 +1,3 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.ChatFeature.FaloopToChat
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +20,9 @@ using ECommons.Logging;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using SocketIOClient;
+
 namespace AetherBox.Features.ChatFeature;
+
 internal class FaloopToChat : Feature
 {
 	public class Configs : FeatureConfig

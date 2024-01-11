@@ -1,5 +1,3 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Commands.Teleport
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -8,7 +6,9 @@ using AetherBox.Features.Debugging;
 using AetherBox.FeaturesSetup;
 using ECommons;
 using ECommons.DalamudServices;
+
 namespace AetherBox.Features.Commands;
+
 public class Teleport : CommandFeature
 {
 	public override string Name => "Teleport";

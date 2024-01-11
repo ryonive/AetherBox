@@ -1,5 +1,3 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.UI.WondrousTailsClover
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +13,9 @@ using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel.GeneratedSheets;
+
 namespace AetherBox.Features.UI;
+
 public class WondrousTailsClover : Feature
 {
 	public record DutyFinderSearchResult(string SearchKey, uint TerritoryType);

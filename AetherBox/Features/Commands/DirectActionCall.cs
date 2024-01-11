@@ -1,5 +1,3 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Commands.DirectActionCall
 using System;
 using System.Collections.Generic;
 using AetherBox.Features;
@@ -9,7 +7,9 @@ using ECommons;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel.GeneratedSheets;
+
 namespace AetherBox.Features.Commands;
+
 public class DirectActionCall : CommandFeature
 {
 	public override string Name => "Direct Action Call";

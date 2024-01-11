@@ -1,11 +1,11 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Commands.MoveSpeed
 using System.Collections.Generic;
 using AetherBox.Features;
 using AetherBox.Features.Debugging;
 using AetherBox.FeaturesSetup;
 using ECommons.DalamudServices;
+
 namespace AetherBox.Features.Commands;
+
 public class MoveSpeed : CommandFeature
 {
 	internal static float offset = 6f;

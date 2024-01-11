@@ -92,7 +92,8 @@ public static class DebugManager
             {
                 if (!DebugHelpers.Any((DebugHelper h) => h.GetType() == t2))
                 {
-                    DebugHelper debugger = (DebugHelper)Activator.CreateInstance(t2);
+					DebugHelper debugger;
+					debugger = (DebugHelper)Activator.CreateInstance(t2);
                     debugger.FeatureProvider = tp;
                     debugger.Plugin = global::AetherBox.AetherBox.Plugin;
                     RegisterDebugPage(debugger.FullName, debugger.Draw);
@@ -128,7 +129,8 @@ public static class DebugManager
                                           where t.IsSubclassOf(typeof(DebugHelper)) && !t.IsAbstract
                                           select t)
                     {
-                        DebugHelper debugger = (DebugHelper)Activator.CreateInstance(item);
+						DebugHelper debugger;
+						debugger = (DebugHelper)Activator.CreateInstance(item);
                         debugger.FeatureProvider = tp;
                         debugger.Plugin = global::AetherBox.AetherBox.Plugin;
                         RegisterDebugPage(debugger.FullName, debugger.Draw);
@@ -152,7 +154,8 @@ public static class DebugManager
             {
                 foreach (string key in DebugPages.Keys)
                 {
-                    float s2 = ImGui.CalcTextSize(key).X + ImGui.GetStyle().FramePadding.X * 5f + ImGui.GetStyle().ScrollbarSize;
+					float s2;
+					s2 = ImGui.CalcTextSize(key).X + ImGui.GetStyle().FramePadding.X * 5f + ImGui.GetStyle().ScrollbarSize;
                     if (s2 > SidebarSize)
                     {
                         SidebarSize = s2;
@@ -164,9 +167,18 @@ public static class DebugManager
                 Svc.Log.Error(ex2, "");
             }
         }
-        if (ImGui.BeginChild("###" + global::AetherBox.AetherBox.Name + "DebugPages", new Vector2(SidebarSize, -1f) * ImGui.GetIO().FontGlobalScale, border: true))
+		using ImRaii.IEndObject table = ImRaii.Table("DebugManagerTable", 2, ImGuiTableFlags.Resizable | ImGuiTableFlags.BordersInnerV);
+		if (!table.Success)
+		{
+			return;
+		}
+		ImGui.TableSetupColumn("##DebugManagerSelectionColumn", ImGuiTableColumnFlags.WidthFixed, 200f * ImGuiHelpers.GlobalScale);
+		ImGui.TableSetupColumn("##DebugManagerContentsColumn", ImGuiTableColumnFlags.WidthStretch);
+		ImGui.TableNextColumn();
+		using (ImRaii.Child("###" + global::AetherBox.AetherBox.Name + "DebugPages", new Vector2(SidebarSize, -1f) * ImGui.GetIO().FontGlobalScale, border: true))
         {
-            List<string> list = DebugPages.Keys.ToList();
+			List<string> list;
+			list = DebugPages.Keys.ToList();
             list.Sort((string s, string s1) => (s.StartsWith("[") && !s1.StartsWith("[")) ? 1 : string.CompareOrdinal(s, s1));
             foreach (string i in list)
             {
@@ -177,16 +189,14 @@ public static class DebugManager
                 }
             }
         }
-        ImGui.EndChild();
-        ImGui.SameLine();
-        if (ImGui.BeginChild("###" + global::AetherBox.AetherBox.Name + "DebugPagesView", new Vector2(-1f, -1f), border: true, ImGuiWindowFlags.HorizontalScrollbar))
+		ImGui.TableNextColumn();
+		using (ImRaii.Child("###" + global::AetherBox.AetherBox.Name + "DebugPagesView", new Vector2(-1f, -1f), border: true, ImGuiWindowFlags.HorizontalScrollbar))
         {
             if (string.IsNullOrEmpty(global::AetherBox.AetherBox.Config.Debugging.SelectedPage) || !DebugPages.ContainsKey(global::AetherBox.AetherBox.Config.Debugging.SelectedPage))
             {
                 ImGui.Text("Select Debug Page");
+				return;
             }
-            else
-            {
                 try
                 {
                     DebugPages[global::AetherBox.AetherBox.Config.Debugging.SelectedPage]();
@@ -198,8 +208,6 @@ public static class DebugManager
                 }
             }
         }
-        ImGui.EndChild();
-    }
 
     public static void Dispose()
     {
@@ -214,7 +222,8 @@ public static class DebugManager
 
     private unsafe static Vector2 GetNodePosition(AtkResNode* node)
     {
-        Vector2 pos = new Vector2(node->X, node->Y);
+		Vector2 pos;
+		pos = new Vector2(node->X, node->Y);
         for (AtkResNode* par = node->ParentNode; par != null; par = par->ParentNode)
         {
             pos *= new Vector2(par->ScaleX, par->ScaleY);
@@ -229,7 +238,8 @@ public static class DebugManager
         {
             return new Vector2(1f, 1f);
         }
-        Vector2 scale = new Vector2(node->ScaleX, node->ScaleY);
+		Vector2 scale;
+		scale = new Vector2(node->ScaleX, node->ScaleY);
         while (node->ParentNode != null)
         {
             node = node->ParentNode;
@@ -257,10 +267,14 @@ public static class DebugManager
 
     public unsafe static void HighlightResNode(AtkResNode* node)
     {
-        Vector2 position = GetNodePosition(node);
-        Vector2 scale = GetNodeScale(node);
-        Vector2 size = new Vector2((int)node->Width, (int)node->Height) * scale;
-        bool nodeVisible = GetNodeVisible(node);
+		Vector2 position;
+		position = GetNodePosition(node);
+		Vector2 scale;
+		scale = GetNodeScale(node);
+		Vector2 size;
+		size = new Vector2((int)node->Width, (int)node->Height) * scale;
+		bool nodeVisible;
+		nodeVisible = GetNodeVisible(node);
         ImGui.GetForegroundDrawList().AddRectFilled(position, position + size, nodeVisible ? 1426128640u : 1426063615u);
         ImGui.GetForegroundDrawList().AddRect(position, position + size, nodeVisible ? 4278255360u : 4278190335u);
     }
@@ -298,7 +312,8 @@ public static class DebugManager
 
     public static void SeStringToText(Dalamud.Game.Text.SeStringHandling.SeString seStr)
     {
-        int pushColorCount = 0;
+		int pushColorCount;
+		pushColorCount = 0;
         ImGui.BeginGroup();
         foreach (Payload p in seStr.Payloads)
         {
@@ -317,9 +332,12 @@ public static class DebugManager
             }
             else
             {
-                uint r = (c.UIColor.UIForeground >> 24) & 0xFFu;
-                uint g = (c.UIColor.UIForeground >> 16) & 0xFFu;
-                uint b = (c.UIColor.UIForeground >> 8) & 0xFFu;
+				uint r;
+				r = (c.UIColor.UIForeground >> 24) & 0xFFu;
+				uint g;
+				g = (c.UIColor.UIForeground >> 16) & 0xFFu;
+				uint b;
+				b = (c.UIColor.UIForeground >> 8) & 0xFFu;
                 _ = c.UIColor.UIForeground;
                 ImGui.PushStyleColor(ImGuiCol.Text, new Vector4((float)r / 255f, (float)g / 255f, (float)b / 255f, 1f));
                 pushColorCount++;
@@ -679,8 +697,10 @@ public static class DebugManager
             return "..." + type.Name;
         }
         loopSafety.Add(type);
-        string obj = type.Name.Split('`')[0];
-        IEnumerable<string> gArgs = from t in type.GetGenericArguments()
+		string obj;
+		obj = type.Name.Split('`')[0];
+		IEnumerable<string> gArgs;
+		gArgs = from t in type.GetGenericArguments()
                                     select ParseTypeName(t, loopSafety) ?? "";
         return obj + "<" + string.Join(',', gArgs) + ">";
     }
@@ -689,11 +709,14 @@ public static class DebugManager
     {
         if (obj is Utf8String utf8String)
         {
-            string text = string.Empty;
-            Exception err = null;
+			string text;
+			text = string.Empty;
+			Exception err;
+			err = null;
             try
             {
-                int s = (int)((utf8String.BufUsed > int.MaxValue) ? int.MaxValue : utf8String.BufUsed);
+				int s;
+				s = (int)((utf8String.BufUsed > int.MaxValue) ? int.MaxValue : utf8String.BufUsed);
                 if (s > 1)
                 {
                     text = Encoding.UTF8.GetString(utf8String.StringPtr, s - 1);
@@ -714,8 +737,10 @@ public static class DebugManager
                 ImGui.SameLine();
             }
         }
-        int pushedColor = 0;
-        bool openedNode = false;
+		int pushedColor;
+		pushedColor = 0;
+		bool openedNode;
+		openedNode = false;
         try
         {
             if (EndModule == 0L && BeginModule == 0L)
@@ -742,12 +767,15 @@ public static class DebugManager
             }
             if (ImGui.TreeNode($"{headerText}##print-obj-{addr:X}-{string.Join("-", path)}"))
             {
-                LayoutKind layoutKind = obj.GetType().StructLayoutAttribute?.Value ?? LayoutKind.Sequential;
-                ulong offsetAddress = 0uL;
+				LayoutKind layoutKind;
+				layoutKind = obj.GetType().StructLayoutAttribute?.Value ?? LayoutKind.Sequential;
+				ulong offsetAddress;
+				offsetAddress = 0uL;
                 openedNode = true;
                 ImGui.PopStyleColor();
                 pushedColor--;
-                FieldInfo[] fields = obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public);
+				FieldInfo[] fields;
+				fields = obj.GetType().GetFields(BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public);
                 foreach (FieldInfo f in fields)
                 {
                     if (f.IsStatic)
@@ -762,22 +790,28 @@ public static class DebugManager
                             offsetAddress = (ulong)o.Value;
                         }
                         ImGui.PushStyleColor(ImGuiCol.Text, 4287137928u);
-                        string addressText = GetAddressString((void*)(addr + offsetAddress), ImGui.GetIO().KeyShift);
+						string addressText;
+						addressText = GetAddressString((void*)(addr + offsetAddress), ImGui.GetIO().KeyShift);
                         ClickToCopyText($"[0x{offsetAddress:X}]", addressText);
                         ImGui.PopStyleColor();
                         ImGui.SameLine();
                     }
-                    FixedBufferAttribute fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
+					FixedBufferAttribute fixedBuffer;
+					fixedBuffer = (FixedBufferAttribute)f.GetCustomAttribute(typeof(FixedBufferAttribute));
                     if (fixedBuffer != null)
                     {
-                        FixedArrayAttribute fixedArray = (FixedArrayAttribute)f.GetCustomAttribute(typeof(FixedArrayAttribute));
-                        Attribute fixedSizeArray = f.GetCustomAttribute(typeof(FixedSizeArrayAttribute<>));
+						FixedArrayAttribute fixedArray;
+						fixedArray = (FixedArrayAttribute)f.GetCustomAttribute(typeof(FixedArrayAttribute));
+						Attribute fixedSizeArray;
+						fixedSizeArray = f.GetCustomAttribute(typeof(FixedSizeArrayAttribute<>));
                         ImGui.Text("fixed");
                         ImGui.SameLine();
                         if (fixedSizeArray != null)
                         {
-                            Type fixedType = fixedSizeArray.GetType().GetGenericArguments()[0];
-                            int size = (int)fixedSizeArray.GetType().GetProperty("Count").GetValue(fixedSizeArray);
+							Type fixedType;
+							fixedType = fixedSizeArray.GetType().GetGenericArguments()[0];
+							int size;
+							size = (int)fixedSizeArray.GetType().GetProperty("Count").GetValue(fixedSizeArray);
                             ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1f), $"{ParseTypeName(fixedType)}[{size}]");
                         }
                         else if (fixedArray != null)
@@ -798,7 +832,8 @@ public static class DebugManager
                     }
                     else if (f.FieldType.IsArray)
                     {
-                        Array arr = (Array)f.GetValue(obj);
+						Array arr;
+						arr = (Array)f.GetValue(obj);
                         ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1f), $"{ParseTypeName(f.FieldType.GetElementType() ?? f.FieldType)}[{arr.Length}]");
                     }
                     else
@@ -807,7 +842,8 @@ public static class DebugManager
                     }
                     ImGui.SameLine();
                     ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.4f, 1f), f.Name + ": ");
-                    string fullFieldName = (obj.GetType().FullName ?? "UnknownType") + "." + f.Name;
+					string fullFieldName;
+					fullFieldName = (obj.GetType().FullName ?? "UnknownType") + "." + f.Name;
                     if (ImGui.GetIO().KeyShift && ImGui.IsItemHovered())
                     {
                         ImGui.SetTooltip(fullFieldName);
@@ -827,7 +863,8 @@ public static class DebugManager
                     }
                     else if (f.FieldType == typeof(bool) && fullFieldName.StartsWith("FFXIVClientStructs.FFXIV"))
                     {
-                        byte b = *(byte*)(addr + offsetAddress);
+						byte b;
+						b = *(byte*)(addr + offsetAddress);
                         PrintOutValue(addr + offsetAddress, new List<string>(path) { f.Name }, f.FieldType, b != 0, f);
                     }
                     else
@@ -839,7 +876,8 @@ public static class DebugManager
                         offsetAddress += (ulong)Marshal.SizeOf(f.FieldType);
                     }
                 }
-                PropertyInfo[] properties = obj.GetType().GetProperties();
+				PropertyInfo[] properties;
+				properties = obj.GetType().GetProperties();
                 foreach (PropertyInfo p in properties)
                 {
                     ImGui.TextColored(new Vector4(0.2f, 0.9f, 0.9f, 1f), ParseTypeName(p.PropertyType) ?? "");
@@ -878,7 +916,8 @@ public static class DebugManager
 
     public unsafe static string GetAddressString(void* address, out bool isRelative, bool absoluteOnly = false)
     {
-        ulong ulongAddress = (ulong)address;
+		ulong ulongAddress;
+		ulongAddress = (ulong)address;
         isRelative = false;
         if (!absoluteOnly)
         {
@@ -918,8 +957,8 @@ public static class DebugManager
 
     public unsafe static void PrintAddress(void* address)
     {
-        bool isRelative;
-        string addressString = GetAddressString(address, out isRelative);
+		string addressString;
+		addressString = GetAddressString(address, out var isRelative);
         if (isRelative)
         {
             ClickToCopyText(GetAddressString(address, absoluteOnly: true));
