@@ -22,6 +22,7 @@ using ECommons.Logging;
 using Microsoft.VisualBasic.ApplicationServices;
 using static System.Windows.Forms.LinkLabel;
 using AetherBox.IPC;
+using Dalamud.IoC;
 
 namespace AetherBox
 {
@@ -51,23 +52,14 @@ namespace AetherBox
 
         internal TaskManager TaskManager;
 
+        [PluginService]
+        public static IAddonLifecycle AddonLifecycle { get; private set; }
+
         public static string Name => "AetherBox";
 
-        public IEnumerable<BaseFeature> Features => from x in FeatureProviders.Where((x) => !x.Disposed).SelectMany((x) => x.Features)
+        public IEnumerable<BaseFeature> Features => from x in FeatureProviders.Where((FeatureProvider x) => !x.Disposed).SelectMany((FeatureProvider x) => x.Features)
                                                     orderby x.Name
                                                     select x;
-
-        /*private List<FeatureProvider> FeatureProviders
-        {
-            get => featureProviders;
-            set => featureProviders = value ?? throw new ArgumentNullException(nameof(value));
-        }
-
-        public static Configuration Config
-        {
-            get => config;
-            private set => config = value ?? throw new ArgumentNullException(nameof(value));
-        }*/
 
         public AetherBox(DalamudPluginInterface pluginInterface)
         {

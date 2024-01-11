@@ -36,6 +36,8 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Visible>false</Visible>
         </None>
+        <None Include="Features\Actions\ISLock&amp;Move.cs" />
+        <None Include="Helpers\Faloop\.Jurisdiction.cs" />
         <!-- Doesnt need to be included on the repo, should be build on its own -->
         <None Include="packages.lock.json">
             <CopyToOutputDirectory>Never</CopyToOutputDirectory>
@@ -43,9 +45,9 @@
         </None>
         <None Include="UI\ConfigWindow.cs" />
         <!-- References -->
-        <Reference Include="..\..\Libraries\addon\ClickLib.dll"/>
-        <Reference Include="..\..\Libraries\addon\ECommons.dll"/>
-        <Reference Include="..\..\Libraries\addon\SocketIOClient.dll"/>
+        <Reference Include="..\..\Libraries\addon\ClickLib.dll" />
+        <Reference Include="..\..\Libraries\addon\ECommons.dll" />
+        <Reference Include="..\..\Libraries\addon\SocketIOClient.dll" />
         <!-- images -->
         <Content Include="..\images\*.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -66,7 +68,9 @@
     <!-- Plugin Content -->
     <ItemGroup>
         <Compile Remove="AetherBox - old.cs" />
+        <Compile Remove="Features\Actions\ISLock&amp;Move.cs" />
         <Compile Remove="GlobalSuppressions.cs" />
+        <Compile Remove="Helpers\Faloop\.Jurisdiction.cs" />
         <Compile Remove="UI\ConfigWindow.cs" />
         <Compile Remove="Features\Debugging\**" />
     </ItemGroup>
