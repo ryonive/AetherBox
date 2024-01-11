@@ -1,41 +1,47 @@
-using ImGuiNET;
 using System.Numerics;
+using ImGuiNET;
 
-#nullable disable
-namespace AetherBox.FeaturesSetup
+namespace AetherBox.FeaturesSetup;
+
+public static class FeatureConfigEditor
 {
-    public static class FeatureConfigEditor
+    public static bool ColorEditor(string name, ref object configOption)
     {
-        public static bool ColorEditor(string name, ref object configOption)
+        object obj;
+        obj = configOption;
+        if (!(obj is Vector4 vector))
         {
-            switch (configOption)
+            if (obj is Vector3 vector2)
             {
-                case Vector4 vector4:
-                    var col1 = vector4;
-                    if (ImGui.ColorEdit4(name, ref col1))
-                    {
-                        configOption = (object)col1;
-                        return true;
-                    }
-                    break;
-                case Vector3 vector3:
-                    var col2 = vector3;
-                    if (ImGui.ColorEdit3(name, ref col2))
-                    {
-                        configOption = (object)col2;
-                        return true;
-                    }
-                    break;
+                Vector3 v3;
+                v3 = vector2;
+                if (ImGui.ColorEdit3(name, ref v3))
+                {
+                    configOption = v3;
+                    return true;
+                }
             }
-            return false;
         }
-
-        public static bool SimpleColorEditor(string name, ref object configOption)
+        else
         {
-            if (!(configOption is Vector4 col) || !ImGui.ColorEdit4(name, ref col, ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.AlphaBar | ImGuiColorEditFlags.AlphaPreview))
-                return false;
-            configOption = (object)col;
+            Vector4 v4;
+            v4 = vector;
+            if (ImGui.ColorEdit4(name, ref v4))
+            {
+                configOption = v4;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static bool SimpleColorEditor(string name, ref object configOption)
+    {
+        if (configOption is Vector4 v4 && ImGui.ColorEdit4(name, ref v4, ImGuiColorEditFlags.NoInputs | ImGuiColorEditFlags.AlphaBar | ImGuiColorEditFlags.AlphaPreview))
+        {
+            configOption = v4;
             return true;
         }
+        return false;
     }
 }

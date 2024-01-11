@@ -1,74 +1,81 @@
 using System;
 using System.Reflection;
+using AetherBox.FeaturesSetup;
 
-#nullable disable
-namespace AetherBox.FeaturesSetup
+namespace AetherBox.FeaturesSetup;
+
+[AttributeUsage(AttributeTargets.All)]
+public class FeatureConfigOptionAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.All)]
-    public class FeatureConfigOptionAttribute : Attribute
+    public delegate bool ConfigOptionEditor(string name, ref object configOption);
+
+    public enum NumberEditType
     {
-        public int IntIncrements = 1;
-        public float FloatIncrements = 0.1f;
-        public string Format = "%.1f";
+        Slider = 0,
+        Drag = 1
+    }
 
-        public string Name { get; }
+    public int IntIncrements = 1;
 
-        public string HelpText { get; set; } = "";
+    public float FloatIncrements = 0.1f;
 
-        public string LocalizeKey { get; }
+    public string Format = "%.1f";
 
-        public int Priority { get; }
+    public string Name { get; }
 
-        public int EditorSize { get; set; } = -1;
+    public string HelpText { get; set; } = "";
 
-        public bool SameLine { get; set; }
 
-        public bool ConditionalDisplay { get; set; }
+    public string LocalizeKey { get; }
 
-        public int IntMin { get; set; } = int.MinValue;
+    public int Priority { get; }
 
-        public int IntMax { get; set; } = int.MaxValue;
+    public int EditorSize { get; set; } = -1;
 
-        public NumberEditType IntType { get; set; }
 
-        public float FloatMin { get; set; } = float.MinValue;
+    public bool SameLine { get; set; }
 
-        public float FloatMax { get; set; } = int.MaxValue;
+    public bool ConditionalDisplay { get; set; }
 
-        public NumberEditType FloatType { get; set; }
+    public int IntMin { get; set; } = int.MinValue;
 
-        public bool EnforcedLimit { get; set; } = true;
 
-        public MethodInfo Editor { get; set; }
+    public int IntMax { get; set; } = int.MaxValue;
 
-        public uint SelectedValue { get; set; }
 
-        public FeatureConfigOptionAttribute(string name) => Name = name;
+    public NumberEditType IntType { get; set; }
 
-        public FeatureConfigOptionAttribute(
-          string name,
-          string editorType,
-          int priority = 0,
-          string localizeKey = null)
-        {
-            Name = name;
-            Priority = priority;
-            LocalizeKey = localizeKey ?? name;
-            Editor = typeof(FeatureConfigEditor).GetMethod(editorType + nameof(Editor), BindingFlags.Static | BindingFlags.Public);
-        }
+    public float FloatMin { get; set; } = float.MinValue;
 
-        public FeatureConfigOptionAttribute(string name, uint selectedValue = 0)
-        {
-            Name = name;
-            SelectedValue = selectedValue;
-        }
 
-        public delegate bool ConfigOptionEditor(string name, ref object configOption);
+    public float FloatMax { get; set; } = 2.1474836E+09f;
 
-        public enum NumberEditType
-        {
-            Slider,
-            Drag,
-        }
+
+    public NumberEditType FloatType { get; set; }
+
+    public bool EnforcedLimit { get; set; } = true;
+
+
+    public MethodInfo Editor { get; set; }
+
+    public uint SelectedValue { get; set; }
+
+    public FeatureConfigOptionAttribute(string name)
+    {
+        Name = name;
+    }
+
+    public FeatureConfigOptionAttribute(string name, string editorType, int priority = 0, string localizeKey = null)
+    {
+        Name = name;
+        Priority = priority;
+        LocalizeKey = localizeKey ?? name;
+        Editor = typeof(FeatureConfigEditor).GetMethod(editorType + "Editor", BindingFlags.Static | BindingFlags.Public);
+    }
+
+    public FeatureConfigOptionAttribute(string name, uint selectedValue = 0u)
+    {
+        Name = name;
+        SelectedValue = selectedValue;
     }
 }
