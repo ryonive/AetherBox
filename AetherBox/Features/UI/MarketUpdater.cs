@@ -27,7 +27,7 @@ public class MarketUpdater : Feature
 
 	public override string Description => "Penny pinches all listings on retainers";
 
-	public override FeatureType FeatureType => FeatureType.UI;
+	public override FeatureType FeatureType => FeatureType.Disabled;
 
 	internal new static bool GenericThrottle => FrameThrottler.Throttle("AutoRetainerGenericThrottle", 200);
 
@@ -49,7 +49,8 @@ public class MarketUpdater : Feature
 		{
 			return;
 		}
-		AtkResNode* node = addon->UldManager.NodeList[1];
+		AtkResNode* node;
+		node = addon->UldManager.NodeList[1];
 		if (!node->IsVisible)
 		{
 			return;
@@ -90,7 +91,8 @@ public class MarketUpdater : Feature
 
 	private void UpdateListings(int numRetainers)
 	{
-		int i = 0;
+		int i;
+		i = 0;
 		if (i >= numRetainers)
 		{
 			TaskManager.Enqueue(() => active = false);
@@ -106,7 +108,8 @@ public class MarketUpdater : Feature
 		}
 		if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("RetainerList", out var retainerList) && GenericHelpers.IsAddonReady(retainerList))
 		{
-			ReaderRetainerList list = new ReaderRetainerList(retainerList);
+			ReaderRetainerList list;
+			list = new ReaderRetainerList(retainerList);
 			for (int i = 0; i < list.Retainers.Count; i++)
 			{
 				if (list.Retainers[i].Name == name && GenericThrottle)

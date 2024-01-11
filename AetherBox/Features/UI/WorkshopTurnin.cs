@@ -127,7 +127,8 @@ public class WorkshopTurnin : Feature
 		{
 			return;
 		}
-		AtkResNode* node = addon->UldManager.NodeList[1];
+		AtkResNode* node;
+		node = addon->UldManager.NodeList[1];
 		if (!node->IsVisible)
 		{
 			return;
@@ -216,18 +217,23 @@ public class WorkshopTurnin : Feature
 	{
 		if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("SubmarinePartsMenu", out var addon) && addon->AtkValues[12].Type != 0)
 		{
-			List<PartIngredient> requiredIngredients = GetRequiredItems();
-			List<PartIngredient> list = requiredIngredients;
+			List<PartIngredient> requiredIngredients;
+			requiredIngredients = GetRequiredItems();
+			List<PartIngredient> list;
+			list = requiredIngredients;
 			if (list != null && list.Count == 0)
 			{
 				PluginLog.Log("req is 0");
 				return true;
 			}
-			bool flag = MustEndLoop(!IsSufficientlyLeveled(requiredIngredients), "Not high enough level to turn in items");
+			bool flag;
+			flag = MustEndLoop(!IsSufficientlyLeveled(requiredIngredients), "Not high enough level to turn in items");
 			if (!flag)
 			{
-				uint id = Svc.ClientState.LocalPlayer.ClassJob.Id;
-				bool condition = ((id < 8 || id > 15) ? true : false);
+				uint id;
+				id = Svc.ClientState.LocalPlayer.ClassJob.Id;
+				bool condition;
+				condition = ((id < 8 || id > 15) ? true : false);
 				flag = MustEndLoop(condition, "Must be a DoH to turn in items.");
 			}
 			if (flag)
@@ -249,7 +255,8 @@ public class WorkshopTurnin : Feature
 					TaskManager.EnqueueImmediate(() => ConfirmContribution(), "ConfirmContribution");
 				}
 			}
-			bool hasMorePhases = addon->AtkValues[6].UInt != addon->AtkValues[7].UInt - 1;
+			bool hasMorePhases;
+			hasMorePhases = addon->AtkValues[6].UInt != addon->AtkValues[7].UInt - 1;
 			TaskManager.EnqueueImmediate((!hasMorePhases) ? new Func<bool?>(CompleteConstruction) : new Func<bool?>(AdvancePhase));
 			TaskManager.EnqueueImmediate((Func<bool?>)WaitForCutscene, "WaitForCutscene");
 			TaskManager.EnqueueImmediate((Func<bool?>)PressEsc, "PressEsc");
@@ -269,7 +276,8 @@ public class WorkshopTurnin : Feature
 		{
 			for (uint i = addon->AtkValues[6].UInt; i < addon->AtkValues[7].UInt; i++)
 			{
-				bool num = i != addon->AtkValues[7].UInt - 1;
+				bool num;
+				num = i != addon->AtkValues[7].UInt - 1;
 				TaskManager.Enqueue(() => TurnInPhase(), $"{"TurnInPhase"} {i}");
 				TaskManager.Enqueue((Func<bool?>)InteractWithFabricationPanel, "InteractWithFabricationPanel");
 				if (num)
@@ -337,7 +345,8 @@ public class WorkshopTurnin : Feature
 	{
 		return ConfirmContributionStr.Any(delegate(string str)
 		{
-			AtkUnitBase* specificYesno = BaseFeature.GetSpecificYesno((string s) => s.ContainsAny(StringComparison.OrdinalIgnoreCase, str));
+			AtkUnitBase* specificYesno;
+			specificYesno = BaseFeature.GetSpecificYesno((string s) => s.ContainsAny(StringComparison.OrdinalIgnoreCase, str));
 			if (specificYesno != null)
 			{
 				ClickSelectYesNo.Using((nint)specificYesno).Yes();
@@ -349,7 +358,8 @@ public class WorkshopTurnin : Feature
 
 	private unsafe static bool ConfirmHQTrade()
 	{
-		AtkUnitBase* x = BaseFeature.GetSpecificYesno(Svc.Data.GetExcelSheet<Addon>().GetRow(102434u).Text);
+		AtkUnitBase* x;
+		x = BaseFeature.GetSpecificYesno(Svc.Data.GetExcelSheet<Addon>().GetRow(102434u).Text);
 		if (x != null)
 		{
 			ClickSelectYesNo.Using((nint)x).Yes();
@@ -362,7 +372,8 @@ public class WorkshopTurnin : Feature
 	{
 		return ConfirmProductRetrievalStr.Any(delegate(string str)
 		{
-			AtkUnitBase* specificYesno = BaseFeature.GetSpecificYesno((string s) => s.ContainsAny(StringComparison.OrdinalIgnoreCase, str));
+			AtkUnitBase* specificYesno;
+			specificYesno = BaseFeature.GetSpecificYesno((string s) => s.ContainsAny(StringComparison.OrdinalIgnoreCase, str));
 			if (specificYesno != null)
 			{
 				ClickSelectYesNo.Using((nint)specificYesno).Yes();
@@ -404,10 +415,12 @@ public class WorkshopTurnin : Feature
 
 	private unsafe static bool? PressEsc()
 	{
-		nint nLoading = Svc.GameGui.GetAddonByName("NowLoading");
+		nint nLoading;
+		nLoading = Svc.GameGui.GetAddonByName("NowLoading");
 		if (nLoading != IntPtr.Zero)
 		{
-			AtkUnitBase* nowLoading = (AtkUnitBase*)nLoading;
+			AtkUnitBase* nowLoading;
+			nowLoading = (AtkUnitBase*)nLoading;
 			if (!nowLoading->IsVisible && WindowsKeypress.SendKeypress(Keys.Escape))
 			{
 				return true;
@@ -418,12 +431,14 @@ public class WorkshopTurnin : Feature
 
 	private unsafe static bool? ConfirmSkip()
 	{
-		nint addon = Svc.GameGui.GetAddonByName("SelectString");
+		nint addon;
+		addon = Svc.GameGui.GetAddonByName("SelectString");
 		if (addon == IntPtr.Zero)
 		{
 			return false;
 		}
-		AddonSelectString* selectStrAddon = (AddonSelectString*)addon;
+		AddonSelectString* selectStrAddon;
+		selectStrAddon = (AddonSelectString*)addon;
 		if (!GenericHelpers.IsAddonReady(&selectStrAddon->AtkUnitBase))
 		{
 			return false;

@@ -1,8 +1,8 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Debugging.HousingZoneExtensions
 using System;
 using AetherBox.Features.Debugging;
+
 namespace AetherBox.Features.Debugging;
+
 public static class HousingZoneExtensions
 {
 	public static string ToName(this HousingDebug.HousingZone z)

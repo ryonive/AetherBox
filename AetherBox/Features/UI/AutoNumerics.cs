@@ -117,8 +117,10 @@ public class AutoNumerics : Feature
 		}
 		try
 		{
-			int minValue = obj.Addon->AtkValues[2].Int;
-			int maxValue = obj.Addon->AtkValues[3].Int;
+			int minValue;
+			minValue = obj.Addon->AtkValues[2].Int;
+			int maxValue;
+			maxValue = obj.Addon->AtkValues[3].Int;
 			obj.Addon->UldManager.NodeList[4]->GetAsAtkComponentNode()->Component->UldManager.NodeList[4]->GetAsAtkTextNode();
 			_ = obj.Addon->UldManager.NodeList[4]->GetAsAtkComponentNode()->Component->UldManager.NodeList[6];
 			if (Config.WorkOnTrading && Svc.Condition[ConditionFlag.TradeOpen])
@@ -150,8 +152,10 @@ public class AutoNumerics : Feature
 
 	private unsafe void TryFill(AtkUnitBase* numeric, int minValue, int maxValue, int minOrMax, bool excludeSplit, bool autoConfirm)
 	{
-		AtkTextNode* numericTextNode = numeric->UldManager.NodeList[4]->GetAsAtkComponentNode()->Component->UldManager.NodeList[4]->GetAsAtkTextNode();
-		AtkResNode* numericResNode = numeric->UldManager.NodeList[4]->GetAsAtkComponentNode()->Component->UldManager.NodeList[6];
+		AtkTextNode* numericTextNode;
+		numericTextNode = numeric->UldManager.NodeList[4]->GetAsAtkComponentNode()->Component->UldManager.NodeList[4]->GetAsAtkTextNode();
+		AtkResNode* numericResNode;
+		numericResNode = numeric->UldManager.NodeList[4]->GetAsAtkComponentNode()->Component->UldManager.NodeList[6];
 		if (excludeSplit && IsSplitAddon())
 		{
 			return;
@@ -188,7 +192,8 @@ public class AutoNumerics : Feature
 		{
 			return;
 		}
-		string currentAmt = numericTextNode->NodeText.ToString();
+		string currentAmt;
+		currentAmt = numericTextNode->NodeText.ToString();
 		if (int.TryParse(currentAmt, out var num) && num > 0 && !numericResNode->IsVisible)
 		{
 			TaskManager.Enqueue(delegate
@@ -206,9 +211,12 @@ public class AutoNumerics : Feature
 		}
 		try
 		{
-			int bMinValue = obj.Addon->AtkValues[5].Int;
-			int bMaxValue = obj.Addon->AtkValues[6].Int;
-			AtkTextNode* bNumericTextNode = obj.Addon->UldManager.NodeList[4]->GetAsAtkComponentNode()->Component->UldManager.NodeList[4]->GetAsAtkTextNode();
+			int bMinValue;
+			bMinValue = obj.Addon->AtkValues[5].Int;
+			int bMaxValue;
+			bMaxValue = obj.Addon->AtkValues[6].Int;
+			AtkTextNode* bNumericTextNode;
+			bNumericTextNode = obj.Addon->UldManager.NodeList[4]->GetAsAtkComponentNode()->Component->UldManager.NodeList[4]->GetAsAtkTextNode();
 			if (Config.FCExcludeSplit && IsSplitAddon())
 			{
 				return;
@@ -262,11 +270,16 @@ public class AutoNumerics : Feature
 		}
 		try
 		{
-			int minValue = 1;
-			uint maxAvailable = obj.Addon->AtkValues[5].UInt - obj.Addon->AtkValues[4].UInt;
-			uint maxAfford = obj.Addon->AtkValues[1].UInt / obj.Addon->AtkValues[2].UInt;
-			uint maxValue = ((maxAvailable > maxAfford) ? maxAfford : maxAvailable);
-			AtkTextNode* numericTextNode = obj.Addon->UldManager.NodeList[8]->GetAsAtkComponentNode()->Component->UldManager.NodeList[4]->GetAsAtkTextNode();
+			int minValue;
+			minValue = 1;
+			uint maxAvailable;
+			maxAvailable = obj.Addon->AtkValues[5].UInt - obj.Addon->AtkValues[4].UInt;
+			uint maxAfford;
+			maxAfford = obj.Addon->AtkValues[1].UInt / obj.Addon->AtkValues[2].UInt;
+			uint maxValue;
+			maxValue = ((maxAvailable > maxAfford) ? maxAfford : maxAvailable);
+			AtkTextNode* numericTextNode;
+			numericTextNode = obj.Addon->UldManager.NodeList[8]->GetAsAtkComponentNode()->Component->UldManager.NodeList[4]->GetAsAtkTextNode();
 			if (Config.VentureMinOrMax == 0)
 			{
 				TaskManager.Enqueue(delegate
@@ -305,13 +318,15 @@ public class AutoNumerics : Feature
 
 	private unsafe bool IsSplitAddon()
 	{
-		AtkUnitBase* numeric = (AtkUnitBase*)Svc.GameGui.GetAddonByName("InputNumeric");
+		AtkUnitBase* numeric;
+		numeric = (AtkUnitBase*)Svc.GameGui.GetAddonByName("InputNumeric");
 		return numeric->UldManager.NodeList[5]->GetAsAtkTextNode()->NodeText.ToString() == splitText;
 	}
 
 	private unsafe bool InFcChest()
 	{
-		AtkUnitBase* fcChest = (AtkUnitBase*)Svc.GameGui.GetAddonByName("FreeCompanyChest");
+		AtkUnitBase* fcChest;
+		fcChest = (AtkUnitBase*)Svc.GameGui.GetAddonByName("FreeCompanyChest");
 		if (fcChest != null)
 		{
 			return fcChest->IsVisible;
@@ -321,7 +336,8 @@ public class AutoNumerics : Feature
 
 	private unsafe bool InFcBank()
 	{
-		AtkUnitBase* fcBank = (AtkUnitBase*)Svc.GameGui.GetAddonByName("Bank");
+		AtkUnitBase* fcBank;
+		fcBank = (AtkUnitBase*)Svc.GameGui.GetAddonByName("Bank");
 		if (fcBank != null)
 		{
 			return fcBank->IsVisible;
@@ -331,7 +347,8 @@ public class AutoNumerics : Feature
 
 	private unsafe bool InMail()
 	{
-		AtkUnitBase* mail = (AtkUnitBase*)Svc.GameGui.GetAddonByName("LetterList");
+		AtkUnitBase* mail;
+		mail = (AtkUnitBase*)Svc.GameGui.GetAddonByName("LetterList");
 		if (mail != null)
 		{
 			return mail->IsVisible;
@@ -341,7 +358,8 @@ public class AutoNumerics : Feature
 
 	private unsafe bool InTransmute()
 	{
-		AtkUnitBase* trans = (AtkUnitBase*)Svc.GameGui.GetAddonByName("TradeMultiple");
+		AtkUnitBase* trans;
+		trans = (AtkUnitBase*)Svc.GameGui.GetAddonByName("TradeMultiple");
 		if (trans != null)
 		{
 			return trans->IsVisible;
@@ -359,7 +377,6 @@ public class AutoNumerics : Feature
 
         return unmanagedBytes;
     }
-
 
     public override void Disable()
 	{

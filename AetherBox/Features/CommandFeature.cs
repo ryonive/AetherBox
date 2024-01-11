@@ -1,106 +1,99 @@
-using AetherBox.FeaturesSetup;
-using Dalamud.Game.Command;
-using ECommons.DalamudServices;
-using ECommons.Logging;
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Text.RegularExpressions.Generated;
+using AetherBox;
+using AetherBox.Features;
+using AetherBox.FeaturesSetup;
+using Dalamud.Game.Command;
+using ECommons.DalamudServices;
+using ECommons.Logging;
 
-#nullable disable
 namespace AetherBox.Features;
 
 public abstract class CommandFeature : Feature
 {
-    private readonly List<string> registeredCommands = new List<string>();
+	private readonly List<string> registeredCommands = new List<string>();
 
-    public abstract string Command { get; set; }
+	public abstract string Command { get; set; }
 
-    public virtual string[] Alias => Array.Empty<string>();
+	public virtual string[] Alias => Array.Empty<string>();
 
-    public virtual string HelpMessage
-    {
-        get
-        {
-            var interpolatedStringHandler = new DefaultInterpolatedStringHandler(3, 2);
-            interpolatedStringHandler.AppendLiteral("[");
-            interpolatedStringHandler.AppendFormatted(AetherBox.Name);
-            interpolatedStringHandler.AppendLiteral(" ");
-            interpolatedStringHandler.AppendFormatted(this.Name);
-            interpolatedStringHandler.AppendLiteral("]");
-            return interpolatedStringHandler.ToStringAndClear();
-        }
-    }
+	public virtual string HelpMessage => $"[{AetherBox.Name} {Name}]";
 
-    public virtual bool ShowInHelp => false;
+	public virtual bool ShowInHelp => false;
 
-    public virtual List<string> Parameters => new List<string>();
+	public virtual List<string> Parameters => new List<string>();
 
-    public override FeatureType FeatureType => FeatureType.Commands;
+	public override FeatureType FeatureType => FeatureType.Commands;
 
-    protected abstract void OnCommand(List<string> args);
+	protected abstract void OnCommand(List<string> args);
 
-    protected virtual void OnCommandInternal(string _, string args)
-    {
-        args = args.ToLower();
-        this.OnCommand(((IEnumerable<string>)args.Split(' ')).ToList<string>());
-    }
+	protected virtual void OnCommandInternal(string _, string args)
+	{
+		args = args.ToLower();
+		OnCommand(args.Split(' ').ToList());
+	}
 
-    public override void Enable()
-    {
-        if (Svc.Commands.Commands.ContainsKey(this.Command))
-        {
-            PluginLog.Error("Command '" + this.Command + "' is already registered.");
-        }
-        else
-        {
-            Svc.Commands.AddHandler(this.Command, new CommandInfo(new CommandInfo.HandlerDelegate(this.OnCommandInternal))
-            {
-                HelpMessage = this.HelpMessage,
-                ShowInHelp = this.ShowInHelp
-            });
-            this.registeredCommands.Add(this.Command);
-        }
-        foreach (var alia in this.Alias)
-        {
-            if (!Svc.Commands.Commands.ContainsKey(alia))
-            {
-                Svc.Commands.AddHandler(alia, new CommandInfo(new CommandInfo.HandlerDelegate(this.OnCommandInternal))
-                {
-                    HelpMessage = this.HelpMessage,
-                    ShowInHelp = false
-                });
-                this.registeredCommands.Add(alia);
-            }
-        }
-    }
+	public override void Enable()
+	{
+		if (Svc.Commands.Commands.ContainsKey(Command))
+		{
+			PluginLog.Error("Command '" + Command + "' is already registered.");
+		}
+		else
+		{
+			Svc.Commands.AddHandler(Command, new CommandInfo(OnCommandInternal)
+			{
+				HelpMessage = HelpMessage,
+				ShowInHelp = ShowInHelp
+			});
+			registeredCommands.Add(Command);
+		}
+		string[] alias;
+		alias = Alias;
+		foreach (string a in alias)
+		{
+			if (!Svc.Commands.Commands.ContainsKey(a))
+			{
+				Svc.Commands.AddHandler(a, new CommandInfo(OnCommandInternal)
+				{
+					HelpMessage = HelpMessage,
+					ShowInHelp = false
+				});
+				registeredCommands.Add(a);
+			}
+		}
+	}
 
-    public override void Disable()
-    {
-        foreach (var registeredCommand in this.registeredCommands)
-            Svc.Commands.RemoveHandler(registeredCommand);
-        this.registeredCommands.Clear();
-        base.Disable();
-    }
+	public override void Disable()
+	{
+		foreach (string c in registeredCommands)
+		{
+			Svc.Commands.RemoveHandler(c);
+		}
+		registeredCommands.Clear();
+		base.Disable();
+	}
 
-    public static List<string> GetArgumentList(string args)
-    {
-        return ArgumentRegex().Matches(args).Select<Match, string>(m =>
-        {
-            if (!m.Value.StartsWith('"') || !m.Value.EndsWith('"'))
-                return m.Value;
-            var str = m.Value;
-            return str.Substring(1, str.Length - 2); // Fixed substring indices.
-        }).ToList<string>();
-    }
+	public static List<string> GetArgumentList(string args)
+	{
+		return ArgumentRegex().Matches(args).Select(delegate(Match m)
+		{
+			if (m.Value.StartsWith('"') && m.Value.EndsWith('"'))
+			{
+				string value;
+				value = m.Value;
+				return value.Substring(1, value.Length - 1 - 1);
+			}
+			return m.Value;
+		}).ToList();
+	}
 
     private static Regex ArgumentRegex()
     {
         return new Regex("[\\\"].+?[\\\"]|[^ ]+");
     }
 }
-
-

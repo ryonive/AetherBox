@@ -1,12 +1,12 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Debugging.HousingDebug
 using System;
 using AetherBox.Debugging;
 using AetherBox.Features.Debugging;
 using Dalamud.Game;
 using ECommons.DalamudServices;
 using ImGuiNET;
+
 namespace AetherBox.Features.Debugging;
+
 public class HousingDebug : DebugHelper
 {
 	public enum HousingZone : byte

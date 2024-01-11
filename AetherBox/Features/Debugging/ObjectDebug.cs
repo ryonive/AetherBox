@@ -1,5 +1,3 @@
-// AetherBox, Version=69.3.0.0, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.Debugging.ObjectDebug
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -13,7 +11,9 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using FFXIVClientStructs.Interop.Attributes;
 using ImGuiNET;
+
 namespace AetherBox.Features.Debugging;
+
 public class ObjectDebug : DebugHelper
 {
 	[StructLayout(LayoutKind.Explicit, Size = 416)]

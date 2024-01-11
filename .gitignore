@@ -121,3 +121,5 @@ Libraries/RunSharp/.hg/thgstatus
 /README.md
 /AetherBox/AetherBox - old.cs
 /SeFonts Test.enum
+/AetherBox/Features/Actions/ISLock&Move.cs
+/AetherBox/Helpers/Faloop/.Jurisdiction.cs

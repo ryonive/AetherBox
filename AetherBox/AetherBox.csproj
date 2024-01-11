@@ -14,6 +14,20 @@
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
+    <!-- Exclude from Build -->
+    <ItemGroup>
+        <Compile Remove="AetherBox - old.cs" />
+        <Compile Remove="Features\Actions\ISLock&amp;Move.cs" />
+        <Compile Remove="GlobalSuppressions.cs" />
+        <Compile Remove="Helpers\Faloop\.Jurisdiction.cs" />
+        <Compile Remove="UI\ConfigWindow.cs" />
+    </ItemGroup>
+
+    <!-- Include in Solution explorer -->
+    <ItemGroup>
+        <None Include="UI\ConfigWindow.cs" />
+    </ItemGroup>
+
     <!-- Debug build config -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
         <NoWarn>1701;1702;S125;IDE1006;S3010</NoWarn>
@@ -24,40 +38,53 @@
         <NoWarn>1701;1702;S125;IDE1006;S3010</NoWarn>
     </PropertyGroup>
 
-    <!-- Important files -->
+    <!-- Important file -->
+    <!-- Manifest file is MANDATORY and used by the packager-->
     <ItemGroup>
-        <!-- Manifest file is MANDATORY and used by the packager-->
         <Content Include="AetherBox.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Visible>false</Visible>
         </Content>
-        <!-- Points to  Dalamud folder for essential references and project settings -->
+    </ItemGroup>
+
+    <!-- Important file -->
+    <!-- Points to  Dalamud folder for essential references and project settings -->
+    <ItemGroup>
         <None Include="Dalamud.Plugin.Bootstrap.targets">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Visible>false</Visible>
         </None>
-        <None Include="Features\Actions\ISLock&amp;Move.cs" />
-        <None Include="Helpers\Faloop\.Jurisdiction.cs" />
-        <!-- Doesnt need to be included on the repo, should be build on its own -->
+    </ItemGroup>
+
+    <!-- Important file -->
+    <!-- Doesnt need to be included on the repo, should be build on its own -->
+    <ItemGroup>
         <None Include="packages.lock.json">
             <CopyToOutputDirectory>Never</CopyToOutputDirectory>
             <Visible>false</Visible>
         </None>
-        <None Include="UI\ConfigWindow.cs" />
-        <!-- References -->
+    </ItemGroup>
+
+    <!-- Important file -->
+    <!-- Other References -->
+    <ItemGroup>
         <Reference Include="..\..\Libraries\addon\ClickLib.dll" />
         <Reference Include="..\..\Libraries\addon\ECommons.dll" />
         <Reference Include="..\..\Libraries\addon\SocketIOClient.dll" />
-        <!-- images -->
+    </ItemGroup>
+
+    <!-- Important file -->
+    <!-- images -->
+    <ItemGroup>
         <Content Include="..\images\*.png">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Visible>false</Visible>
         </Content>
     </ItemGroup>
 
-    <!-- Package and Project References -->
+    <!-- Important file -->
+    <!-- Package Reference -->
     <ItemGroup>
-        <!-- Package Reference -->
         <PackageReference Include="AngleSharp" Version="1.0.7" />
         <PackageReference Include="NAudio" Version="2.2.1" />
         <PackageReference Include="NAudio.Core" Version="2.2.1" />
@@ -65,32 +92,5 @@
         <PackageReference Include="Svg" Version="3.4.6" />
     </ItemGroup>
 
-    <!-- Plugin Content -->
-    <ItemGroup>
-        <Compile Remove="AetherBox - old.cs" />
-        <Compile Remove="Features\Actions\ISLock&amp;Move.cs" />
-        <Compile Remove="GlobalSuppressions.cs" />
-        <Compile Remove="Helpers\Faloop\.Jurisdiction.cs" />
-        <Compile Remove="UI\ConfigWindow.cs" />
-        <Compile Remove="Features\Debugging\**" />
-    </ItemGroup>
 
-    <ItemGroup>
-        <None Remove="Features\Debugging\ActionDebug.cs" />
-        <None Remove="Features\Debugging\DebugManager.cs" />
-        <None Remove="Features\Debugging\FeatureDebug.cs" />
-        <None Remove="Features\Debugging\IslandDebug.cs" />
-        <None Remove="Features\Debugging\PositionDebug.cs" />
-        <None Remove="Features\Debugging\QuestDebug.cs" />
-        <None Remove="Features\Debugging\SliderCanvas.cs" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <Compile Include="Features\Debugging\ActionDebug.cs" />
-        <Compile Include="Features\Debugging\FeatureDebug.cs" />
-        <Compile Include="Features\Debugging\IslandDebug.cs" />
-        <Compile Include="Features\Debugging\PositionDebug.cs" />
-        <Compile Include="Features\Debugging\QuestDebug.cs" />
-        <Compile Include="Features\Debugging\SliderCanvas.cs" />
-    </ItemGroup>
 </Project>

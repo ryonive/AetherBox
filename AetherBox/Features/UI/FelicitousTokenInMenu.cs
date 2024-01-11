@@ -50,7 +50,8 @@ public class FelicitousTokenInMenu : Feature
 	{
 		if (UiHelper.IsAddonReady(AddonMJIHud))
 		{
-			AtkResNode* currencyPositionNode = Common.GetNodeByID(&AddonMJIHud->UldManager, 3u);
+			AtkResNode* currencyPositionNode;
+			currencyPositionNode = Common.GetNodeByID(&AddonMJIHud->UldManager, 3u);
 			if (currencyPositionNode != null)
 			{
 				new Vector2(currencyPositionNode->X, currencyPositionNode->Y);
@@ -60,7 +61,8 @@ public class FelicitousTokenInMenu : Feature
 
 	private unsafe void TryMakeIconNode(uint nodeId, Vector2 position, int icon, bool hqIcon, string? tooltipText = null)
 	{
-		AtkResNode* iconNode = Common.GetNodeByID(&AddonMJIHud->UldManager, nodeId);
+		AtkResNode* iconNode;
+		iconNode = Common.GetNodeByID(&AddonMJIHud->UldManager, nodeId);
 		if (iconNode == null)
 		{
 			MakeIconNode(nodeId, position, icon, hqIcon, tooltipText);
@@ -73,7 +75,8 @@ public class FelicitousTokenInMenu : Feature
 
 	private unsafe void MakeIconNode(uint nodeId, Vector2 position, int icon, bool hqIcon, string? tooltipText = null)
 	{
-		AtkImageNode* intPtr = UiHelper.MakeImageNode(nodeId, new UiHelper.PartInfo(0, 0, 36, 36));
+		AtkImageNode* intPtr;
+		intPtr = UiHelper.MakeImageNode(nodeId, new UiHelper.PartInfo(0, 0, 36, 36));
 		intPtr->AtkResNode.NodeFlags = NodeFlags.AnchorTop | NodeFlags.AnchorLeft | NodeFlags.Visible | NodeFlags.Enabled | NodeFlags.EmitsEvents;
 		intPtr->WrapMode = 1;
 		intPtr->Flags = 128;

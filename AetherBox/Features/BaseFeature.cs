@@ -1,12 +1,19 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using AetherBox;
+using AetherBox.Features;
 using AetherBox.FeaturesSetup;
 using AetherBox.Helpers;
 using ClickLib.Clicks;
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Components;
+using Dalamud.Logging;
 using Dalamud.Memory;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
@@ -21,615 +28,605 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 
-#nullable disable
 namespace AetherBox.Features;
 
 public abstract class BaseFeature
 {
-    public FeatureProvider Provider { get; private set; }
-    protected AetherBox Plugin;
-    protected DalamudPluginInterface Pi;
-    protected Configuration config;
-    protected TaskManager TaskManager;
-    private uint? jobID = Svc.ClientState.LocalPlayer?.ClassJob.Id;
-    public static readonly SeString PandoraPayload;
+	public delegate void OnJobChangeDelegate(uint? jobId);
 
-    public virtual bool Enabled { get; protected set; }
+	protected delegate void DrawConfigDelegate(ref bool hasChanged);
 
-    public abstract string Name { get; }
+	protected global::AetherBox.AetherBox Plugin;
 
-    public virtual string Key => this.GetType().Name;
+	protected DalamudPluginInterface Pi;
 
-    public abstract string Description { get; }
+	protected Configuration config;
 
-    public uint? JobID
-    {
-        get => this.jobID;
-        set
-        {
-            if (!value.HasValue)
-                return;
-            var jobId = this.jobID;
-            var nullable = value;
-            if ((int)jobId.GetValueOrDefault() == (int)nullable.GetValueOrDefault() && jobId.HasValue == nullable.HasValue)
-                return;
-            this.jobID = value;
-            var onJobChanged = this.OnJobChanged;
-            if (onJobChanged == null)
-                return;
-            onJobChanged(value);
-        }
-    }
+	protected TaskManager TaskManager;
 
-    public event OnJobChangeDelegate OnJobChanged;
+	private uint? jobID = Svc.ClientState.LocalPlayer?.ClassJob.Id;
 
-    public virtual void Draw()
-    {
-    }
+	public static readonly SeString PandoraPayload = new SeString(new UIForegroundPayload(32)).Append($"{SeIconChar.BoxedLetterP.ToIconString()}{SeIconChar.BoxedLetterA.ToIconString()}{SeIconChar.BoxedLetterN.ToIconString()}{SeIconChar.BoxedLetterD.ToIconString()}{SeIconChar.BoxedLetterO.ToIconString()}{SeIconChar.BoxedLetterR.ToIconString()}{SeIconChar.BoxedLetterA.ToIconString()} ").Append(new UIForegroundPayload(0));
 
-    public virtual bool Ready { get; protected set; }
+	public FeatureProvider Provider { get; private set; }
 
-    public virtual FeatureType FeatureType { get; }
+	public virtual bool Enabled { get; protected set; }
 
-    public virtual bool isDebug { get; }
+	public abstract string Name { get; }
 
-    public void InterfaceSetup(AetherBox plugin, DalamudPluginInterface pluginInterface, Configuration config, FeatureProvider fp)
-    {
-        this.Plugin = plugin;
-        this.Pi = pluginInterface;
-        this.config = config;
-        this.Provider = fp;
-        this.TaskManager = new TaskManager();
-    }
+	public virtual string Key => GetType().Name;
 
-    public virtual void Setup()
-    {
-        this.TaskManager.TimeoutSilently = true;
-        this.Ready = true;
-    }
+	public abstract string Description { get; }
 
-    public virtual void Enable()
-    {
-        Svc.Log.Debug("Enabling " + this.Name);
-        Svc.Framework.Update += new IFramework.OnUpdateDelegate(this.CheckJob);
-        this.Enabled = true;
-    }
+	public uint? JobID
+	{
+		get
+		{
+			return jobID;
+		}
+		set
+		{
+			if (value.HasValue && jobID != value)
+			{
+				jobID = value;
+				this.OnJobChanged?.Invoke(value);
+			}
+		}
+	}
 
-    private void CheckJob(IFramework framework)
-    {
-        if (Svc.ClientState.LocalPlayer == null)
-            return;
-        this.JobID = new uint?(Svc.ClientState.LocalPlayer.ClassJob.Id);
-    }
+	public virtual bool Ready { get; protected set; }
 
-    public virtual void Disable()
-    {
-        Svc.Framework.Update -= new IFramework.OnUpdateDelegate(this.CheckJob);
-        this.Enabled = false;
-    }
+	public virtual FeatureType FeatureType { get; }
 
-    public virtual void Dispose() => this.Ready = false;
+	public virtual bool isDebug { get; }
 
-    protected T LoadConfig<T>() where T : FeatureConfig => LoadConfig<T>(Key);
+	public virtual bool UseAutoConfig => false;
 
-    protected T LoadConfig<T>(string key) where T : FeatureConfig
-    {
-        try
-        {
-            var path = Path.Combine(AetherBox.PluginInterface.GetPluginConfigDirectory(), key + ".json");
-            return !File.Exists(path) ? default(T) : JsonConvert.DeserializeObject<T>(File.ReadAllText(path));
-        }
-        catch (Exception ex)
-        {
-            var messageTemplate = "Failed to load config for feature " + Name;
-            var objArray = Array.Empty<object>();
-            Svc.Log.Error(ex, messageTemplate, objArray);
-            return default(T);
-        }
-    }
+	public string LocalizedName => Name;
 
-    protected void SaveConfig<T>(T config) where T : FeatureConfig
-    {
-        SaveConfig(config, this.Key);
-    }
+	protected virtual DrawConfigDelegate DrawConfigTree => null;
 
-    protected void SaveConfig<T>(T config, string key) where T : FeatureConfig
-    {
-        try
-        {
-            File.WriteAllText(Path.Combine(AetherBox.PluginInterface.GetPluginConfigDirectory(), key + ".json"), JsonConvert.SerializeObject((object)config, Formatting.Indented));
-        }
-        catch (Exception ex)
-        {
-            var messageTemplate = "Feature failed to write config " + Name;
-            var objArray = Array.Empty<object>();
-            Svc.Log.Error(ex, messageTemplate, objArray);
-        }
-    }
+	internal unsafe static bool IsTargetLocked => ((byte*)TargetSystem.Instance())[309] == 1;
 
-    private void DrawAutoConfig()
-    {
-        var flag1 = false;
-        try
-        {
-            var config =
-                 GetType().GetProperties()
-                .FirstOrDefault( p => p.PropertyType.IsSubclassOf(typeof (FeatureConfig)))
-                .GetValue( this);
-            var orderedEnumerable =  config.GetType().GetFields().Where( f => f.GetCustomAttribute(typeof (FeatureConfigOptionAttribute)) != null).Select((Func<FieldInfo, (FieldInfo, FeatureConfigOptionAttribute)>) (f => (f, (FeatureConfigOptionAttribute) f.GetCustomAttribute(typeof (FeatureConfigOptionAttribute))))).OrderBy( a => a.Item2.Priority).ThenBy( a => a.Item2.Name);
-            var num = 0;
-            foreach ((var fieldInfo, var configOptionAttribute) in (IEnumerable<(FieldInfo, FeatureConfigOptionAttribute)>)orderedEnumerable)
-            {
-                if (configOptionAttribute.ConditionalDisplay)
-                {
-                    var method = config.GetType().GetMethod("ShouldShow" + fieldInfo.Name, BindingFlags.Instance | BindingFlags.Public);
-                    if (method != null && !(bool)(method.Invoke(config, []) ?? true))
-                        continue;
-                }
-                if (configOptionAttribute.SameLine)
-                    ImGui.SameLine();
-                DefaultInterpolatedStringHandler interpolatedStringHandler;
-                if (configOptionAttribute.Editor != null)
-                {
-                    var obj = fieldInfo.GetValue(config);
-                    var objArray = new object[2];
-                    interpolatedStringHandler = new DefaultInterpolatedStringHandler(4, 4);
-                    interpolatedStringHandler.AppendFormatted(configOptionAttribute.Name);
-                    interpolatedStringHandler.AppendLiteral("##");
-                    interpolatedStringHandler.AppendFormatted(fieldInfo.Name);
-                    interpolatedStringHandler.AppendLiteral("_");
-                    interpolatedStringHandler.AppendFormatted(this.GetType().Name);
-                    interpolatedStringHandler.AppendLiteral("_");
-                    interpolatedStringHandler.AppendFormatted(num++);
-                    objArray[0] = (object)interpolatedStringHandler.ToStringAndClear();
-                    objArray[1] = obj;
-                    var parameters = objArray;
-                    if ((bool)configOptionAttribute.Editor.Invoke(null, parameters))
-                    {
-                        flag1 = true;
-                        fieldInfo.SetValue(config, parameters[1]);
-                    }
-                }
-                else if (fieldInfo.FieldType == typeof(bool))
-                {
-                    var v = (bool) fieldInfo.GetValue(config);
-                    interpolatedStringHandler = new DefaultInterpolatedStringHandler(4, 4);
-                    interpolatedStringHandler.AppendFormatted(configOptionAttribute.Name);
-                    interpolatedStringHandler.AppendLiteral("##");
-                    interpolatedStringHandler.AppendFormatted(fieldInfo.Name);
-                    interpolatedStringHandler.AppendLiteral("_");
-                    interpolatedStringHandler.AppendFormatted(GetType().Name);
-                    interpolatedStringHandler.AppendLiteral("_");
-                    interpolatedStringHandler.AppendFormatted(num++);
-                    if (ImGui.Checkbox(interpolatedStringHandler.ToStringAndClear(), ref v))
-                    {
-                        flag1 = true;
-                        fieldInfo.SetValue(config, (object)v);
-                    }
-                }
-                else if (fieldInfo.FieldType == typeof(int))
-                {
-                    var v = (int) fieldInfo.GetValue(config);
-                    ImGui.SetNextItemWidth(configOptionAttribute.EditorSize == -1 ? -1f : (float)configOptionAttribute.EditorSize * ImGui.GetIO().FontGlobalScale);
-                    bool flag2;
-                    switch (configOptionAttribute.IntType)
-                    {
-                        case FeatureConfigOptionAttribute.NumberEditType.Slider:
-                            interpolatedStringHandler = new DefaultInterpolatedStringHandler(4, 4);
-                            interpolatedStringHandler.AppendFormatted(configOptionAttribute.Name);
-                            interpolatedStringHandler.AppendLiteral("##");
-                            interpolatedStringHandler.AppendFormatted(fieldInfo.Name);
-                            interpolatedStringHandler.AppendLiteral("_");
-                            interpolatedStringHandler.AppendFormatted(this.GetType().Name);
-                            interpolatedStringHandler.AppendLiteral("_");
-                            interpolatedStringHandler.AppendFormatted(num++);
-                            flag2 = ImGui.SliderInt(interpolatedStringHandler.ToStringAndClear(), ref v, configOptionAttribute.IntMin, configOptionAttribute.IntMax);
-                            break;
-                        case FeatureConfigOptionAttribute.NumberEditType.Drag:
-                            interpolatedStringHandler = new DefaultInterpolatedStringHandler(4, 4);
-                            interpolatedStringHandler.AppendFormatted(configOptionAttribute.Name);
-                            interpolatedStringHandler.AppendLiteral("##");
-                            interpolatedStringHandler.AppendFormatted(fieldInfo.Name);
-                            interpolatedStringHandler.AppendLiteral("_");
-                            interpolatedStringHandler.AppendFormatted(this.GetType().Name);
-                            interpolatedStringHandler.AppendLiteral("_");
-                            interpolatedStringHandler.AppendFormatted(num++);
-                            flag2 = ImGui.DragInt(interpolatedStringHandler.ToStringAndClear(), ref v, 1f, configOptionAttribute.IntMin, configOptionAttribute.IntMax);
-                            break;
-                        default:
-                            flag2 = false;
-                            break;
-                    }
-                    var flag3 = flag2;
-                    if (v % configOptionAttribute.IntIncrements != 0)
-                    {
-                        v = v.RoundOff(configOptionAttribute.IntIncrements);
-                        if (v < configOptionAttribute.IntMin)
-                            v = configOptionAttribute.IntMin;
-                        if (v > configOptionAttribute.IntMax)
-                            v = configOptionAttribute.IntMax;
-                    }
-                    if (configOptionAttribute.EnforcedLimit && v < configOptionAttribute.IntMin)
-                    {
-                        v = configOptionAttribute.IntMin;
-                        flag3 = true;
-                    }
-                    if (configOptionAttribute.EnforcedLimit && v > configOptionAttribute.IntMax)
-                    {
-                        v = configOptionAttribute.IntMax;
-                        flag3 = true;
-                    }
-                    if (flag3)
-                    {
-                        fieldInfo.SetValue(config, (object)v);
-                        flag1 = true;
-                    }
-                }
-                else if (fieldInfo.FieldType == typeof(float))
-                {
-                    var v = (float) fieldInfo.GetValue(config);
-                    ImGui.SetNextItemWidth(configOptionAttribute.EditorSize == -1 ? -1f : configOptionAttribute.EditorSize * ImGui.GetIO().FontGlobalScale);
-                    bool flag4;
-                    switch (configOptionAttribute.IntType)
-                    {
-                        case FeatureConfigOptionAttribute.NumberEditType.Slider:
-                            interpolatedStringHandler = new DefaultInterpolatedStringHandler(4, 4);
-                            interpolatedStringHandler.AppendFormatted(configOptionAttribute.Name);
-                            interpolatedStringHandler.AppendLiteral("##");
-                            interpolatedStringHandler.AppendFormatted(fieldInfo.Name);
-                            interpolatedStringHandler.AppendLiteral("_");
-                            interpolatedStringHandler.AppendFormatted(GetType().Name);
-                            interpolatedStringHandler.AppendLiteral("_");
-                            interpolatedStringHandler.AppendFormatted(num++);
-                            flag4 = ImGui.SliderFloat(interpolatedStringHandler.ToStringAndClear(), ref v, configOptionAttribute.FloatMin, configOptionAttribute.FloatMax, configOptionAttribute.Format);
-                            break;
-                        case FeatureConfigOptionAttribute.NumberEditType.Drag:
-                            interpolatedStringHandler = new DefaultInterpolatedStringHandler(4, 4);
-                            interpolatedStringHandler.AppendFormatted(configOptionAttribute.Name);
-                            interpolatedStringHandler.AppendLiteral("##");
-                            interpolatedStringHandler.AppendFormatted(fieldInfo.Name);
-                            interpolatedStringHandler.AppendLiteral("_");
-                            interpolatedStringHandler.AppendFormatted(this.GetType().Name);
-                            interpolatedStringHandler.AppendLiteral("_");
-                            interpolatedStringHandler.AppendFormatted(num++);
-                            flag4 = ImGui.DragFloat(interpolatedStringHandler.ToStringAndClear(), ref v, 1f, configOptionAttribute.FloatMin, configOptionAttribute.FloatMax, configOptionAttribute.Format);
-                            break;
-                        default:
-                            flag4 = false;
-                            break;
-                    }
-                    var flag5 = flag4;
-                    if ((double)v % (double)configOptionAttribute.FloatIncrements != 0.0)
-                    {
-                        v = v.RoundOff(configOptionAttribute.FloatIncrements);
-                        if ((double)v < (double)configOptionAttribute.FloatMin)
-                            v = configOptionAttribute.FloatMin;
-                        if ((double)v > (double)configOptionAttribute.FloatMax)
-                            v = configOptionAttribute.FloatMax;
-                    }
-                    if (configOptionAttribute.EnforcedLimit && (double)v < (double)configOptionAttribute.FloatMin)
-                    {
-                        v = configOptionAttribute.FloatMin;
-                        flag5 = true;
-                    }
-                    if (configOptionAttribute.EnforcedLimit && (double)v > (double)configOptionAttribute.FloatMax)
-                    {
-                        v = configOptionAttribute.FloatMax;
-                        flag5 = true;
-                    }
-                    if (flag5)
-                    {
-                        fieldInfo.SetValue(config, (object)v);
-                        flag1 = true;
-                    }
-                }
-                else
-                    ImGui.Text("Invalid Auto Field Type: " + fieldInfo.Name);
-                if (configOptionAttribute.HelpText != null)
-                    ImGuiComponents.HelpMarker(configOptionAttribute.HelpText);
-            }
-            if (!flag1)
-                return;
-            this.SaveConfig((FeatureConfig)config);
-        }
-        catch (Exception ex)
-        {
-            ImGui.Text("Error with AutoConfig: " + ex.Message);
-            ImGui.TextWrapped(ex.StackTrace ?? "");
-        }
-    }
+	internal static bool GenericThrottle => EzThrottler.Throttle("AutomatonGenericThrottle", 200);
 
-    public virtual bool UseAutoConfig => false;
+	public event OnJobChangeDelegate OnJobChanged;
 
-    public string LocalizedName => this.Name;
+	public virtual void Draw()
+	{
+	}
 
-    public bool DrawConfig(ref bool hasChanged)
-    {
-        var flag = false;
-        if ((this.UseAutoConfig || this.DrawConfigTree != null) && this.Enabled)
-        {
-            var cursorPosX = ImGui.GetCursorPosX();
-            if (ImGui.TreeNode(this.Name + "##treeConfig_" + this.GetType().Name))
-            {
-                flag = true;
-                ImGui.SetCursorPosX(cursorPosX);
-                ImGui.BeginGroup();
-                if (this.UseAutoConfig)
-                    this.DrawAutoConfig();
-                else
-                    this.DrawConfigTree(ref hasChanged);
-                ImGui.EndGroup();
-                ImGui.TreePop();
-            }
-        }
-        else
-        {
-            ImGui.PushStyleColor(ImGuiCol.HeaderHovered, 0U);
-            ImGui.PushStyleColor(ImGuiCol.HeaderActive, 0U);
-            ImGui.TreeNodeEx(this.LocalizedName, ImGuiTreeNodeFlags.NoTreePushOnOpen | ImGuiTreeNodeFlags.Leaf);
-            ImGui.PopStyleColor();
-            ImGui.PopStyleColor();
-        }
-        if (hasChanged && this.Enabled)
-            this.ConfigChanged();
-        return flag;
-    }
+	public void InterfaceSetup(global::AetherBox.AetherBox plugin, DalamudPluginInterface pluginInterface, Configuration config, FeatureProvider fp)
+	{
+		Plugin = plugin;
+		Pi = pluginInterface;
+		this.config = config;
+		Provider = fp;
+		TaskManager = new TaskManager();
+	}
 
-    protected virtual DrawConfigDelegate DrawConfigTree
-    {
-        get => (DrawConfigDelegate)null;
-    }
+	public virtual void Setup()
+	{
+		TaskManager.TimeoutSilently = true;
+		Ready = true;
+	}
 
-    protected virtual void ConfigChanged()
-    {
-        if (this == null)
-            return;
-        var propertyInfo = ((IEnumerable<PropertyInfo>) this.GetType().GetProperties()).FirstOrDefault((Func<PropertyInfo, bool>) (p => p.PropertyType.IsSubclassOf(typeof (FeatureConfig))));
-        if (!(propertyInfo != (PropertyInfo)null))
-            return;
-        var config = propertyInfo.GetValue((object) this);
-        if (config == null)
-            return;
-        this.SaveConfig((FeatureConfig)config);
-    }
+	public virtual void Enable()
+	{
+		PluginLog.Debug("Enabling " + Name);
+		Svc.Framework.Update += CheckJob;
+		Enabled = true;
+	}
 
-    public unsafe bool IsRpWalking()
-    {
-        if ((GameObject)Svc.ClientState.LocalPlayer == (GameObject)null || Svc.GameGui.GetAddonByName("_DTR") == IntPtr.Zero)
-            return false;
-        var addonByName = (AtkUnitBase*) Svc.GameGui.GetAddonByName("_DTR");
-        if (addonByName->UldManager.NodeListCount < (ushort)9)
-            return false;
-        try
-        {
-            return addonByName->GetNodeById(10U)->IsVisible;
-        }
-        catch (Exception ex)
-        {
-            ex.Log();
-            return false;
-        }
-    }
+	private void CheckJob(IFramework framework)
+	{
+		if ((object)Svc.ClientState.LocalPlayer != null)
+		{
+			JobID = Svc.ClientState.LocalPlayer.ClassJob.Id;
+		}
+	}
 
-    internal static unsafe int GetInventoryFreeSlotCount()
-    {
-        var inventoryTypeArray = new InventoryType[4]
-  {
-    InventoryType.Inventory1,
-    InventoryType.Inventory2,
-    InventoryType.Inventory3,
-    InventoryType.Inventory4
-  };
-        var inventoryManagerPtr = InventoryManager.Instance();
-        var inventoryFreeSlotCount = 0;
-        foreach (var inventoryType in inventoryTypeArray)
-        {
-            var inventoryContainer = inventoryManagerPtr->GetInventoryContainer(inventoryType);
-            for (var index = 0; (long)index < (long)inventoryContainer->Size; ++index)
-            {
-                if (inventoryContainer->Items[index].ItemID == 0U)
-                    ++inventoryFreeSlotCount;
-            }
-        }
-        return inventoryFreeSlotCount;
-    }
+	public virtual void Disable()
+	{
+		Svc.Framework.Update -= CheckJob;
+		Enabled = false;
+	}
 
-    internal static unsafe bool IsTargetLocked
-    {
-        get => *(byte*)((IntPtr)TargetSystem.Instance() + new IntPtr(309)) == (byte)1;
-    }
+	public virtual void Dispose()
+	{
+		Ready = false;
+	}
 
-    internal static bool IsInventoryFree() => BaseFeature.GetInventoryFreeSlotCount() >= 1;
+	protected T LoadConfig<T>() where T : FeatureConfig
+	{
+		return LoadConfig<T>(Key);
+	}
 
-    public unsafe bool IsMoving() => AgentMap.Instance()->IsPlayerMoving == (byte)1;
+	protected T LoadConfig<T>(string key) where T : FeatureConfig
+	{
+		try
+		{
+			string configFile;
+			configFile = Path.Combine(global::AetherBox.AetherBox.PluginInterface.GetPluginConfigDirectory(), key + ".json");
+			if (!File.Exists(configFile))
+			{
+				return null;
+			}
+			return JsonConvert.DeserializeObject<T>(File.ReadAllText(configFile));
+		}
+		catch (Exception exception)
+		{
+			PluginLog.Error(exception, "Failed to load config for feature " + Name);
+			return null;
+		}
+	}
 
-    public void PrintModuleMessage(string msg)
-    {
-        Svc.Chat.Print(new XivChatEntry()
-        {
-            Message = new SeStringBuilder().AddUiForeground("[" + AetherBox.Name + "] ", (ushort)45).AddUiForeground("[" + this.Name + "] ", (ushort)62).AddText(msg).Build()
-        });
-    }
+	protected void SaveConfig<T>(T config) where T : FeatureConfig
+	{
+		SaveConfig(config, Key);
+	}
 
-    public void PrintModuleMessage(SeString msg)
-    {
-        Svc.Chat.Print(new XivChatEntry()
-        {
-            Message = new SeStringBuilder().AddUiForeground("[" + AetherBox.Name + "] ", (ushort)45).AddUiForeground("[" + this.Name + "] ", (ushort)62).Append(msg).Build()
-        });
-    }
+	protected void SaveConfig<T>(T config, string key) where T : FeatureConfig
+	{
+		try
+		{
+			string path;
+			path = Path.Combine(global::AetherBox.AetherBox.PluginInterface.GetPluginConfigDirectory(), key + ".json");
+			string jsonString;
+			jsonString = JsonConvert.SerializeObject(config, Formatting.Indented);
+			File.WriteAllText(path, jsonString);
+		}
+		catch (Exception exception)
+		{
+			PluginLog.Error(exception, "Feature failed to write config " + Name);
+		}
+	}
 
-    internal static unsafe AtkUnitBase* GetSpecificYesno(Predicate<string> compare)
-    {
-        for (var index = 1; index < 100; ++index)
-        {
-            try
-            {
-                var addonByName = (AtkUnitBase*) Svc.GameGui.GetAddonByName("SelectYesno", index);
-                if ((IntPtr)addonByName == IntPtr.Zero)
-                    return (AtkUnitBase*)null;
-                if (GenericHelpers.IsAddonReady(addonByName))
-                {
-                    var text = MemoryHelper.ReadSeString(&addonByName->UldManager.NodeList[15]->GetAsAtkTextNode()->NodeText).ExtractText();
-                    if (compare(text))
-                    {
-                        var interpolatedStringHandler = new DefaultInterpolatedStringHandler(32, 2);
-                        interpolatedStringHandler.AppendLiteral("SelectYesno ");
-                        interpolatedStringHandler.AppendFormatted(text);
-                        interpolatedStringHandler.AppendLiteral(" addon ");
-                        interpolatedStringHandler.AppendFormatted(index);
-                        interpolatedStringHandler.AppendLiteral(" by predicate");
-                        Svc.Log.Debug(interpolatedStringHandler.ToStringAndClear());
-                        return addonByName;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Svc.Log.Error("", (object)ex);
-                return (AtkUnitBase*)null;
-            }
-        }
-        return (AtkUnitBase*)null;
-    }
+	private void DrawAutoConfig()
+	{
+		bool configChanged;
+		configChanged = false;
+		try
+		{
+			object configObj;
+			configObj = GetType().GetProperties().FirstOrDefault((PropertyInfo p) => p.PropertyType.IsSubclassOf(typeof(FeatureConfig))).GetValue(this);
+			IOrderedEnumerable<(FieldInfo f, FeatureConfigOptionAttribute)> orderedEnumerable;
+			orderedEnumerable = from f in configObj.GetType().GetFields()
+				where f.GetCustomAttribute(typeof(FeatureConfigOptionAttribute)) != null
+				select (f: f, (FeatureConfigOptionAttribute)f.GetCustomAttribute(typeof(FeatureConfigOptionAttribute))) into a
+				orderby a.Item2.Priority, a.Item2.Name
+				select a;
+			int configOptionIndex;
+			configOptionIndex = 0;
+			foreach (var (f2, attr) in orderedEnumerable)
+			{
+				if (attr.ConditionalDisplay)
+				{
+					MethodInfo conditionalMethod;
+					conditionalMethod = configObj.GetType().GetMethod("ShouldShow" + f2.Name, BindingFlags.Instance | BindingFlags.Public);
+					if (conditionalMethod != null && !(bool)(conditionalMethod.Invoke(configObj, Array.Empty<object>()) ?? ((object)true)))
+					{
+						continue;
+					}
+				}
+				if (attr.SameLine)
+				{
+					ImGui.SameLine();
+				}
+				if (attr.Editor != null)
+				{
+					object v;
+					v = f2.GetValue(configObj);
+					object[] arr;
+					arr = new object[2]
+					{
+						$"{attr.Name}##{f2.Name}_{GetType().Name}_{configOptionIndex++}",
+						v
+					};
+					if ((bool)attr.Editor.Invoke(null, arr))
+					{
+						configChanged = true;
+						f2.SetValue(configObj, arr[1]);
+					}
+				}
+				else if (f2.FieldType == typeof(bool))
+				{
+					bool v2;
+					v2 = (bool)f2.GetValue(configObj);
+					if (ImGui.Checkbox($"{attr.Name}##{f2.Name}_{GetType().Name}_{configOptionIndex++}", ref v2))
+					{
+						configChanged = true;
+						f2.SetValue(configObj, v2);
+					}
+				}
+				else if (f2.FieldType == typeof(int))
+				{
+					int v3;
+					v3 = (int)f2.GetValue(configObj);
+					ImGui.SetNextItemWidth((attr.EditorSize == -1) ? (-1f) : ((float)attr.EditorSize * ImGui.GetIO().FontGlobalScale));
+					bool e;
+					e = attr.IntType switch
+					{
+						FeatureConfigOptionAttribute.NumberEditType.Slider => ImGui.SliderInt($"{attr.Name}##{f2.Name}_{GetType().Name}_{configOptionIndex++}", ref v3, attr.IntMin, attr.IntMax), 
+						FeatureConfigOptionAttribute.NumberEditType.Drag => ImGui.DragInt($"{attr.Name}##{f2.Name}_{GetType().Name}_{configOptionIndex++}", ref v3, 1f, attr.IntMin, attr.IntMax), 
+						_ => false, 
+					};
+					if (v3 % attr.IntIncrements != 0)
+					{
+						v3 = v3.RoundOff(attr.IntIncrements);
+						if (v3 < attr.IntMin)
+						{
+							v3 = attr.IntMin;
+						}
+						if (v3 > attr.IntMax)
+						{
+							v3 = attr.IntMax;
+						}
+					}
+					if (attr.EnforcedLimit && v3 < attr.IntMin)
+					{
+						v3 = attr.IntMin;
+						e = true;
+					}
+					if (attr.EnforcedLimit && v3 > attr.IntMax)
+					{
+						v3 = attr.IntMax;
+						e = true;
+					}
+					if (e)
+					{
+						f2.SetValue(configObj, v3);
+						configChanged = true;
+					}
+				}
+				else if (f2.FieldType == typeof(float))
+				{
+					float v4;
+					v4 = (float)f2.GetValue(configObj);
+					ImGui.SetNextItemWidth((attr.EditorSize == -1) ? (-1f) : ((float)attr.EditorSize * ImGui.GetIO().FontGlobalScale));
+					bool e2;
+					e2 = attr.IntType switch
+					{
+						FeatureConfigOptionAttribute.NumberEditType.Slider => ImGui.SliderFloat($"{attr.Name}##{f2.Name}_{GetType().Name}_{configOptionIndex++}", ref v4, attr.FloatMin, attr.FloatMax, attr.Format), 
+						FeatureConfigOptionAttribute.NumberEditType.Drag => ImGui.DragFloat($"{attr.Name}##{f2.Name}_{GetType().Name}_{configOptionIndex++}", ref v4, 1f, attr.FloatMin, attr.FloatMax, attr.Format), 
+						_ => false, 
+					};
+					if (v4 % attr.FloatIncrements != 0f)
+					{
+						v4 = v4.RoundOff(attr.FloatIncrements);
+						if (v4 < attr.FloatMin)
+						{
+							v4 = attr.FloatMin;
+						}
+						if (v4 > attr.FloatMax)
+						{
+							v4 = attr.FloatMax;
+						}
+					}
+					if (attr.EnforcedLimit && v4 < attr.FloatMin)
+					{
+						v4 = attr.FloatMin;
+						e2 = true;
+					}
+					if (attr.EnforcedLimit && v4 > attr.FloatMax)
+					{
+						v4 = attr.FloatMax;
+						e2 = true;
+					}
+					if (e2)
+					{
+						f2.SetValue(configObj, v4);
+						configChanged = true;
+					}
+				}
+				else
+				{
+					ImGui.Text("Invalid Auto Field Type: " + f2.Name);
+				}
+				if (attr.HelpText != null)
+				{
+					ImGuiComponents.HelpMarker(attr.HelpText);
+				}
+			}
+			if (configChanged)
+			{
+				SaveConfig((FeatureConfig)configObj);
+			}
+		}
+		catch (Exception ex)
+		{
+			ImGui.Text("Error with AutoConfig: " + ex.Message);
+			ImGui.TextWrapped(ex.StackTrace ?? "");
+		}
+	}
 
-    internal static unsafe AtkUnitBase* GetSpecificYesno(params string[] s)
-    {
-        for (var index = 1; index < 100; ++index)
-        {
-            try
-            {
-                var addonByName = (AtkUnitBase*) Svc.GameGui.GetAddonByName("SelectYesno", index);
-                if ((IntPtr)addonByName == IntPtr.Zero)
-                    return (AtkUnitBase*)null;
-                if (GenericHelpers.IsAddonReady(addonByName))
-                {
-                    if (MemoryHelper.ReadSeString(&addonByName->UldManager.NodeList[15]->GetAsAtkTextNode()->NodeText).ExtractText().Replace(" ", "").EqualsAny(((IEnumerable<string>)s).Select((Func<string, string>)(x => x.Replace(" ", "")))))
-                    {
-                        var interpolatedStringHandler = new DefaultInterpolatedStringHandler(19, 2);
-                        interpolatedStringHandler.AppendLiteral("SelectYesno ");
-                        interpolatedStringHandler.AppendFormatted(((IEnumerable<string>)s).Print());
-                        interpolatedStringHandler.AppendLiteral(" addon ");
-                        interpolatedStringHandler.AppendFormatted(index);
-                        Svc.Log.Debug(interpolatedStringHandler.ToStringAndClear());
-                        return addonByName;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Svc.Log.Error("", (object)ex);
-                return (AtkUnitBase*)null;
-            }
-        }
-        return (AtkUnitBase*)null;
-    }
+	public bool DrawConfig(ref bool hasChanged)
+	{
+		bool configTreeOpen;
+		configTreeOpen = false;
+		if ((UseAutoConfig || DrawConfigTree != null) && Enabled)
+		{
+			float x;
+			x = ImGui.GetCursorPosX();
+			if (ImGui.TreeNode(Name + "##treeConfig_" + GetType().Name))
+			{
+				configTreeOpen = true;
+				ImGui.SetCursorPosX(x);
+				ImGui.BeginGroup();
+				if (UseAutoConfig)
+				{
+					DrawAutoConfig();
+				}
+				else
+				{
+					DrawConfigTree(ref hasChanged);
+				}
+				ImGui.EndGroup();
+				ImGui.TreePop();
+			}
+		}
+		else
+		{
+			ImGui.PushStyleColor(ImGuiCol.HeaderHovered, 0u);
+			ImGui.PushStyleColor(ImGuiCol.HeaderActive, 0u);
+			ImGui.TreeNodeEx(LocalizedName, ImGuiTreeNodeFlags.NoTreePushOnOpen | ImGuiTreeNodeFlags.Leaf);
+			ImGui.PopStyleColor();
+			ImGui.PopStyleColor();
+		}
+		if (hasChanged && Enabled)
+		{
+			ConfigChanged();
+		}
+		return configTreeOpen;
+	}
 
-    internal static bool TrySelectSpecificEntry(string text, Func<bool> Throttler = null)
-    {
-        return BaseFeature.TrySelectSpecificEntry((IEnumerable<string>)new string[1]
-        {
-    text
-        }, Throttler);
-    }
+	protected virtual void ConfigChanged()
+	{
+		if (this == null)
+		{
+			return;
+		}
+		PropertyInfo config;
+		config = GetType().GetProperties().FirstOrDefault((PropertyInfo p) => p.PropertyType.IsSubclassOf(typeof(FeatureConfig)));
+		if (config != null)
+		{
+			object configObj;
+			configObj = config.GetValue(this);
+			if (configObj != null)
+			{
+				SaveConfig((FeatureConfig)configObj);
+			}
+		}
+	}
 
-    internal static unsafe bool TrySelectSpecificEntry(
-      IEnumerable<string> text,
-      Func<bool> Throttler = null)
-    {
-        AddonSelectString* AddonPtr;
-        if (GenericHelpers.TryGetAddonByName("SelectString", out AddonPtr) && GenericHelpers.IsAddonReady(&AddonPtr->AtkUnitBase))
-        {
-            var str = BaseFeature.GetEntries(AddonPtr).FirstOrDefault((Func<string, bool>) (x => x.ContainsAny(text)));
-            if (str != null)
-            {
-                var index = BaseFeature.GetEntries(AddonPtr).IndexOf(str);
-                if (index >= 0 && BaseFeature.IsSelectItemEnabled(AddonPtr, index) && (Throttler != null ? (Throttler() ? 1 : 0) : (BaseFeature.GenericThrottle ? 1 : 0)) != 0)
-                {
-                    ClickSelectString.Using((IntPtr)AddonPtr).SelectItem((ushort)index);
-                    var interpolatedStringHandler = new DefaultInterpolatedStringHandler(52, 3);
-                    interpolatedStringHandler.AppendLiteral("TrySelectSpecificEntry: selecting ");
-                    interpolatedStringHandler.AppendFormatted(str);
-                    interpolatedStringHandler.AppendLiteral("/");
-                    interpolatedStringHandler.AppendFormatted(index);
-                    interpolatedStringHandler.AppendLiteral(" as requested by ");
-                    interpolatedStringHandler.AppendFormatted(text.Print());
-                    Svc.Log.Debug(interpolatedStringHandler.ToStringAndClear());
-                    return true;
-                }
-            }
-        }
-        else
-            BaseFeature.RethrottleGeneric();
-        return false;
-    }
+	public unsafe bool IsRpWalking()
+	{
+		if (Svc.ClientState.LocalPlayer == null)
+		{
+			return false;
+		}
+		if (Svc.GameGui.GetAddonByName("_DTR") == IntPtr.Zero)
+		{
+			return false;
+		}
+		AtkUnitBase* addon;
+		addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("_DTR");
+		if (addon->UldManager.NodeListCount < 9)
+		{
+			return false;
+		}
+		try
+		{
+			return addon->GetNodeById(10u)->IsVisible;
+		}
+		catch (Exception e)
+		{
+			e.Log();
+			return false;
+		}
+	}
 
-    internal static unsafe bool IsSelectItemEnabled(AddonSelectString* addon, int index)
-    {
-        return GenericHelpers.IsSelectItemEnabled((AtkTextNode*)addon->AtkUnitBase.UldManager.NodeList[2]->GetComponent()->UldManager.NodeList[index + 1]->GetComponent()->UldManager.NodeList[3]);
-    }
+	internal unsafe static int GetInventoryFreeSlotCount()
+	{
+		InventoryType[] obj;
+		obj = new InventoryType[4]
+		{
+			InventoryType.Inventory1,
+			InventoryType.Inventory2,
+			InventoryType.Inventory3,
+			InventoryType.Inventory4
+		};
+		InventoryManager* c;
+		c = InventoryManager.Instance();
+		int slots;
+		slots = 0;
+		InventoryType[] array;
+		array = obj;
+		foreach (InventoryType x in array)
+		{
+			InventoryContainer* inv;
+			inv = c->GetInventoryContainer(x);
+			for (int i = 0; i < inv->Size; i++)
+			{
+				if (inv->Items[i].ItemID == 0)
+				{
+					slots++;
+				}
+			}
+		}
+		return slots;
+	}
 
-    internal static unsafe List<string> GetEntries(AddonSelectString* addon)
-    {
-        var entries = new List<string>();
-        for (var index = 0; index < addon->PopupMenu.PopupMenu.EntryCount; ++index)
-            entries.Add(MemoryHelper.ReadSeStringNullTerminated((IntPtr)addon->PopupMenu.PopupMenu.EntryNames[index]).ExtractText());
-        return entries;
-    }
+	internal static bool IsInventoryFree()
+	{
+		return GetInventoryFreeSlotCount() >= 1;
+	}
 
-    internal static bool GenericThrottle => EzThrottler.Throttle("AetherBoxGenericThrottle", 200);
+	public unsafe bool IsMoving()
+	{
+		return AgentMap.Instance()->IsPlayerMoving == 1;
+	}
 
-    internal static void RethrottleGeneric(int num)
-    {
-        EzThrottler.Throttle("AetherBoxGenericThrottle", num, true);
-    }
+	public void PrintModuleMessage(string msg)
+	{
+		XivChatEntry message;
+		message = new XivChatEntry
+		{
+			Message = new SeStringBuilder().AddUiForeground("[" + global::AetherBox.AetherBox.Name + "] ", 45).AddUiForeground("[" + Name + "] ", 62).AddText(msg)
+				.Build()
+		};
+		Svc.Chat.Print(message);
+	}
 
-    internal static void RethrottleGeneric()
-    {
-        EzThrottler.Throttle("AetherBoxGenericThrottle", 200, true);
-    }
+	public void PrintModuleMessage(SeString msg)
+	{
+		XivChatEntry message;
+		message = new XivChatEntry
+		{
+			Message = new SeStringBuilder().AddUiForeground("[" + global::AetherBox.AetherBox.Name + "] ", 45).AddUiForeground("[" + Name + "] ", 62).Append(msg)
+				.Build()
+		};
+		Svc.Chat.Print(message);
+	}
 
-    internal static unsafe bool IsLoading()
-    {
-        AtkUnitBase* AddonPtr1;
-        if (GenericHelpers.TryGetAddonByName("FadeBack", out AddonPtr1) && AddonPtr1->IsVisible)
-            return true;
-        AtkUnitBase* AddonPtr2;
-        return GenericHelpers.TryGetAddonByName("FadeMiddle", out AddonPtr2) && AddonPtr2->IsVisible;
-    }
+	internal unsafe static AtkUnitBase* GetSpecificYesno(Predicate<string> compare)
+	{
+		for (int i = 1; i < 100; i++)
+		{
+			try
+			{
+				AtkUnitBase* addon;
+				addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("SelectYesno", i);
+				if (addon == null)
+				{
+					return null;
+				}
+				if (GenericHelpers.IsAddonReady(addon))
+				{
+					string text;
+					text = MemoryHelper.ReadSeString(&addon->UldManager.NodeList[15]->GetAsAtkTextNode()->NodeText).ExtractText();
+					if (compare(text))
+					{
+						PluginLog.Verbose($"SelectYesno {text} addon {i} by predicate");
+						return addon;
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				PluginLog.Error("", e);
+				return null;
+			}
+		}
+		return null;
+	}
 
-    public bool IsInDuty()
-    {
-        return Svc.Condition[ConditionFlag.BoundByDuty] || Svc.Condition[ConditionFlag.BoundByDuty56] || Svc.Condition[ConditionFlag.BoundByDuty95] || Svc.Condition[ConditionFlag.BoundToDuty97];
-    }
+	internal unsafe static AtkUnitBase* GetSpecificYesno(params string[] s)
+	{
+		for (int i = 1; i < 100; i++)
+		{
+			try
+			{
+				AtkUnitBase* addon;
+				addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("SelectYesno", i);
+				if (addon == null)
+				{
+					return null;
+				}
+				if (GenericHelpers.IsAddonReady(addon) && MemoryHelper.ReadSeString(&addon->UldManager.NodeList[15]->GetAsAtkTextNode()->NodeText).ExtractText().Replace(" ", "")
+					.EqualsAny<string>(s.Select((string x) => x.Replace(" ", ""))))
+				{
+					PluginLog.Verbose($"SelectYesno {s.Print()} addon {i}");
+					return addon;
+				}
+			}
+			catch (Exception e)
+			{
+				PluginLog.Error("", e);
+				return null;
+			}
+		}
+		return null;
+	}
 
-    static BaseFeature()
-    {
-        var seString = new SeString(new Payload[1]
-  {
-    (Payload) new UIForegroundPayload((ushort) 32)
-  });
-        var interpolatedStringHandler = new DefaultInterpolatedStringHandler(1, 7);
-        interpolatedStringHandler.AppendFormatted(SeIconChar.BoxedLetterP.ToIconString());
-        interpolatedStringHandler.AppendFormatted(SeIconChar.BoxedLetterA.ToIconString());
-        interpolatedStringHandler.AppendFormatted(SeIconChar.BoxedLetterN.ToIconString());
-        interpolatedStringHandler.AppendFormatted(SeIconChar.BoxedLetterD.ToIconString());
-        interpolatedStringHandler.AppendFormatted(SeIconChar.BoxedLetterO.ToIconString());
-        interpolatedStringHandler.AppendFormatted(SeIconChar.BoxedLetterR.ToIconString());
-        interpolatedStringHandler.AppendFormatted(SeIconChar.BoxedLetterA.ToIconString());
-        interpolatedStringHandler.AppendLiteral(" ");
-        var stringAndClear = (SeString) interpolatedStringHandler.ToStringAndClear();
-        BaseFeature.PandoraPayload = seString.Append(stringAndClear).Append((Payload)new UIForegroundPayload((ushort)0));
-    }
+	internal static bool TrySelectSpecificEntry(string text, Func<bool> Throttler = null)
+	{
+		return TrySelectSpecificEntry(new string[1] { text }, Throttler);
+	}
 
-    public delegate void OnJobChangeDelegate(uint? jobId);
+	internal unsafe static bool TrySelectSpecificEntry(IEnumerable<string> text, Func<bool> Throttler = null)
+	{
+		if (GenericHelpers.TryGetAddonByName<AddonSelectString>("SelectString", out var addon) && GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
+		{
+			string entry;
+			entry = GetEntries(addon).FirstOrDefault((string x) => x.ContainsAny(text));
+			if (entry != null)
+			{
+				int index;
+				index = GetEntries(addon).IndexOf(entry);
+				if (index >= 0 && IsSelectItemEnabled(addon, index) && (Throttler?.Invoke() ?? GenericThrottle))
+				{
+					ClickSelectString.Using((nint)addon).SelectItem((ushort)index);
+					PluginLog.Debug($"TrySelectSpecificEntry: selecting {entry}/{index} as requested by {text.Print()}");
+					return true;
+				}
+			}
+		}
+		else
+		{
+			RethrottleGeneric();
+		}
+		return false;
+	}
 
-    protected delegate void DrawConfigDelegate(ref bool hasChanged);
+	internal unsafe static bool IsSelectItemEnabled(AddonSelectString* addon, int index)
+	{
+		AtkTextNode* step1;
+		step1 = (AtkTextNode*)addon->AtkUnitBase.UldManager.NodeList[2]->GetComponent()->UldManager.NodeList[index + 1]->GetComponent()->UldManager.NodeList[3];
+		return GenericHelpers.IsSelectItemEnabled(step1);
+	}
+
+	internal unsafe static List<string> GetEntries(AddonSelectString* addon)
+	{
+		List<string> list;
+		list = new List<string>();
+		for (int i = 0; i < addon->PopupMenu.PopupMenu.EntryCount; i++)
+		{
+			list.Add(MemoryHelper.ReadSeStringNullTerminated((nint)addon->PopupMenu.PopupMenu.EntryNames[i]).ExtractText());
+		}
+		return list;
+	}
+
+	internal static void RethrottleGeneric(int num)
+	{
+		EzThrottler.Throttle("AutomatonGenericThrottle", num, rethrottle: true);
+	}
+
+	internal static void RethrottleGeneric()
+	{
+		EzThrottler.Throttle("AutomatonGenericThrottle", 200, rethrottle: true);
+	}
+
+	internal unsafe static bool IsLoading()
+	{
+		if (!GenericHelpers.TryGetAddonByName<AtkUnitBase>("FadeBack", out var fb) || !fb->IsVisible)
+		{
+			if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("FadeMiddle", out var fm))
+			{
+				return fm->IsVisible;
+			}
+			return false;
+		}
+		return true;
+	}
+
+	public bool IsInDuty()
+	{
+		if (!Svc.Condition[ConditionFlag.BoundByDuty] && !Svc.Condition[ConditionFlag.BoundByDuty56] && !Svc.Condition[ConditionFlag.BoundByDuty95])
+		{
+			return Svc.Condition[ConditionFlag.BoundToDuty97];
+		}
+		return true;
+	}
 }
