@@ -6,6 +6,7 @@ using AetherBox;
 using AetherBox.Features;
 using AetherBox.FeaturesSetup;
 using Dalamud.Logging;
+using ECommons.DalamudServices;
 
 namespace AetherBox.Features;
 
@@ -50,7 +51,7 @@ public class FeatureProvider : IDisposable
 			}
 			catch (Exception exception)
 			{
-				PluginLog.Error(exception, "Feature not loaded: " + t.Name);
+				Svc.Log.Error(exception, "Feature not loaded: " + t.Name);
 			}
 		}
 	}
@@ -67,7 +68,7 @@ public class FeatureProvider : IDisposable
 				}
 				catch (Exception exception)
 				{
-					PluginLog.Error(exception, "Cannot disable " + t.Name);
+					Svc.Log.Error(exception, "Cannot disable " + t.Name);
 				}
 			}
 		}

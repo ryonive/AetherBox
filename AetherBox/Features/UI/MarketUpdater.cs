@@ -7,6 +7,7 @@ using AetherBox.UI;
 using ClickLib.Clicks;
 using Dalamud.Interface.Utility;
 using ECommons;
+using ECommons.DalamudServices;
 using ECommons.Logging;
 using ECommons.Throttlers;
 using ECommons.UIHelpers.Implementations;
@@ -114,7 +115,7 @@ public class MarketUpdater : Feature
 			{
 				if (list.Retainers[i].Name == name && GenericThrottle)
 				{
-					PluginLog.Debug($"Selecting retainer {list.Retainers[i].Name} with index {i}");
+					Svc.Log.Debug($"Selecting retainer {list.Retainers[i].Name} with index {i}");
 					ClickRetainerList.Using((nint)retainerList).Retainer(i);
 					return true;
 				}

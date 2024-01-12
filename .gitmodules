@@ -1,0 +1,12 @@
+[submodule "PunishLib"]
+	path = PunishLib
+	url = https://github.com/PunishXIV/PunishLib
+[submodule "Ecommons"]
+	path = Ecommons
+	url = https://github.com/Taurenkey/Ecommons
+[submodule "ECommons"]
+	path = ECommons
+	url = https://github.com/Taurenkey/ECommons
+[submodule "ClickLib"]
+	path = ClickLib
+	url = https://github.com/Taurenkey/ClickLib.git

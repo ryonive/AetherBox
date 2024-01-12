@@ -35,7 +35,7 @@ public class DirectActionCall : CommandFeature
 			actionType = ParseActionType(args[0]);
 			uint actionID;
 			actionID = uint.Parse(args[1]);
-			PluginLog.Log("Executing " + Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>(Svc.ClientState.ClientLanguage).GetRow(actionID).Name.RawString);
+			Svc.Log.Debug("Executing " + Svc.Data.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>(Svc.ClientState.ClientLanguage).GetRow(actionID).Name.RawString);
 			ActionManager.Instance()->UseActionLocation(actionType, actionID, 3758096384uL, null);
 		}
 		catch (Exception e)

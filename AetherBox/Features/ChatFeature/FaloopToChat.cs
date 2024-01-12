@@ -239,12 +239,12 @@ internal class FaloopToChat : Feature
 	private void OnDisconnected(string cause)
 	{
 		PrintModuleMessage("Disconnected.");
-		PluginLog.Warning("Disconnected. Reason: " + cause);
+		Svc.Log.Warning("Disconnected. Reason: " + cause);
 	}
 
 	private static void OnError(string error)
 	{
-		PluginLog.Error("Disconnected = " + error);
+		Svc.Log.Error("Disconnected = " + error);
 	}
 
 	private void OnMobReport(MobReportData data)
@@ -252,43 +252,43 @@ internal class FaloopToChat : Feature
 		BNpcName mob = Svc.Data.GetExcelSheet<BNpcName>()?.GetRow(data.MobId);
 		if (mob == null)
 		{
-			PluginLog.Debug("OnMobReport: mob == null");
+			Svc.Log.Debug("OnMobReport: mob == null");
 			return;
 		}
 		MobData mobData = session.EmbedData.Mobs.FirstOrDefault((MobData x) => x.Id == data.MobId);
 		if (mobData == null)
 		{
-			PluginLog.Debug("OnMobReport: mobData == null");
+			Svc.Log.Debug("OnMobReport: mobData == null");
 			return;
 		}
 		World world = Svc.Data.GetExcelSheet<World>()?.GetRow(data.WorldId);
 		WorldDCGroupType dataCenter = world?.DataCenter?.Value;
 		if (world == null || dataCenter == null)
 		{
-			PluginLog.Debug("OnMobReport: world == null || dataCenter == null");
+			Svc.Log.Debug("OnMobReport: world == null || dataCenter == null");
 			return;
 		}
 		World currentWorld = Svc.ClientState.LocalPlayer?.CurrentWorld.GameData;
 		WorldDCGroupType currentDataCenter = currentWorld?.DataCenter?.Value;
 		if (currentWorld == null || currentDataCenter == null)
 		{
-			PluginLog.Debug("OnMobReport: currentWorld == null || currentDataCenter == null");
+			Svc.Log.Debug("OnMobReport: currentWorld == null || currentDataCenter == null");
 			return;
 		}
 		Configs config = GetRankConfig(mobData.Rank);
 		if (config == null)
 		{
-			PluginLog.Debug("OnMobReport: config == null");
+			Svc.Log.Debug("OnMobReport: config == null");
 			return;
 		}
 		if (!config.MajorPatches.TryGetValue(mobData.Version, out var value) || !value)
 		{
-			PluginLog.Debug("OnMobReport: majorPatches");
+			Svc.Log.Debug("OnMobReport: majorPatches");
 			return;
 		}
 		if (config.DisableInDuty && Svc.Condition[ConditionFlag.BoundByDuty])
 		{
-			PluginLog.Debug("OnMobReport: in duty");
+			Svc.Log.Debug("OnMobReport: in duty");
 			return;
 		}
 		switch ((Jurisdiction)config.Jurisdiction)
@@ -312,7 +312,7 @@ internal class FaloopToChat : Feature
 			}
 			goto default;
 		default:
-			PluginLog.Verbose("OnMobReport: unmatched");
+			Svc.Log.Verbose("OnMobReport: unmatched");
 			return;
 		case Jurisdiction.All:
 			break;
@@ -323,13 +323,13 @@ internal class FaloopToChat : Feature
 			if (action == "death" && config.EnableDeathReport)
 			{
 				OnDeathMobReport(data, mob, world, config.Channel, mobData.Rank, config.SkipOrphanReport);
-				PluginLog.Verbose($"{"OnMobReport"}: {new Action<MobReportData, BNpcName, World, int, string, bool>(OnDeathMobReport)}");
+				Svc.Log.Verbose($"{"OnMobReport"}: {new Action<MobReportData, BNpcName, World, int, string, bool>(OnDeathMobReport)}");
 			}
 		}
 		else if (config.EnableSpawnReport)
 		{
 			OnSpawnMobReport(data, mob, world, config.Channel, mobData.Rank);
-			PluginLog.Verbose($"{"OnMobReport"}: {new Action<MobReportData, BNpcName, World, int, string>(OnSpawnMobReport)}");
+			Svc.Log.Verbose($"{"OnMobReport"}: {new Action<MobReportData, BNpcName, World, int, string>(OnSpawnMobReport)}");
 		}
 	}
 
@@ -338,7 +338,7 @@ internal class FaloopToChat : Feature
 		MobReportData.Spawn spawn = data.Data.Deserialize<MobReportData.Spawn>();
 		if (spawn == null)
 		{
-			PluginLog.Debug("OnSpawnMobReport: spawn == null");
+			Svc.Log.Debug("OnSpawnMobReport: spawn == null");
 			return;
 		}
 		SpawnHistories.Add(new SpawnHistory
@@ -376,12 +376,12 @@ internal class FaloopToChat : Feature
 		MobReportData.Death death = data.Data.Deserialize<MobReportData.Death>();
 		if (death == null)
 		{
-			PluginLog.Debug("OnDeathMobReport: death == null");
+			Svc.Log.Debug("OnDeathMobReport: death == null");
 			return;
 		}
 		if (skipOrphanReport && SpawnHistories.RemoveAll((SpawnHistory x) => x.MobId == data.MobId && x.WorldId == data.WorldId) == 0)
 		{
-			PluginLog.Debug("OnDeathMobReport: skipOrphanReport");
+			Svc.Log.Debug("OnDeathMobReport: skipOrphanReport");
 			return;
 		}
 		Svc.Chat.Print(new XivChatEntry
@@ -401,37 +401,37 @@ internal class FaloopToChat : Feature
 
 	private static void OnAny(string name, SocketIOResponse response)
 	{
-		PluginLog.Debug($"{"OnAny"} Event {name} = {response}");
+		Svc.Log.Debug($"{"OnAny"} Event {name} = {response}");
 	}
 
 	private static void OnReconnected(int count)
 	{
-		PluginLog.Debug($"Reconnected {count}");
+		Svc.Log.Debug($"Reconnected {count}");
 	}
 
 	private static void OnReconnectError(Exception exception)
 	{
-		PluginLog.Error($"Reconnect error {exception}");
+		Svc.Log.Error($"Reconnect error {exception}");
 	}
 
 	private static void OnReconnectAttempt(int count)
 	{
-		PluginLog.Debug($"Reconnect attempt {count}");
+		Svc.Log.Debug($"Reconnect attempt {count}");
 	}
 
 	private static void OnReconnectFailed()
 	{
-		PluginLog.Debug("Reconnect failed");
+		Svc.Log.Debug("Reconnect failed");
 	}
 
 	private static void OnPing()
 	{
-		PluginLog.Debug("Ping");
+		Svc.Log.Debug("Ping");
 	}
 
 	private static void OnPong(TimeSpan span)
 	{
-		PluginLog.Debug($"Pong: {span}");
+		Svc.Log.Debug($"Pong: {span}");
 	}
 
 	public void Connect()
@@ -453,7 +453,7 @@ internal class FaloopToChat : Feature
 			}
 			catch (Exception exception)
 			{
-				PluginLog.Error($"Connection Failed {exception}");
+				Svc.Log.Error($"Connection Failed {exception}");
 			}
 		});
 	}
@@ -470,7 +470,7 @@ internal class FaloopToChat : Feature
 			}
 			catch (Exception exception)
 			{
-				PluginLog.Error("EmitMockData" + $" {exception}");
+				Svc.Log.Error("EmitMockData" + $" {exception}");
 			}
 		});
 	}

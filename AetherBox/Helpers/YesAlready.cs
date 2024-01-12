@@ -1,5 +1,6 @@
 using AetherBox.Helpers;
 using Dalamud.Logging;
+using ECommons.DalamudServices;
 using ECommons.Reflection;
 
 namespace AetherBox.Helpers;
@@ -12,7 +13,7 @@ internal static class YesAlready
 	{
 		if (DalamudReflector.TryGetDalamudPlugin("Yes Already", out var pl, suppressErrors: false, ignoreCache: true))
 		{
-			PluginLog.Information("Disabling Yes Already");
+			Svc.Log.Information("Disabling Yes Already");
 			pl.GetStaticFoP("YesAlready.Service", "Configuration").SetFoP("Enabled", false);
 			Reenable = true;
 		}
@@ -22,7 +23,7 @@ internal static class YesAlready
 	{
 		if (Reenable && DalamudReflector.TryGetDalamudPlugin("Yes Already", out var pl, suppressErrors: false, ignoreCache: true))
 		{
-			PluginLog.Information("Enabling Yes Already");
+			Svc.Log.Information("Enabling Yes Already");
 			pl.GetStaticFoP("YesAlready.Service", "Configuration").SetFoP("Enabled", true);
 			Reenable = false;
 		}

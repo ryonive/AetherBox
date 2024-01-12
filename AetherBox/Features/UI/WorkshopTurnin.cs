@@ -204,7 +204,7 @@ public class WorkshopTurnin : Feature
 
 	private bool EndLoop(string msg)
 	{
-		PluginLog.Log("Cancelling... Reason: " + msg);
+		Svc.Log.Debug("Cancelling... Reason: " + msg);
 		active = false;
 		phaseActive = false;
 		projectActive = false;
@@ -223,7 +223,7 @@ public class WorkshopTurnin : Feature
 			list = requiredIngredients;
 			if (list != null && list.Count == 0)
 			{
-				PluginLog.Log("req is 0");
+				Svc.Log.Debug("req is 0");
 				return true;
 			}
 			bool flag;
@@ -449,7 +449,7 @@ public class WorkshopTurnin : Feature
 		}
 		if (EzThrottler.Throttle("WorkshopTurnin.ConfirmSkip"))
 		{
-			PluginLog.Log("Selecting cutscene skipping");
+			Svc.Log.Debug("Selecting cutscene skipping");
 			ClickSelectString.Using(addon).SelectItem(0);
 			return true;
 		}

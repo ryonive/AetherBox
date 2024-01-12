@@ -79,7 +79,7 @@ public static class CoordinatesHelper
 			mapMarker = AetherytesMap.FirstOrDefault((MapMarker m) => m.DataType == 3 && m.DataKey == data.RowId);
 			if (mapMarker == null)
 			{
-				PluginLog.Error($"Cannot find aetherytes position for {maplinkMessage.PlaceName}#{data.PlaceName.Value.Name}");
+				Svc.Log.Error($"Cannot find aetherytes position for {maplinkMessage.PlaceName}#{data.PlaceName.Value.Name}");
 				continue;
 			}
 			float AethersX;
@@ -124,11 +124,11 @@ public static class CoordinatesHelper
 		aetheryteName = GetNearestAetheryte(maplinkMessage);
 		if (aetheryteName != "")
 		{
-			PluginLog.Log("Teleporting to " + aetheryteName);
+			Svc.Log.Debug("Teleporting to " + aetheryteName);
 			Svc.Commands.ProcessCommand("/tp " + aetheryteName);
 			return;
 		}
-		PluginLog.Error($"Cannot find nearest aetheryte of {maplinkMessage.PlaceName}({maplinkMessage.X}, {maplinkMessage.Y}).");
+		Svc.Log.Error($"Cannot find nearest aetheryte of {maplinkMessage.PlaceName}({maplinkMessage.X}, {maplinkMessage.Y}).");
 	}
 
 	public static SeString? CreateMapLink(uint zoneId, int zonePoiId, int? instance, FaloopSession session)
@@ -139,14 +139,14 @@ public static class CoordinatesHelper
 		map = zone?.Map.Value;
 		if (zone == null || map == null)
 		{
-			PluginLog.Debug("CreateMapLink: zone == null || map == null");
+			Svc.Log.Debug("CreateMapLink: zone == null || map == null");
 			return null;
 		}
 		ZoneLocationData location;
 		location = session.EmbedData.ZoneLocations.FirstOrDefault((ZoneLocationData x) => x.Id == zonePoiId);
 		if (location == null)
 		{
-			PluginLog.Debug("CreateMapLink: location == null");
+			Svc.Log.Debug("CreateMapLink: location == null");
 			return null;
 		}
 		double i;

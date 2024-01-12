@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AetherBox.Helpers.Faloop;
 using AetherBox.Helpers.Faloop.Model;
 using Dalamud.Logging;
+using ECommons.DalamudServices;
 
 namespace AetherBox.Helpers.Faloop;
 
@@ -28,14 +29,14 @@ public class FaloopSession : IDisposable
 		initialSession = await client.RefreshAsync();
 		if ((object)initialSession == null || !initialSession.Success)
 		{
-			PluginLog.Debug("LoginAsync: initialSession is not success");
+			Svc.Log.Debug("LoginAsync: initialSession is not success");
 			return false;
 		}
 		UserLoginResponse login;
 		login = await client.LoginAsync(username, password, initialSession.SessionId, initialSession.Token);
 		if ((object)login == null || !login.Success)
 		{
-			PluginLog.Debug("LoginAsync: login is not success");
+			Svc.Log.Debug("LoginAsync: login is not success");
 			return false;
 		}
 		try
@@ -44,7 +45,7 @@ public class FaloopSession : IDisposable
 		}
 		catch (Exception exception)
 		{
-			PluginLog.Error(exception, "LoginAsync: EmbedData.Initialize failed");
+			Svc.Log.Error(exception, "LoginAsync: EmbedData.Initialize failed");
 			return false;
 		}
 		IsLoggedIn = true;

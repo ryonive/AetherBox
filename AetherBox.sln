@@ -14,9 +14,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OOBlugin", "..\OOBlugin\OOBlugin.csproj", "{E9090C1E-9CFF-404C-95E8-F904DC789A77}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github Workflows", "Github Workflows", "{4AC639D5-D666-4EFF-BEAF-DC32F3476D8F}"
-	ProjectSection(SolutionItems) = preProject
-		.github\workflows\build.yml = .github\workflows\build.yml
-	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickLib", "ClickLib\ClickLib\ClickLib.csproj", "{3A95D0A9-02DD-4BEB-8B01-B7DBCE46BB6B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ECommons", "ECommons\ECommons\ECommons.csproj", "{716F645A-30C7-40DC-BA28-65AE4A949413}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +33,14 @@ Global
 		{E9090C1E-9CFF-404C-95E8-F904DC789A77}.Debug|x64.Build.0 = Debug|x64
 		{E9090C1E-9CFF-404C-95E8-F904DC789A77}.Release|x64.ActiveCfg = Release|x64
 		{E9090C1E-9CFF-404C-95E8-F904DC789A77}.Release|x64.Build.0 = Release|x64
+		{3A95D0A9-02DD-4BEB-8B01-B7DBCE46BB6B}.Debug|x64.ActiveCfg = Debug|x64
+		{3A95D0A9-02DD-4BEB-8B01-B7DBCE46BB6B}.Debug|x64.Build.0 = Debug|x64
+		{3A95D0A9-02DD-4BEB-8B01-B7DBCE46BB6B}.Release|x64.ActiveCfg = Release|x64
+		{3A95D0A9-02DD-4BEB-8B01-B7DBCE46BB6B}.Release|x64.Build.0 = Release|x64
+		{716F645A-30C7-40DC-BA28-65AE4A949413}.Debug|x64.ActiveCfg = Debug|x64
+		{716F645A-30C7-40DC-BA28-65AE4A949413}.Debug|x64.Build.0 = Debug|x64
+		{716F645A-30C7-40DC-BA28-65AE4A949413}.Release|x64.ActiveCfg = Release|x64
+		{716F645A-30C7-40DC-BA28-65AE4A949413}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

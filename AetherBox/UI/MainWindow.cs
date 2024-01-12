@@ -6,6 +6,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using AetherBox.Features;
 using AetherBox.FeaturesSetup;
+using AetherBox.Helpers.Extensions;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
@@ -64,9 +65,6 @@ public class MainWindow : Window
 
     public override void Draw()
     {
-        DrawHeader();
-        ImGui.SameLine();
-        DrawBanner();
         var contentRegionAvail = ImGui.GetContentRegionAvail();
         _ = ref ImGui.GetStyle().ItemSpacing;
         var topLeftSideHeight = contentRegionAvail.Y;
@@ -76,6 +74,7 @@ public class MainWindow : Window
         }
         try
         {
+
             ImGui.TableSetupColumn("###LeftColumn", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
             ImGui.TableNextColumn();
             Vector2 regionSize = ImGui.GetContentRegionAvail();
@@ -85,6 +84,7 @@ public class MainWindow : Window
             size.Y = topLeftSideHeight;
             if (ImGui.BeginChild(str_id, size, border: false, ImGuiWindowFlags.NoDecoration))
             {
+                DrawHeader();
                 foreach (object window in Enum.GetValues(typeof(OpenCatagory)))
                 {
                     if ((OpenCatagory)window != 0 && ImGui.Selectable($"{window}", OpenCatagory == (OpenCatagory)window))
@@ -130,6 +130,7 @@ public class MainWindow : Window
             ImGui.TableNextColumn();
             if (ImGui.BeginChild("###" + AetherBox.Name + "Right", Vector2.Zero, false, ImGuiWindowFlags.NoDecoration))
             {
+                DrawBanner();
                 if (FilteredFeatures?.Count > 0)
                 {
                     DrawFeatures(FilteredFeatures?.ToArray());
@@ -159,9 +160,9 @@ public class MainWindow : Window
                         case OpenCatagory.Commands:
                             DrawCommands(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Commands && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
                             break;
-                        case OpenCatagory.About:
-                            DrawAbout();
-                            break;
+                        //case OpenCatagory.About:
+                            //DrawAbout();
+                            //break;
                     }
                 }
             }
@@ -179,10 +180,12 @@ public class MainWindow : Window
     {
         try
         {
-            ImGui.TextWrapped("This is where I test features for Pandora's Box, learn to break the game, or store features ill suited for anything else.");
             ImGui.Spacing();
-            ImGui.TextWrapped("If any feature you see here is in Pandora's Box, it means I'm testing modifications to that feature. If you enable it here, make sure the Pandora version is disabled or there will probably be problems.");
-            ImGui.Text("Icon by Kadmas");
+            ImGuiExtra.TextCentered("This is where I test features for Pandora's Box, learn to break the game, or store features ill suited for anything else.");
+            ImGui.Spacing();
+            ImGuiExtra.TextCentered("If any feature you see here is in Pandora's Box, it means I'm testing modifications to that feature. If you enable it here, make sure the Pandora version is disabled or there will probably be problems.");
+            ImGui.Spacing();
+            ImGuiExtra.TextCentered("Icon by Kadmas");
         }
         catch (Exception ex)
         {
