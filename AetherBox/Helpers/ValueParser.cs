@@ -1,12 +1,12 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Helpers.ValueParser
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using AetherBox.Helpers;
 using ImGuiNET;
+
 namespace AetherBox.Helpers;
+
 public abstract class ValueParser : Attribute
 {
 	public class HexValue : ValueParser
@@ -21,17 +21,20 @@ public abstract class ValueParser : Attribute
 	{
 		public unsafe override string GetString(Type type, object obj, MemberInfo member, ulong parentAddr)
 		{
-			FixedBufferAttribute fixedBuffer = (FixedBufferAttribute)member.GetCustomAttribute(typeof(FixedBufferAttribute));
+			FixedBufferAttribute fixedBuffer;
+			fixedBuffer = (FixedBufferAttribute)member.GetCustomAttribute(typeof(FixedBufferAttribute));
 			if (fixedBuffer == null || fixedBuffer.ElementType != typeof(byte))
 			{
 				return $"[Not a fixed byte buffer] {obj}";
 			}
-			FieldOffsetAttribute fieldOffset = (FieldOffsetAttribute)member.GetCustomAttribute(typeof(FieldOffsetAttribute));
+			FieldOffsetAttribute fieldOffset;
+			fieldOffset = (FieldOffsetAttribute)member.GetCustomAttribute(typeof(FieldOffsetAttribute));
 			if (fieldOffset == null)
 			{
 				return $"[No FieldOffset] {obj}";
 			}
-			byte* addr = (byte*)(parentAddr + (ulong)fieldOffset.Value);
+			byte* addr;
+			addr = (byte*)(parentAddr + (ulong)fieldOffset.Value);
 			return Marshal.PtrToStringAnsi(new IntPtr(addr), fixedBuffer.Length) ?? "";
 		}
 	}

@@ -1,14 +1,18 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using AetherBox.Debugging;
 using AetherBox.Features;
 using AetherBox.FeaturesSetup;
+using AetherBox.Helpers.Extensions;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
 using ECommons;
@@ -22,7 +26,7 @@ public class MainWindow : Window
 {
     private readonly IDalamudTextureWrap ? IconImage;
     private readonly IDalamudTextureWrap ? BannerImage;
-    //internal readonly AetherBox Plugin;
+    // internal readonly AetherBox Plugin;
     private static float Scale => ImGuiHelpers.GlobalScale;
 
 
@@ -64,9 +68,6 @@ public class MainWindow : Window
 
     public override void Draw()
     {
-        DrawHeader();
-        ImGui.SameLine();
-        DrawBanner();
         var contentRegionAvail = ImGui.GetContentRegionAvail();
         _ = ref ImGui.GetStyle().ItemSpacing;
         var topLeftSideHeight = contentRegionAvail.Y;
@@ -76,6 +77,7 @@ public class MainWindow : Window
         }
         try
         {
+
             ImGui.TableSetupColumn("###LeftColumn", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
             ImGui.TableNextColumn();
             Vector2 regionSize = ImGui.GetContentRegionAvail();
@@ -85,6 +87,7 @@ public class MainWindow : Window
             size.Y = topLeftSideHeight;
             if (ImGui.BeginChild(str_id, size, border: false, ImGuiWindowFlags.NoDecoration))
             {
+                DrawHeader();
                 foreach (object window in Enum.GetValues(typeof(OpenCatagory)))
                 {
                     if ((OpenCatagory)window != 0 && ImGui.Selectable($"{window}", OpenCatagory == (OpenCatagory)window))
@@ -130,6 +133,7 @@ public class MainWindow : Window
             ImGui.TableNextColumn();
             if (ImGui.BeginChild("###" + AetherBox.Name + "Right", Vector2.Zero, false, ImGuiWindowFlags.NoDecoration))
             {
+                DrawBanner();
                 if (FilteredFeatures?.Count > 0)
                 {
                     DrawFeatures(FilteredFeatures?.ToArray());
@@ -139,28 +143,28 @@ public class MainWindow : Window
                     switch (OpenCatagory)
                     {
                         case OpenCatagory.Actions:
-                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Actions && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Actions && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.UI:
-                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.UI && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.UI && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.Other:
-                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Other && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Other && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.Targets:
-                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Targeting && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Targeting && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.Chat:
-                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.ChatFeature && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.ChatFeature && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.Achievements:
-                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Achievements && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Achievements && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.Commands:
-                            DrawCommands(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Commands && (!x.isDebug || global::AetherBox.AetherBox.Config.showDebugFeatures)).ToArray());
+                            DrawCommands(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Commands && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
-                        case OpenCatagory.About:
-                            DrawAbout();
+                        case OpenCatagory.Debug:
+                            DrawDebug(AetherBox.Plugin.Features.Where((BaseFeature x) => (x.isDebug)).ToArray());
                             break;
                     }
                 }
@@ -175,14 +179,52 @@ public class MainWindow : Window
         ImGui.EndTable();
     }
 
-    private static void DrawAbout()
+    private static void DrawDebug(BaseFeature[] features)
     {
         try
         {
-            ImGui.TextWrapped("This is where I test features for Pandora's Box, learn to break the game, or store features ill suited for anything else.");
             ImGui.Spacing();
-            ImGui.TextWrapped("If any feature you see here is in Pandora's Box, it means I'm testing modifications to that feature. If you enable it here, make sure the Pandora version is disabled or there will probably be problems.");
-            ImGui.Text("Icon by Kadmas");
+            ImGuiExtra.TextCentered("Enable the forbidden features.");
+            ImGui.Spacing();
+            //ImGui.Checkbox("Show debug features and commands", ref AetherBox.Config.ShowDebugFeatures);
+
+            if (features == null || !features.Any() || features.Length == 0)
+                return;
+            var interpolatedStringHandler1 = new DefaultInterpolatedStringHandler(13, 1);
+            interpolatedStringHandler1.AppendLiteral("featureHeader");
+            interpolatedStringHandler1.AppendFormatted(features.First().FeatureType);
+            ImGuiEx.ImGuiLineCentered(interpolatedStringHandler1.ToStringAndClear(), () =>
+            {
+                var interpolatedStringHandler2 = new DefaultInterpolatedStringHandler(0, 1);
+                interpolatedStringHandler2.AppendFormatted(features.First().FeatureType);
+                ImGui.Text(interpolatedStringHandler2.ToStringAndClear());
+            });
+            ImGui.Separator();
+            if (!ImGui.BeginTable("###CommandsTable", 5, ImGuiTableFlags.Borders))
+                return;
+            ImGui.TableSetupColumn("Name");
+            ImGui.TableSetupColumn("Command");
+            ImGui.TableSetupColumn("Parameters");
+            ImGui.TableSetupColumn("Description");
+            ImGui.TableSetupColumn("Aliases");
+            ImGui.TableHeadersRow();
+            foreach (var commandFeature in features.Cast<CommandFeature>())
+            {
+                ImGui.TableNextRow();
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(commandFeature.Name);
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(commandFeature.Command);
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(string.Join(", ", (IEnumerable<string>)commandFeature.Parameters));
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(commandFeature.Description ?? "");
+                ImGui.TableNextColumn();
+                ImGui.TextWrapped(string.Join(", ", commandFeature.Alias) ?? "");
+            }
+            ImGui.EndTable();
+
+
         }
         catch (Exception ex)
         {
@@ -397,17 +439,4 @@ public class MainWindow : Window
             Svc.Log.Error($"{ex}, Error at OnClose");
         }
     }
-
-    /*public void Dispose()
-    {
-        try
-        {
-            GC.SuppressFinalize(this);
-            BannerImage?.Dispose();
-        }
-        catch (Exception ex)
-        {
-            Svc.Log.Error($"{ex}, Error at Dispose");
-        }
-    }*/
 }

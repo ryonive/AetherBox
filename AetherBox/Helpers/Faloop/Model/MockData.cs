@@ -1,11 +1,11 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Helpers.Faloop.Model.MockData
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using AetherBox.Helpers.Faloop.Model;
+
 namespace AetherBox.Helpers.Faloop.Model;
+
 public static class MockData
 {
 	private static readonly MobReportData.Spawn Spawn = new MobReportData.Spawn

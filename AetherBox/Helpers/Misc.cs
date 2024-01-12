@@ -1,9 +1,9 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Helpers.Misc
 using System;
 using Lumina.Excel;
 using Lumina.Excel.GeneratedSheets;
+
 namespace AetherBox.Helpers;
+
 public static class Misc
 {
 	public static ExcelSheet<Lumina.Excel.GeneratedSheets.Action> Action;

@@ -1,9 +1,9 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.TemporaryFixes.AddonRepairFixed
 using System.Runtime.InteropServices;
 using FFXIVClientStructs.Attributes;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 namespace AetherBox.TemporaryFixes;
+
 [StructLayout(LayoutKind.Explicit, Size = 63464)]
 [Addon(new string[] { "Repair" })]
 public struct AddonRepairFixed

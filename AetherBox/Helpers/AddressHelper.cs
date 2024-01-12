@@ -1,4 +1,5 @@
 namespace AetherBox.Helpers;
+
 internal static class AddressHelper
 {
 	public unsafe static T ReadField<T>(void* address, int offset) where T : unmanaged

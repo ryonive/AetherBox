@@ -1,342 +1,273 @@
+using AetherBox.Features;
+using AetherBox.IPC;
 using AetherBox.UI;
 using Dalamud.Game.Command;
+using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
+using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
-using ECommons;
-using ECommons.DalamudServices;
-using Dalamud.Interface.Internal;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using AetherBox.Features;
-using System.Linq;
-using System.Reflection;
-using ImGuiNET;
-using ECommons.Automation;
 using Module = ECommons.Module;
+using ECommons;
+using ECommons.Automation;
+using ECommons.DalamudServices;
 using ECommons.ChatMethods;
-using System.Windows.Forms;
-using ECommons.Logging;
-using Microsoft.VisualBasic.ApplicationServices;
-using static System.Windows.Forms.LinkLabel;
-using AetherBox.IPC;
+using System.Reflection;
+using AetherBox.FeaturesSetup;
+using AetherBox.Helpers;
+using AetherBox.Features.Other;
 
-namespace AetherBox
+namespace AetherBox;
+
+public class AetherBox : IDalamudPlugin, IDisposable
 {
-    public class AetherBox : IDalamudPlugin, IDisposable
+    public static string Name => "AetherBox";
+    private const string CommandName = "/atb";
+    private const string TestCommandName = "/atbtest";
+    internal WindowSystem WindowSystem;
+    internal MainWindow MainWindow;
+    internal DebugWindow DebugWindow;
+
+    internal static AetherBox Plugin;
+    internal static DalamudPluginInterface PluginInterface;
+    internal static Configuration Config;
+
+    public List<FeatureProvider> FeatureProviders = new List<FeatureProvider>();
+    private FeatureProvider provider;
+    public IEnumerable<BaseFeature> Features => FeatureProviders.Where(x => !x.Disposed).SelectMany(x => x.Features).OrderBy(x => x.Name);
+    internal TaskManager TaskManager;
+
+    [PluginService]
+    public static IAddonLifecycle AddonLifecycle { get; private set; }
+
+    public AetherBox(DalamudPluginInterface pluginInterface)
     {
-        private const string CommandName = "/atb";
+        Plugin = this;
+        PluginInterface = pluginInterface;
+        InitializePlugin();
+    }
 
-        internal WindowSystem WindowSystem;
-
-        internal MainWindow MainWindow;
-
-        internal OldMainWindow OldMainWindow;
-
-        internal DebugWindow DebugWindow;
-
-        internal static AetherBox Plugin;
-
-        internal static DalamudPluginInterface PluginInterface;
-
-        public static Configuration ? Config;
-        // private static Configuration config;
-
-        // public List<FeatureProvider> FeatureProviders = new List<FeatureProvider>();
-        public List<FeatureProvider> FeatureProviders = new List<FeatureProvider>();
-
-        private FeatureProvider provider;
-
-        internal TaskManager TaskManager;
-
-        public static string Name => "AetherBox";
-
-        public IEnumerable<BaseFeature> Features => from x in FeatureProviders.Where((x) => !x.Disposed).SelectMany((x) => x.Features)
-                                                    orderby x.Name
-                                                    select x;
-
-        /*private List<FeatureProvider> FeatureProviders
+    #region Initialise Phase
+    private void InitializePlugin()
+    {
+        #region Default load order
+        ECommonsMain.Init(PluginInterface, Plugin, Module.DalamudReflector, Module.ObjectFunctions);
+        #region Initialize Windows
+        var closeImage = LoadImage("close.png");
+        var iconImage = LoadImage("icon.png");
+        var bannerImage = LoadImage("banner.png");
+        WindowSystem = new WindowSystem();
+        MainWindow = new MainWindow(bannerImage, iconImage);
+        DebugWindow = new DebugWindow();
+        WindowSystem.AddWindow(MainWindow);
+        WindowSystem.AddWindow(DebugWindow);
+        #endregion
+        TaskManager = new TaskManager();
+        Config = (PluginInterface.GetPluginConfig() as Configuration) ?? new Configuration();
+        Config.Initialize(Svc.PluginInterface);
+        #region Commands
+        Svc.Commands.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
-            get => featureProviders;
-            set => featureProviders = value ?? throw new ArgumentNullException(nameof(value));
-        }
-
-        public static Configuration Config
+            HelpMessage = "This command is used to toggle various UI elements:\n" +
+                            "/atb                         → alias for '/Aetherbox' \n" +
+                          "/atb menu or m    → Toggles the main menu UI.\n" +
+                          "/atb debug or d     → Toggles the debug menu.",
+            ShowInHelp = true,
+        });
+        Svc.Commands.AddHandler(TestCommandName, new CommandInfo(TestCommand) // Add a reserved command handler for "/atb text"
         {
-            get => config;
-            private set => config = value ?? throw new ArgumentNullException(nameof(value));
-        }*/
+            HelpMessage = "Sends a test message in the chatbox.",
+            ShowInHelp = false
+        });
+        #endregion
 
-        public AetherBox(DalamudPluginInterface pluginInterface)
-        {
-            Plugin = this;
-            PluginInterface = pluginInterface;
-            InitializePlugin();
-        }
+        #region Events
+        Svc.PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+        Svc.PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
+        Svc.PluginInterface.UiBuilder.OpenConfigUi += ToggleDebugUI;
+        #endregion
 
-        private void InitializePlugin()
-        {
-            ECommonsMain.Init(PluginInterface, this, Module.DalamudReflector);
-            WindowSystem = new WindowSystem(Name);
+        Common.Setup();
+        PandorasBoxIPC.Init();
+        Events.Init();
+        AFKTimer.Init();
+        provider = new FeatureProvider(Assembly.GetExecutingAssembly());
+        provider.LoadFeatures();
+        FeatureProviders.Add(provider);
+        #endregion
+    }
+    #endregion
 
-            SetupWindows();
+    #region Dispose phase
+    public void Dispose()
+    {
+        Svc.Commands.RemoveHandler(CommandName);
+        Svc.Commands.RemoveHandler(TestCommandName);
 
-            SetupCommands();
+        Svc.Log.Debug($"Disabling and Disposing features");
 
-            PandorasBoxIPC.Init();
-
-            SubscribeToEvents();
-
-            Common.Setup();
-
-            provider = new FeatureProvider(Assembly.GetExecutingAssembly());
-
-            LoadFeatures();
-        }
-
-        // Sets up the plugin windows like 'main menu' and the settings window.
-        private void SetupWindows()
-        {
-            var closeImage = LoadImage("close.png");
-            var iconImage = LoadImage("icon.png");
-            var bannerImage = LoadImage("banner.png");
-
-            MainWindow = new MainWindow(bannerImage, iconImage);
-            OldMainWindow = new OldMainWindow(iconImage, closeImage);
-            DebugWindow = new DebugWindow();
-
-            WindowSystem.AddWindow(MainWindow);
-            WindowSystem.AddWindow(OldMainWindow);
-            WindowSystem.AddWindow(DebugWindow);
-        }
-
-        // Sets up Commands to toggle the visible state of main menu and settings window.
-        private void SetupCommands()
-        {
-            Svc.Commands.AddHandler("/atb", new CommandInfo(OnCommandToggleUI)
-            {
-                HelpMessage = "Toggles main menu UI\n/atb c → Toggles settings menu\n/atb d → Toggles debug menu\"",
-                ShowInHelp = true
-            });
-
-            Svc.Commands.AddHandler("/atbdev", new CommandInfo(TestCommand)
-            {
-                HelpMessage = "Test command - just displays a message.",
-                ShowInHelp = true
-            });
-
-        }
-
-        // Subscribes to events such as chat commands.
-        private void SubscribeToEvents()
-        {
-            PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
-            PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
-            PluginInterface.UiBuilder.OpenConfigUi += ToggleSettingsUI;
-        }
-
-        // Loads all the plugin features like 'Auto Follow'
-        private void LoadFeatures()
-        {
-            if (PluginInterface.GetPluginConfig() is not Configuration configuration)
-                configuration = new Configuration();
-            Config = configuration;
-            Config.Initialize(Svc.PluginInterface);
-
-            provider.LoadFeatures();
-            FeatureProviders.Add(provider);
-        }
-
-        public void Dispose()
-        {
-            DisposePlugin();
-        }
-
-        // Collective Dispose method
-        private void DisposePlugin()
-        {
-            PandorasBoxIPC.Dispose();
-            UnsubscribeFromEvents();
-            UnloadFeatures();                   //AetherBox\AetherBox\AetherBox.cs:line 135
-            ClearResources();
-            ECommonsMain.Dispose();
-            Common.Shutdown();
-        }
-
-        // Unsubscribes from events such as chat commands.
-        private void UnsubscribeFromEvents()
-        {
-            PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
-            PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUI;
-            PluginInterface.UiBuilder.OpenConfigUi -= ToggleSettingsUI;
-            Svc.Commands.RemoveHandler("/atb");
-            Svc.Commands.RemoveHandler("/atbdev");
-
-        }
-
-        // Unloads all the plugin features like 'Auto Follow'
-        private void UnloadFeatures()
-        {
-            if (Features != null)
-            {
-                foreach (var baseFeature in Features.Where(x => x != null && x.Enabled))
-                    baseFeature.Disable();
-            }
-            if (provider != null)
-            {
-                provider.UnloadFeatures();
-            }
-
-        }
-
-        /// <summary>
-        /// Unloads all UI elements like the settings menu
-        /// </summary>
-        private void ClearResources()
-        {
-            WindowSystem.RemoveAllWindows();
-            DebugWindow = null;
-            OldMainWindow = null;
-            MainWindow = null;
-            WindowSystem = null;
-        }
-
-        /// <summary>
-        /// Code to be executed when the window is closed.
-        /// </summary>
-        /*public static void OnClose()
+        // Doesnt dispose of hooks of features that are not enabled
+        /*foreach (BaseFeature item in Features.Where((BaseFeature x) => x?.Enabled ?? false))
         {
             try
             {
-                AetherBox.Config.InfoSave();
+                item.Disable();
+                item.Dispose();
+                Svc.Log.Debug($"Feature '{item.Name}' has been disabled and disposed.");
             }
             catch (Exception ex)
             {
-                Svc.Log.Error($"{ex},");
+                Svc.Log.Error(ex, $"Error while disposing or disabling feature '{item.Name}'.");
             }
-
         }*/
 
-        /// <summary>
-        /// Loads an image. (note image should be located in the build folder)
-        /// </summary>
-        /// <param name="imageName"></param>
-        /// <returns></returns>
-        public static IDalamudTextureWrap LoadImage(string imageName)
+        // testing as solution to the problem of disabled features hooks not disposing
+        Svc.Log.Debug($"Disabling and Disposing features");
+        foreach (BaseFeature item in Features)
         {
-            var imagesDirectory = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!);
-            var imagePath = Path.Combine(imagesDirectory, imageName);
+            try
+            {
+                // Disable the feature (if enabled)
+                if (item.Enabled)
+                {
+                    item.Disable();
+                }
 
-            if (File.Exists(imagePath))
-            {
-                try
-                {
-                    return PluginInterface.UiBuilder.LoadImage(imagePath);
-                }
-                catch (Exception ex)
-                {
-                    Svc.Log.Warning($"{ex}, Error loading image");
-                    return null;
-                }
+                // Dispose of the feature
+                item.Dispose();
+
+                Svc.Log.Debug($"Feature '{item.Name}' has been disabled and disposed.");
             }
-            else
+            catch (Exception ex)
             {
-                Svc.Log.Error($"Image not found: {imagePath}");
+                Svc.Log.Error(ex, $"Error while disposing or disabling feature '{item.Name}'.");
+            }
+        }
+
+
+        provider.UnloadFeatures();
+
+
+        Svc.PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
+        Svc.PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUI;
+        Svc.PluginInterface.UiBuilder.OpenConfigUi -= ToggleDebugUI;
+        WindowSystem.RemoveAllWindows();
+        MainWindow = null;
+        DebugWindow = null;
+        WindowSystem = null;
+        ECommonsMain.Dispose();
+        FeatureProviders.Clear();
+        Common.Shutdown();
+        PandorasBoxIPC.Dispose();
+        Events.Disable();
+        AFKTimer.Dispose();
+        Plugin = null;
+    }
+    #endregion
+
+    /// <summary>
+    /// Toggle main UI without arguments
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="args"></param>
+    internal void OnCommand(string command, string args)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(args) || args.Equals("menu", StringComparison.OrdinalIgnoreCase) || args.Equals("m", StringComparison.OrdinalIgnoreCase))
+            {
+                // Toggle main UI
+                MainWindow.IsOpen = !MainWindow.IsOpen;
+            }
+            else if (args.Equals("d", StringComparison.OrdinalIgnoreCase) || args.Equals("debug", StringComparison.OrdinalIgnoreCase))
+            {
+                // Toggle Debug UI
+                DebugWindow.IsOpen = !DebugWindow.IsOpen;
+            }
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error with 'OnCommand' command");
+        }
+    }
+
+    /// <summary>
+    /// Opens the main UI window via the 'Main' button in the Plugin Installer Menu
+    /// </summary>
+    public void ToggleMainUI()
+    {
+        try
+        {
+            MainWindow.IsOpen = !MainWindow.IsOpen;
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Warning($"{ex}, Error in ToggleMainUI");
+        }
+    }
+
+    /// <summary>
+    /// Opens the settings UI window via the 'settings' button in the Plugin Installer Menu
+    /// </summary>
+    public void ToggleDebugUI()
+    {
+        try
+        {
+            DebugWindow.IsOpen = !DebugWindow.IsOpen;
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error with 'DebugWindow'");
+        }
+    }
+
+    /// <summary>
+    /// Sends a test message , with /atb text
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="args"></param>
+    private void TestCommand(string command, string args)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(args))
+            {
+                Svc.Chat.Print("This is a test message!", "AetherBox ", (ushort?)UIColor._color541);
+                Svc.Log.Debug("This is a test message!");
+            }
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error($"{ex}, Error with 'TestCommand'");
+        }
+    }
+
+    /// <summary>
+    /// Loads an image. (note image should be located in the build folder)
+    /// </summary>
+    /// <param name="imageName"></param>
+    /// <returns></returns>
+    public static IDalamudTextureWrap LoadImage(string imageName)
+    {
+        var imagesDirectory = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!);
+        var imagePath = Path.Combine(imagesDirectory, imageName);
+
+        if (File.Exists(imagePath))
+        {
+            try
+            {
+                return PluginInterface.UiBuilder.LoadImage(imagePath);
+            }
+            catch (Exception ex)
+            {
+                Svc.Log.Warning($"{ex}, Error loading image");
                 return null;
             }
         }
-
-        /// <summary>
-        /// Toggle main UI without arguments - Toggle settings UI if command is used with a - 'c'
-        /// </summary>
-        /// <param name="command"></param>
-        /// <param name="args"></param>
-        internal void OnCommandToggleUI(string command, string args)
+        else
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(args))
-                {
-                    // Toggle main UI
-                    MainWindow.IsOpen = !MainWindow.IsOpen;
-                }
-                else if (args.Equals("c", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Toggle settings UI
-                    OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
-                }
-                else if (args.Equals("d", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Toggle settings UI
-                    DebugWindow.IsOpen = !DebugWindow.IsOpen;
-                }
-            }
-            catch (Exception ex)
-            {
-                Svc.Log.Error($"{ex}, Error with '/atb' command");
-            }
-        }
-
-        /// <summary>
-        /// Opens the main UI window via the 'Main' button in the Plugin Installer Menu
-        /// </summary>
-        private void ToggleMainUI()
-        {
-            try
-            {
-                MainWindow.IsOpen = !MainWindow.IsOpen;
-                if (Svc.PluginInterface.IsDevMenuOpen && (Svc.PluginInterface.IsDev || AetherBox.Config.showDebugFeatures))
-                {
-                    if (ImGui.BeginMainMenuBar())
-                    {
-                        if (ImGui.MenuItem(AetherBox.Name))
-                        {
-                            MainWindow.IsOpen = !MainWindow.IsOpen;
-                        }
-                        ImGui.EndMainMenuBar();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Svc.Log.Warning($"{ex}, Error in ToggleMainUI");
-            }
-        }
-
-        /// <summary>
-        /// Opens the settings UI window via the 'settings' button in the Plugin Installer Menu
-        /// </summary>
-        private void ToggleSettingsUI()
-        {
-            try
-            {
-                OldMainWindow.IsOpen = !OldMainWindow.IsOpen;
-            }
-            catch (Exception ex)
-            {
-                Svc.Log.Error($"{ex}, Error with 'ToggleSettingsUI'");
-            }
-        }
-
-        /// <summary>
-        /// Sends a test message!
-        /// </summary>
-        /// <param name="command"></param>
-        /// <param name="args"></param>
-        internal static void TestCommand(string command, string args)
-        {
-            try
-            {
-                Svc.Chat.Print("This is a test message!", "AetherBox ", (ushort?)UIColor._color541);
-                DuoLog.Information("This is a test message!");
-            }
-            catch (Exception ex)
-            {
-                Svc.Log.Error($"{ex}, Error with 'TestCommand'");
-            }
+            Svc.Log.Error($"Image not found: {imagePath}");
+            return null;
         }
     }
 }
-

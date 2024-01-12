@@ -1,9 +1,12 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Helpers.TextHelper
+using System;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Memory;
 using Lumina.Text;
+
 namespace AetherBox.Helpers;
+
 public static class TextHelper
 {
 	public static string ToTitleCase(this string s)
@@ -27,5 +30,15 @@ public static class TextHelper
 			return source;
 		}
 		return source.Substring(source.Length - tail_length);
+	}
+
+	public static string FilterNonAlphanumeric(string input)
+	{
+		return Regex.Replace(input, "[^\\p{L}\\p{N}]", string.Empty);
+	}
+
+	public unsafe static string AtkValueStringToString(byte* atkString)
+	{
+		return MemoryHelper.ReadSeStringNullTerminated(new IntPtr(atkString)).ToString();
 	}
 }

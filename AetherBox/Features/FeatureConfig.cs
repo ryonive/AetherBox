@@ -1,7 +1,5 @@
-#nullable disable
-namespace AetherBox.Features
+namespace AetherBox.Features;
+
+public abstract class FeatureConfig
 {
-    public abstract class FeatureConfig
-    {
-    }
 }

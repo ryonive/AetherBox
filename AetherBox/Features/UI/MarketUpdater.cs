@@ -1,5 +1,3 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.UI.MarketUpdater
 using System;
 using System.Numerics;
 using AetherBox.Features;
@@ -9,12 +7,15 @@ using AetherBox.UI;
 using ClickLib.Clicks;
 using Dalamud.Interface.Utility;
 using ECommons;
+using ECommons.DalamudServices;
 using ECommons.Logging;
 using ECommons.Throttlers;
 using ECommons.UIHelpers.Implementations;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
+
 namespace AetherBox.Features.UI;
+
 public class MarketUpdater : Feature
 {
 	private Overlays overlay;
@@ -27,7 +28,7 @@ public class MarketUpdater : Feature
 
 	public override string Description => "Penny pinches all listings on retainers";
 
-	public override FeatureType FeatureType => FeatureType.UI;
+	public override FeatureType FeatureType => FeatureType.Disabled;
 
 	internal new static bool GenericThrottle => FrameThrottler.Throttle("AutoRetainerGenericThrottle", 200);
 
@@ -49,7 +50,8 @@ public class MarketUpdater : Feature
 		{
 			return;
 		}
-		AtkResNode* node = addon->UldManager.NodeList[1];
+		AtkResNode* node;
+		node = addon->UldManager.NodeList[1];
 		if (!node->IsVisible)
 		{
 			return;
@@ -90,7 +92,8 @@ public class MarketUpdater : Feature
 
 	private void UpdateListings(int numRetainers)
 	{
-		int i = 0;
+		int i;
+		i = 0;
 		if (i >= numRetainers)
 		{
 			TaskManager.Enqueue(() => active = false);
@@ -106,12 +109,13 @@ public class MarketUpdater : Feature
 		}
 		if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("RetainerList", out var retainerList) && GenericHelpers.IsAddonReady(retainerList))
 		{
-			ReaderRetainerList list = new ReaderRetainerList(retainerList);
+			ReaderRetainerList list;
+			list = new ReaderRetainerList(retainerList);
 			for (int i = 0; i < list.Retainers.Count; i++)
 			{
 				if (list.Retainers[i].Name == name && GenericThrottle)
 				{
-					PluginLog.Debug($"Selecting retainer {list.Retainers[i].Name} with index {i}");
+					Svc.Log.Debug($"Selecting retainer {list.Retainers[i].Name} with index {i}");
 					ClickRetainerList.Using((nint)retainerList).Retainer(i);
 					return true;
 				}

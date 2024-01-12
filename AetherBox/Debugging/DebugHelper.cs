@@ -5,17 +5,17 @@ namespace AetherBox.Debugging;
 
 public abstract class DebugHelper : IDisposable
 {
-	public global::AetherBox.AetherBox Plugin;
+    public global::AetherBox.AetherBox Plugin;
 
-	public FeatureProvider FeatureProvider;
+    public FeatureProvider FeatureProvider;
 
-	public abstract string Name { get; }
+    public abstract string Name { get; }
 
-	public string FullName => Name;
+    public string FullName => Name;
 
-	public abstract void Draw();
+    public abstract void Draw();
 
-	public virtual void Dispose()
-	{
-	}
+    public virtual void Dispose()
+    {
+    }
 }

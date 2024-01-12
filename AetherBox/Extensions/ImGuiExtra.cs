@@ -267,6 +267,24 @@ public static class ImGuiExtra
         ImGui.PopTextWrapPos();
     }
 
+    public static void TextCentered(string text)
+    {
+        float win_width = ImGui.GetWindowSize().X;
+        float text_width = ImGui.CalcTextSize(text).X;
+
+        float text_indentation = (win_width - text_width) * 0.5f;
+
+        float min_indentation = 20.0f;
+        if (text_indentation <= min_indentation)
+        {
+            text_indentation = min_indentation;
+        }
+        ImGui.SameLine(text_indentation);
+        ImGui.PushTextWrapPos(win_width - text_indentation);
+        ImGui.TextWrapped(text);
+        ImGui.PopTextWrapPos();
+    }
+
     public static bool IsInRect(Vector2 leftTop, Vector2 size)
     {
         var pos = ImGui.GetMousePos() - leftTop;

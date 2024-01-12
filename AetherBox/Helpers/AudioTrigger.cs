@@ -1,7 +1,8 @@
 namespace AetherBox.Helpers;
+
 public enum AudioTrigger
 {
-	Light,
-	Strong,
-	Legendary
+	Light = 0,
+	Strong = 1,
+	Legendary = 2
 }

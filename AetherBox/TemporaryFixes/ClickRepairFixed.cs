@@ -1,9 +1,9 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.TemporaryFixes.ClickRepairFixed
 using AetherBox.TemporaryFixes;
 using ClickLib.Bases;
 using ClickLib.Clicks;
+
 namespace AetherBox.TemporaryFixes;
+
 public sealed class ClickRepairFixed : ClickBase<ClickRepair, AddonRepairFixed>
 {
 	public ClickRepairFixed(nint addon = 0)

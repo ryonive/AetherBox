@@ -4,7 +4,9 @@ using ClickLib.Bases;
 using ClickLib.Enums;
 using ClickLib.Structures;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 namespace AetherBox.Helpers;
+
 internal static class ClickHelper
 {
 	private unsafe static ReceiveEventDelegate GetReceiveEvent(AtkEventListener* listener)

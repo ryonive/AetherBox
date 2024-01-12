@@ -105,20 +105,21 @@ Backup*/
 UpgradeLog*.XML
 Libraries/RunSharp/.hg/dirstate
 Libraries/RunSharp/.hg/thgstatus
+
+# User added files/directories
 /.vs
 /AutoKirbo/packages.lock.json
 /OOBlugin
-/ClickLib
-/ECommons
 /desktop.ini
 /.editorconfig
 /.gitattributes
 /LICENSE.md
 /ToDo.txt
 /packages.lock.json
-/packages.lock.json
 /AetherBox/GlobalSuppressions.cs
 /AetherBox/packages.lock.json
 /README.md
 /AetherBox/AetherBox - old.cs
 /SeFonts Test.enum
+/AetherBox/Features/Actions/ISLock&Move.cs
+/AetherBox/Helpers/Faloop/.Jurisdiction.cs

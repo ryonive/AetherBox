@@ -1,5 +1,3 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.UI.AutoSelectGardening
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +18,9 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+
 namespace AetherBox.Features.UI;
+
 public class AutoSelectGardening : Feature
 {
 	public class Configs : FeatureConfig
@@ -63,15 +63,20 @@ public class AutoSelectGardening : Feature
 
 	protected unsafe override DrawConfigDelegate DrawConfigTree => delegate
 	{
-		bool flag = false;
+		bool flag;
+		flag = false;
 		if (ImGui.Checkbox("Show Only Inventory Items", ref Config.OnlyShowInventoryItems))
 		{
 			flag = true;
 		}
-		KeyValuePair<uint, Item>[] array = (Config.OnlyShowInventoryItems ? Soils.Where((KeyValuePair<uint, Item> x) => InventoryManager.Instance()->GetInventoryItemCount(x.Value.RowId, isHq: false, checkEquipped: true, checkArmory: true, 0) > 0).ToArray() : Soils.ToArray());
-		KeyValuePair<uint, Item>[] array2 = (Config.OnlyShowInventoryItems ? Seeds.Where((KeyValuePair<uint, Item> x) => InventoryManager.Instance()->GetInventoryItemCount(x.Value.RowId, isHq: false, checkEquipped: true, checkArmory: true, 0) > 0).ToArray() : Seeds.ToArray());
-		KeyValuePair<uint, Item>[] array3 = (Config.OnlyShowInventoryItems ? Fertilizers.Where((KeyValuePair<uint, Item> x) => InventoryManager.Instance()->GetInventoryItemCount(x.Value.RowId, isHq: false, checkEquipped: true, checkArmory: true, 0) > 0).ToArray() : Fertilizers.ToArray());
-		string preview_value = ((Config.SelectedSoil == 0) ? "" : Soils[Config.SelectedSoil].Name.ExtractText());
+		KeyValuePair<uint, Item>[] array;
+		array = (Config.OnlyShowInventoryItems ? Soils.Where((KeyValuePair<uint, Item> x) => InventoryManager.Instance()->GetInventoryItemCount(x.Value.RowId, isHq: false, checkEquipped: true, checkArmory: true, 0) > 0).ToArray() : Soils.ToArray());
+		KeyValuePair<uint, Item>[] array2;
+		array2 = (Config.OnlyShowInventoryItems ? Seeds.Where((KeyValuePair<uint, Item> x) => InventoryManager.Instance()->GetInventoryItemCount(x.Value.RowId, isHq: false, checkEquipped: true, checkArmory: true, 0) > 0).ToArray() : Seeds.ToArray());
+		KeyValuePair<uint, Item>[] array3;
+		array3 = (Config.OnlyShowInventoryItems ? Fertilizers.Where((KeyValuePair<uint, Item> x) => InventoryManager.Instance()->GetInventoryItemCount(x.Value.RowId, isHq: false, checkEquipped: true, checkArmory: true, 0) > 0).ToArray() : Fertilizers.ToArray());
+		string preview_value;
+		preview_value = ((Config.SelectedSoil == 0) ? "" : Soils[Config.SelectedSoil].Name.ExtractText());
 		if (ImGui.BeginCombo("Soil", preview_value))
 		{
 			if (ImGui.Selectable("", Config.SelectedSoil == 0))
@@ -79,10 +84,12 @@ public class AutoSelectGardening : Feature
 				Config.SelectedSoil = 0u;
 				flag = true;
 			}
-			KeyValuePair<uint, Item>[] array4 = array;
+			KeyValuePair<uint, Item>[] array4;
+			array4 = array;
 			for (int i = 0; i < array4.Length; i++)
 			{
-				KeyValuePair<uint, Item> keyValuePair = array4[i];
+				KeyValuePair<uint, Item> keyValuePair;
+				keyValuePair = array4[i];
 				if (ImGui.Selectable(keyValuePair.Value.Name.ExtractText(), Config.SelectedSoil == keyValuePair.Key))
 				{
 					Config.SelectedSoil = keyValuePair.Key;
@@ -91,7 +98,8 @@ public class AutoSelectGardening : Feature
 			}
 			ImGui.EndCombo();
 		}
-		string preview_value2 = ((Config.SelectedSeed == 0) ? "" : Seeds[Config.SelectedSeed].Name.ExtractText());
+		string preview_value2;
+		preview_value2 = ((Config.SelectedSeed == 0) ? "" : Seeds[Config.SelectedSeed].Name.ExtractText());
 		if (ImGui.BeginCombo("Seed", preview_value2))
 		{
 			if (ImGui.Selectable("", Config.SelectedSeed == 0))
@@ -99,10 +107,12 @@ public class AutoSelectGardening : Feature
 				Config.SelectedSeed = 0u;
 				flag = true;
 			}
-			KeyValuePair<uint, Item>[] array4 = array2;
+			KeyValuePair<uint, Item>[] array4;
+			array4 = array2;
 			for (int i = 0; i < array4.Length; i++)
 			{
-				KeyValuePair<uint, Item> keyValuePair2 = array4[i];
+				KeyValuePair<uint, Item> keyValuePair2;
+				keyValuePair2 = array4[i];
 				if (ImGui.Selectable(keyValuePair2.Value.Name.ExtractText(), Config.SelectedSeed == keyValuePair2.Key))
 				{
 					Config.SelectedSeed = keyValuePair2.Key;
@@ -114,7 +124,8 @@ public class AutoSelectGardening : Feature
 		ImGui.Checkbox("Include Fertilizing", ref Config.IncludeFertilzing);
 		if (Config.IncludeFertilzing)
 		{
-			string preview_value3 = ((Config.SelectedFertilizer == 0) ? "" : Fertilizers[Config.SelectedFertilizer].Name.ExtractText());
+			string preview_value3;
+			preview_value3 = ((Config.SelectedFertilizer == 0) ? "" : Fertilizers[Config.SelectedFertilizer].Name.ExtractText());
 			if (ImGui.BeginCombo("Fertilizer", preview_value3))
 			{
 				if (ImGui.Selectable("", Config.SelectedFertilizer == 0))
@@ -122,10 +133,12 @@ public class AutoSelectGardening : Feature
 					Config.SelectedFertilizer = 0u;
 					flag = true;
 				}
-				KeyValuePair<uint, Item>[] array4 = array3;
+				KeyValuePair<uint, Item>[] array4;
+				array4 = array3;
 				for (int i = 0; i < array4.Length; i++)
 				{
-					KeyValuePair<uint, Item> keyValuePair3 = array4[i];
+					KeyValuePair<uint, Item> keyValuePair3;
+					keyValuePair3 = array4[i];
 					if (ImGui.Selectable(keyValuePair3.Value.Name.ExtractText(), Config.SelectedFertilizer == keyValuePair3.Key))
 					{
 						Config.SelectedFertilizer = keyValuePair3.Key;
@@ -177,7 +190,8 @@ public class AutoSelectGardening : Feature
 		{
 			if (Config.SelectedFertilizer != 0)
 			{
-				AtkUnitBase* addon2 = (AtkUnitBase*)Svc.GameGui.GetAddonByName("InventoryExpansion");
+				AtkUnitBase* addon2;
+				addon2 = (AtkUnitBase*)Svc.GameGui.GetAddonByName("InventoryExpansion");
 				if (addon2->IsVisible)
 				{
 					if (addon2->AtkValuesCount <= 5)
@@ -186,12 +200,18 @@ public class AutoSelectGardening : Feature
 					}
 					if (MemoryHelper.ReadSeStringNullTerminated(new IntPtr(addon2->AtkValues[5].String)).ExtractText() == AddonText[6417u].Text.ExtractText())
 					{
-						InventoryManager* intPtr = InventoryManager.Instance();
-						InventoryContainer* inv1 = intPtr->GetInventoryContainer(InventoryType.Inventory1);
-						InventoryContainer* inv3 = intPtr->GetInventoryContainer(InventoryType.Inventory2);
-						InventoryContainer* inv5 = intPtr->GetInventoryContainer(InventoryType.Inventory3);
-						InventoryContainer* inv7 = intPtr->GetInventoryContainer(InventoryType.Inventory4);
-						InventoryContainer*[] array = new InventoryContainer*[4] { inv1, inv3, inv5, inv7 };
+						InventoryManager* intPtr;
+						intPtr = InventoryManager.Instance();
+						InventoryContainer* inv1;
+						inv1 = intPtr->GetInventoryContainer(InventoryType.Inventory1);
+						InventoryContainer* inv3;
+						inv3 = intPtr->GetInventoryContainer(InventoryType.Inventory2);
+						InventoryContainer* inv5;
+						inv5 = intPtr->GetInventoryContainer(InventoryType.Inventory3);
+						InventoryContainer* inv7;
+						inv7 = intPtr->GetInventoryContainer(InventoryType.Inventory4);
+						InventoryContainer*[] array;
+						array = new InventoryContainer*[4] { inv1, inv3, inv5, inv7 };
 						foreach (InventoryContainer* cont in array)
 						{
 							for (int i = 0; i < cont->Size; i++)
@@ -200,7 +220,8 @@ public class AutoSelectGardening : Feature
 								{
 									cont->GetInventorySlot(i);
 									AgentInventoryContext.Instance()->OpenForItemSlot(cont->Type, i, AgentModule.Instance()->GetAgentByInternalId(AgentId.Inventory)->GetAddonID());
-									AtkUnitBase* contextMenu = (AtkUnitBase*)Svc.GameGui.GetAddonByName("ContextMenu");
+									AtkUnitBase* contextMenu;
+									contextMenu = (AtkUnitBase*)Svc.GameGui.GetAddonByName("ContextMenu");
 									if (contextMenu != null)
 									{
 										Callback.Fire(contextMenu, true, 0, 0, 0, 0, 0);
@@ -225,26 +246,38 @@ public class AutoSelectGardening : Feature
 			{
 				return;
 			}
-			List<uint> invSoil = (from x in Soils
+			List<uint> invSoil;
+			invSoil = (from x in Soils
 				where InventoryManager.Instance()->GetInventoryItemCount(x.Value.RowId, isHq: false, checkEquipped: true, checkArmory: true, 0) > 0
 				select x.Key).ToList();
-			List<uint> invSeeds = (from x in Seeds
+			List<uint> invSeeds;
+			invSeeds = (from x in Seeds
 				where InventoryManager.Instance()->GetInventoryItemCount(x.Value.RowId, isHq: false, checkEquipped: true, checkArmory: true, 0) > 0
 				select x.Key).ToList();
-			InventoryManager* intPtr2 = InventoryManager.Instance();
-			InventoryContainer* inv2 = intPtr2->GetInventoryContainer(InventoryType.Inventory1);
-			InventoryContainer* inv4 = intPtr2->GetInventoryContainer(InventoryType.Inventory2);
-			InventoryContainer* inv6 = intPtr2->GetInventoryContainer(InventoryType.Inventory3);
-			InventoryContainer* inv8 = intPtr2->GetInventoryContainer(InventoryType.Inventory4);
-			InventoryContainer*[] container = new InventoryContainer*[4] { inv2, inv4, inv6, inv8 };
-			int soilIndex = 0;
-			InventoryContainer*[] array = container;
-			int n = 0;
+			InventoryManager* intPtr2;
+			intPtr2 = InventoryManager.Instance();
+			InventoryContainer* inv2;
+			inv2 = intPtr2->GetInventoryContainer(InventoryType.Inventory1);
+			InventoryContainer* inv4;
+			inv4 = intPtr2->GetInventoryContainer(InventoryType.Inventory2);
+			InventoryContainer* inv6;
+			inv6 = intPtr2->GetInventoryContainer(InventoryType.Inventory3);
+			InventoryContainer* inv8;
+			inv8 = intPtr2->GetInventoryContainer(InventoryType.Inventory4);
+			InventoryContainer*[] container;
+			container = new InventoryContainer*[4] { inv2, inv4, inv6, inv8 };
+			int soilIndex;
+			soilIndex = 0;
+			InventoryContainer*[] array;
+			array = container;
+			int n;
+			n = 0;
 			while (true)
 			{
 				if (n < array.Length)
 				{
-					InventoryContainer* cont4 = array[n];
+					InventoryContainer* cont4;
+					cont4 = array[n];
 					int l;
 					for (l = 0; l < cont4->Size; l++)
 					{
@@ -286,14 +319,16 @@ public class AutoSelectGardening : Feature
 				end_IL_03f5:
 				break;
 			}
-			int seedIndex = 0;
+			int seedIndex;
+			seedIndex = 0;
 			array = container;
 			n = 0;
 			while (true)
 			{
 				if (n < array.Length)
 				{
-					InventoryContainer* cont2 = array[n];
+					InventoryContainer* cont2;
+					cont2 = array[n];
 					int j;
 					for (j = 0; j < cont2->Size; j++)
 					{
@@ -335,7 +370,8 @@ public class AutoSelectGardening : Feature
 				end_IL_05ab:
 				break;
 			}
-			AtkUnitBase* addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("HousingGardening");
+			AtkUnitBase* addon;
+			addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("HousingGardening");
 			if (TaskManager.IsBusy)
 			{
 				return;
@@ -383,104 +419,105 @@ public class AutoSelectGardening : Feature
 		}
 	}
 
-	private unsafe bool? TryClickItem(AtkUnitBase* addon, int i, int itemIndex)
-	{
-		if (SlotsFilled.Contains(i))
-		{
-			return true;
-		}
-		AtkUnitBase* contextMenu = (AtkUnitBase*)Svc.GameGui.GetAddonByName("ContextIconMenu");
-		if (contextMenu == null || !contextMenu->IsVisible)
-		{
-			int slot = i - 1;
-			Svc.Log.Debug($"{slot}");
-			AtkValue* values = stackalloc AtkValue[5];
-			*values = new AtkValue
-			{
-				Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
-				Int = 2
-			};
-			values[1] = new AtkValue
-			{
-				Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt,
-				UInt = (uint)slot
-			};
-			values[2] = new AtkValue
-			{
-				Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
-				Int = 0
-			};
-			values[3] = new AtkValue
-			{
-				Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
-				Int = 0
-			};
-			values[4] = new AtkValue
-			{
-				Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt,
-				UInt = 1u
-			};
-			addon->FireCallback(5, values, null);
-			CloseItemDetail();
-			return false;
-		}
-		uint value = ((i == 1) ? 27405u : 27451u);
-		AtkValue* values2 = stackalloc AtkValue[5];
-		*values2 = new AtkValue
-		{
-			Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
-			Int = 0
-		};
-		values2[1] = new AtkValue
-		{
-			Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
-			Int = itemIndex
-		};
-		values2[2] = new AtkValue
-		{
-			Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt,
-			UInt = value
-		};
-		values2[3] = new AtkValue
-		{
-			Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt,
-			UInt = 0u
-		};
-		values2[4] = new AtkValue
-		{
-			Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
-			UInt = 0u
-		};
-		contextMenu->FireCallback(5, values2, (void*)2476827163393uL);
-		Svc.Log.Debug($"Filled slot {i}");
-		SlotsFilled.Add(i);
-		return true;
-	}
+    private unsafe bool? TryClickItem(AtkUnitBase* addon, int i, int itemIndex)
+    {
+        if (SlotsFilled.Contains(i))
+        {
+            return true;
+        }
+        AtkUnitBase* contextMenu = (AtkUnitBase*)Svc.GameGui.GetAddonByName("ContextIconMenu");
+        if (contextMenu == null || !contextMenu->IsVisible)
+        {
+            int slot = i - 1;
+            Svc.Log.Debug($"{slot}");
+            AtkValue* values = stackalloc AtkValue[5];
+            *values = new AtkValue
+            {
+                Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
+                Int = 2
+            };
+            values[1] = new AtkValue
+            {
+                Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt,
+                UInt = (uint)slot
+            };
+            values[2] = new AtkValue
+            {
+                Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
+                Int = 0
+            };
+            values[3] = new AtkValue
+            {
+                Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
+                Int = 0
+            };
+            values[4] = new AtkValue
+            {
+                Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt,
+                UInt = 1u
+            };
+            addon->FireCallback(5, values, null);
+            CloseItemDetail();
+            return false;
+        }
+        uint value = ((i == 1) ? 27405u : 27451u);
+        AtkValue* values2 = stackalloc AtkValue[5];
+        *values2 = new AtkValue
+        {
+            Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
+            Int = 0
+        };
+        values2[1] = new AtkValue
+        {
+            Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
+            Int = itemIndex
+        };
+        values2[2] = new AtkValue
+        {
+            Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt,
+            UInt = value
+        };
+        values2[3] = new AtkValue
+        {
+            Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt,
+            UInt = 0u
+        };
+        values2[4] = new AtkValue
+        {
+            Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
+            UInt = 0u
+        };
+        contextMenu->FireCallback(5, values2, (void*)2476827163393uL);
+        Svc.Log.Debug($"Filled slot {i}");
+        SlotsFilled.Add(i);
+        return true;
+    }
 
-	private unsafe bool CloseItemDetail()
-	{
-		AtkUnitBase* itemDetail = (AtkUnitBase*)Svc.GameGui.GetAddonByName("ItemDetail");
-		if (itemDetail == null || !itemDetail->IsVisible)
-		{
-			return false;
-		}
-		AtkValue* values = stackalloc AtkValue[1];
-		*values = new AtkValue
-		{
-			Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
-			Int = -1
-		};
-		itemDetail->FireCallback(1, values, null);
-		return true;
-	}
+    private unsafe bool CloseItemDetail()
+    {
+        AtkUnitBase* itemDetail = (AtkUnitBase*)Svc.GameGui.GetAddonByName("ItemDetail");
+        if (itemDetail == null || !itemDetail->IsVisible)
+        {
+            return false;
+        }
+        AtkValue* values = stackalloc AtkValue[1];
+        *values = new AtkValue
+        {
+            Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
+            Int = -1
+        };
+        itemDetail->FireCallback(1, values, null);
+        return true;
+    }
 
-	internal unsafe static bool ConfirmYesNo()
+    internal unsafe static bool ConfirmYesNo()
 	{
 		if (Svc.Condition[ConditionFlag.Occupied39])
 		{
 			return false;
 		}
-		AtkUnitBase* hg = (AtkUnitBase*)Svc.GameGui.GetAddonByName("HousingGardening");
+		AtkUnitBase* hg;
+		hg = (AtkUnitBase*)Svc.GameGui.GetAddonByName("HousingGardening");
 		if (hg == null)
 		{
 			return false;

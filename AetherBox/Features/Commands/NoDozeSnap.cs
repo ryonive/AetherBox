@@ -34,7 +34,7 @@ public class NoDozeSnap : CommandFeature
 	}
 
 	[Signature("E8 ?? ?? ?? ?? 4C 8B 74 24 ?? 48 8B CE E8")]
-	private readonly unsafe delegate* unmanaged<nint, ushort, nint, byte, byte, void> useEmote = null;
+	private unsafe readonly delegate* unmanaged<nint, ushort, nint, byte, byte, void> useEmote = null;
 
 	public override string Name => "No Doze Snap";
 
@@ -43,12 +43,12 @@ public class NoDozeSnap : CommandFeature
 
 	public override string Description => "Dozers without Borders";
 
-	public override FeatureType FeatureType => FeatureType.Commands; // Was 'Disabled'
+	public override FeatureType FeatureType => FeatureType.Disabled;
 
 	[Signature("E8 ?? ?? ?? ?? 84 C0 74 44 4C 8D 6D C7", DetourName = "ShouldSnapDetour")]
 	private Hook<ShouldSnap>? ShouldSnapHook { get; init; }
 
-	private static unsafe byte ShouldSnapDetour(Character* a1, SnapPosition* a2)
+	private unsafe static byte ShouldSnapDetour(Character* a1, SnapPosition* a2)
 	{
 		return 0;
 	}
@@ -65,9 +65,10 @@ public class NoDozeSnap : CommandFeature
 		base.Dispose();
 	}
 
-	protected override unsafe void OnCommand(List<string> args)
+	protected unsafe override void OnCommand(List<string> args)
 	{
-		var agent = AgentModule.Instance()->GetAgentByInternalId(AgentId.Emote);
+		AgentInterface* agent;
+		agent = AgentModule.Instance()->GetAgentByInternalId(AgentId.Emote);
 		useEmote(new IntPtr(agent), 88, IntPtr.Zero, 0, 0);
 	}
 }

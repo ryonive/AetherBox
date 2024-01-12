@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+
 namespace AetherBox.Helpers;
+
 public static class ArrayExtensions
 {
 	public static IEnumerable<(T Value, int Index)> WithIndex<T>(this IEnumerable<T> list)
@@ -22,7 +24,8 @@ public static class ArrayExtensions
 
 	public static int IndexOf<T>(this IEnumerable<T> array, Predicate<T> predicate)
 	{
-		int i = 0;
+		int i;
+		i = 0;
 		foreach (T obj in array)
 		{
 			if (predicate(obj))
@@ -36,7 +39,8 @@ public static class ArrayExtensions
 
 	public static int IndexOf<T>(this IEnumerable<T> array, T needle) where T : notnull
 	{
-		int i = 0;
+		int i;
+		i = 0;
 		foreach (T obj in array)
 		{
 			if (needle.Equals(obj))

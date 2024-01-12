@@ -4,7 +4,9 @@ using System.IO;
 using AetherBox.Helpers;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
+
 namespace AetherBox.Helpers;
+
 public class AudioHandler
 {
 	private readonly IWavePlayer outputDevice;

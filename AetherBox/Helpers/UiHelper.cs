@@ -1,5 +1,3 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Helpers.UiHelper
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -7,7 +5,9 @@ using AetherBox.Helpers;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.System.Memory;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 namespace AetherBox.Helpers;
+
 public static class UiHelper
 {
 	public record PartInfo(ushort U, ushort V, ushort Width, ushort Height);
@@ -73,7 +73,8 @@ public static class UiHelper
 
 	public unsafe static void LinkNodeAtEnd(AtkResNode* imageNode, AtkUnitBase* parent)
 	{
-		AtkResNode* node = parent->RootNode->ChildNode;
+		AtkResNode* node;
+		node = parent->RootNode->ChildNode;
 		while (node->PrevSiblingNode != null)
 		{
 			node = node->PrevSiblingNode;
@@ -86,7 +87,8 @@ public static class UiHelper
 
 	public unsafe static void LinkNodeAtEnd<T>(T* atkNode, AtkResNode* parentNode, AtkUnitBase* addon) where T : unmanaged
 	{
-		AtkResNode* endNode = parentNode->ChildNode;
+		AtkResNode* endNode;
+		endNode = parentNode->ChildNode;
 		if (endNode == null)
 		{
 			parentNode->ChildNode = (AtkResNode*)atkNode;
@@ -110,7 +112,8 @@ public static class UiHelper
 
 	public unsafe static void LinkNodeAfterTargetNode(AtkResNode* node, AtkComponentNode* parent, AtkResNode* targetNode)
 	{
-		AtkResNode* prev = targetNode->PrevSiblingNode;
+		AtkResNode* prev;
+		prev = targetNode->PrevSiblingNode;
 		node->ParentNode = targetNode->ParentNode;
 		targetNode->PrevSiblingNode = node;
 		prev->NextSiblingNode = node;
@@ -121,7 +124,8 @@ public static class UiHelper
 
 	public unsafe static void LinkNodeAfterTargetNode<T>(T* atkNode, AtkUnitBase* parent, AtkResNode* targetNode) where T : unmanaged
 	{
-		AtkResNode* prev = targetNode->PrevSiblingNode;
+		AtkResNode* prev;
+		prev = targetNode->PrevSiblingNode;
 		((AtkResNode*)atkNode)->ParentNode = targetNode->ParentNode;
 		targetNode->PrevSiblingNode = (AtkResNode*)atkNode;
 		prev->NextSiblingNode = (AtkResNode*)atkNode;
@@ -278,9 +282,12 @@ public static class UiHelper
 
 	public unsafe static void AddPart(AtkUldPartsList* partsList, AtkUldPart* part)
 	{
-		AtkUldPart* oldPartArray = partsList->Parts;
-		uint newSize = partsList->PartCount + 1;
-		AtkUldPart* newArray = (AtkUldPart*)IMemorySpace.GetUISpace()->Malloc((ulong)(sizeof(AtkUldPart) * newSize), 8uL);
+		AtkUldPart* oldPartArray;
+		oldPartArray = partsList->Parts;
+		uint newSize;
+		newSize = partsList->PartCount + 1;
+		AtkUldPart* newArray;
+		newArray = (AtkUldPart*)IMemorySpace.GetUISpace()->Malloc((ulong)(sizeof(AtkUldPart) * newSize), 8uL);
 		if (oldPartArray != null)
 		{
 			foreach (int index in Enumerable.Range(0, (int)partsList->PartCount))
@@ -315,7 +322,8 @@ public static class UiHelper
 	{
 		foreach (int index in Enumerable.Range(0, (int)partsList->PartCount))
 		{
-			AtkUldPart* num = partsList->Parts + index;
+			AtkUldPart* num;
+			num = partsList->Parts + index;
 			FreeAsset(num->UldAsset);
 			FreePart(num);
 		}

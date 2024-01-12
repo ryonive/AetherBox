@@ -1,5 +1,3 @@
-// AetherBox, Version=69.2.0.8, Culture=neutral, PublicKeyToken=null
-// AetherBox.Features.UI.AutoJoinPF
 using System;
 using System.Linq;
 using AetherBox;
@@ -13,7 +11,9 @@ using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+
 namespace AetherBox.Features.UI;
+
 public class AutoJoinPF : Feature
 {
 	public class Configs : FeatureConfig

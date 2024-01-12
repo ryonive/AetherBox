@@ -6,6 +6,7 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AngleSharp.Html.Parser;
+using AetherBox.Helpers.Faloop;
 using AetherBox.Helpers.Faloop.Model.Embed;
 
 namespace AetherBox.Helpers.Faloop;
@@ -27,8 +28,10 @@ public class FaloopEmbedData
 
 	public async Task Initialize()
 	{
-		string content = await GetMainScript();
-		JsonSerializerOptions options = new JsonSerializerOptions
+		string content;
+		content = await GetMainScript();
+		JsonSerializerOptions options;
+		options = new JsonSerializerOptions
 		{
 			PropertyNamingPolicy = JsonNamingPolicy.CamelCase
 		};
@@ -38,8 +41,10 @@ public class FaloopEmbedData
 			{
 				continue;
 			}
-			JsonNode jsonNode = array[0];
-			JsonObject obj = jsonNode as JsonObject;
+			JsonNode jsonNode;
+			jsonNode = array[0];
+			JsonObject obj;
+			obj = jsonNode as JsonObject;
 			if (obj != null)
 			{
 				if (new string[5] { "id", "key", "rank", "version", "zoneIds" }.All((string x) => obj.ContainsKey(x)))
@@ -56,13 +61,16 @@ public class FaloopEmbedData
 
 	private async Task<string> GetMainScript()
 	{
-		string html = await client.DownloadText(new Uri("https://faloop.app/"));
-		string src = ((await new HtmlParser().ParseDocumentAsync(html)).QuerySelector("script[src^=\"main\"]") ?? throw new ApplicationException("Could not find main.js")).GetAttribute("src");
+		string html;
+		html = await client.DownloadText(new Uri("https://faloop.app/"));
+		string src;
+		src = ((await new HtmlParser().ParseDocumentAsync(html)).QuerySelector("script[src^=\"main\"]") ?? throw new ApplicationException("Could not find main.js")).GetAttribute("src");
 		if (string.IsNullOrWhiteSpace(src))
 		{
 			throw new ApplicationException("src attribute not found.");
 		}
-		UriBuilder uri = new UriBuilder("https", "faloop.app")
+		UriBuilder uri;
+		uri = new UriBuilder("https", "faloop.app")
 		{
 			Path = src
 		};
@@ -71,12 +79,14 @@ public class FaloopEmbedData
 
 	private static IEnumerable<JsonNode> ExtractJsonNodes(string content)
 	{
-		Regex regex = new Regex("JSON\\.parse\\('(.+?)'\\)", RegexOptions.Multiline);
+		Regex regex;
+		regex = new Regex("JSON\\.parse\\('(.+?)'\\)", RegexOptions.Multiline);
 		foreach (Match item in from x in regex.Matches(content)
 			where x.Success && x.Groups[1].Success
 			select x)
 		{
-			string json = Regex.Unescape(item.Groups[1].Value);
+			string json;
+			json = Regex.Unescape(item.Groups[1].Value);
 			yield return JsonNode.Parse(json);
 		}
 	}

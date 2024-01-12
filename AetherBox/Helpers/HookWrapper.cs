@@ -1,67 +1,48 @@
 using System;
+using AetherBox.Helpers;
 using Dalamud.Hooking;
-using ECommons.DalamudServices;
 
-namespace AetherBox.Helpers
+namespace AetherBox.Helpers;
+
+public class HookWrapper<T> : IHookWrapper, IDisposable where T : Delegate
 {
-    // This class is a wrapper for Dalamud's Hook class, providing additional functionality.
-    public class HookWrapper<T> : IHookWrapper, IDisposable where T : Delegate
-    {
-        private readonly Hook<T> wrappedHook;
-        private bool disposed;
+	private Hook<T> wrappedHook;
 
-        public nint Address => wrappedHook.Address;
-        public T Original => wrappedHook.Original;
-        public bool IsEnabled => wrappedHook.IsEnabled;
-        public bool IsDisposed => wrappedHook.IsDisposed;
+	private bool disposed;
 
-        // Constructor to initialize the HookWrapper with a Hook instance.
-        public HookWrapper(Hook<T> hook)
-        {
-            wrappedHook = hook ?? throw new ArgumentNullException(nameof(hook));
-        }
+	public nint Address => wrappedHook.Address;
 
-        // Enable the hook.
-        public void Enable()
-        {
-            if (!disposed)
-            {
-                wrappedHook?.Enable();
-                Debug("Hook enabled.");
-            }
-        }
+	public T Original => wrappedHook.Original;
 
-        // Disable the hook.
-        public void Disable()
-        {
-            if (!disposed)
-            {
-                wrappedHook?.Disable();
-                Debug("Hook disabled.");
-            }
-        }
+	public bool IsEnabled => wrappedHook.IsEnabled;
 
-        // Dispose of the HookWrapper, disabling the hook and cleaning up resources.
-        public void Dispose()
-        {
-            Disable();
-            disposed = true;
-            wrappedHook?.Dispose();
-            Debug("HookWrapper disposed.");
-        }
+	public bool IsDisposed => wrappedHook.IsDisposed;
 
-        // Log debug messages.
-        private void Debug(string message)
-        {
-            Svc.Log.Debug(message);
-            Svc.Chat.Print(message);
-        }
+	public HookWrapper(Hook<T> hook)
+	{
+		wrappedHook = hook;
+	}
 
-        // Log error messages.
-        private void Error(string message)
-        {
-            Svc.Log.Error(message);
-            Svc.Chat.PrintError(message);
-        }
-    }
+	public void Enable()
+	{
+		if (!disposed)
+		{
+			wrappedHook?.Enable();
+		}
+	}
+
+	public void Disable()
+	{
+		if (!disposed)
+		{
+			wrappedHook?.Disable();
+		}
+	}
+
+	public void Dispose()
+	{
+		Disable();
+		disposed = true;
+		wrappedHook?.Dispose();
+	}
 }
