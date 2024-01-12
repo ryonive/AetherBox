@@ -10,7 +10,7 @@ using ImGuiNET;
 
 namespace AetherBox.Features.Actions;
 
-public class ClickToMove : Feature
+public class ClickToMove : Feature, IDisposable
 {
 	public class Configs : FeatureConfig
 	{
@@ -35,18 +35,25 @@ public class ClickToMove : Feature
 	public override void Enable()
 	{
 		Config = LoadConfig<Configs>() ?? new Configs();
-		Svc.Framework.Update += MoveTo;
+        movement.Enabled = true;
+        Svc.Framework.Update += MoveTo;
 		base.Enable();
 	}
 
 	public override void Disable()
 	{
 		SaveConfig(Config);
-		Svc.Framework.Update -= MoveTo;
+        movement.Enabled = false;
+        Svc.Framework.Update -= MoveTo;
 		base.Disable();
 	}
 
-	private static bool CheckHotkeyState(VirtualKey key)
+    public override void Dispose()
+    {
+        movement.Dispose();
+    }
+
+    private static bool CheckHotkeyState(VirtualKey key)
 	{
 		return !Svc.KeyState[key];
 	}

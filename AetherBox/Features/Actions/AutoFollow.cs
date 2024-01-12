@@ -25,7 +25,7 @@ using ImGuiNET;
 
 namespace AetherBox.Features.Actions;
 
-public class AutoFollow : Feature
+public class AutoFollow : Feature, IDisposable
 {
 	public class Configs : FeatureConfig
 	{
@@ -120,7 +120,6 @@ public class AutoFollow : Feature
 
 	public string Command { get; set; } = "/autofollow";
 
-
 	protected void OnCommand(List<string> args)
 	{
 		try
@@ -162,7 +161,8 @@ public class AutoFollow : Feature
 			});
 			registeredCommands.Add(Command);
 		}
-		Svc.Framework.Update += Follow;
+        movement.Enabled = true;
+        Svc.Framework.Update += Follow;
 		Svc.Chat.ChatMessage += OnChatMessage;
 		base.Enable();
 	}
@@ -174,13 +174,19 @@ public class AutoFollow : Feature
 		{
 			Svc.Commands.RemoveHandler(c);
 		}
-		registeredCommands.Clear();
+        movement.Enabled = false;
+        registeredCommands.Clear();
 		Svc.Framework.Update -= Follow;
 		Svc.Chat.ChatMessage -= OnChatMessage;
 		base.Disable();
 	}
 
-	private void SetMaster()
+    public override void Dispose()
+    {
+        movement.Dispose();
+    }
+
+    private void SetMaster()
 	{
 		try
 		{

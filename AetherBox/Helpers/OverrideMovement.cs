@@ -9,9 +9,13 @@ using FFXIVClientStructs.FFXIV.Client.Game.Control;
 
 namespace AetherBox.Helpers;
 
-public class OverrideMovement : IDisposable
+public class OverrideMovement
 {
-	private unsafe delegate void RMIWalkDelegate(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk);
+    // is causing hook leak
+    // +0x13620A0
+    // +0x135B0C0
+
+    private unsafe delegate void RMIWalkDelegate(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk);
 
 	private unsafe delegate void RMIFlyDelegate(void* self, PlayerMoveControllerFlyInput* result);
 
@@ -55,13 +59,18 @@ public class OverrideMovement : IDisposable
 		Svc.Log.Information($"RMIFly address: 0x{_rmiFlyHook.Address:X}");
 	}
 
-	public void Dispose()
-	{
-		_rmiWalkHook.Dispose();
-		_rmiFlyHook.Dispose();
-	}
+    public void Dispose()
+    {
+        // Disable hooks before disposing to prevent further hook calls.
+        //Enabled = false;
 
-	private unsafe void RMIWalkDetour(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
+        // Dispose of the hooks.
+        _rmiWalkHook.Dispose();
+        _rmiFlyHook.Dispose();
+
+    }
+
+    private unsafe void RMIWalkDetour(void* self, float* sumLeft, float* sumForward, float* sumTurnLeft, byte* haveBackwardOrStrafe, byte* a6, byte bAdditiveUnk)
 	{
 		_rmiWalkHook.Original(self, sumLeft, sumForward, sumTurnLeft, haveBackwardOrStrafe, a6, bAdditiveUnk);
 		if (bAdditiveUnk == 0 && (IgnoreUserInput || (*sumLeft == 0f && *sumForward == 0f)))

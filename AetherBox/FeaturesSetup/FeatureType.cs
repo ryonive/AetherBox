@@ -9,5 +9,6 @@ public enum FeatureType
     Commands = 4,
     Other = 5,
     ChatFeature = 6,
-    Achievements = 7
+    Achievements = 7,
+    Debug = 8
 }

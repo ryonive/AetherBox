@@ -13,7 +13,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 
 namespace AetherBox.Features.Other;
 
-public class NoKill : Feature
+public class NoKill : Feature, IDisposable
 {
 	public class Configs : FeatureConfig
 	{
@@ -95,16 +95,19 @@ public class NoKill : Feature
 	{
 		SaveConfig(Config);
 		lobbyErrorHandlerHook?.Disable();
-		if (Config.AttemptLogin)
+        lobbyErrorHandlerHook?.Dispose();
+        if (Config.AttemptLogin)
 		{
 			startHandlerHook?.Disable();
-			loginHandlerHook?.Disable();
-		}
+            startHandlerHook?.Dispose();
+            loginHandlerHook?.Disable();
+            loginHandlerHook?.Dispose();
+        }
 		Svc.Framework.Update -= CheckDialogue;
 		base.Disable();
 	}
 
-	private long StartHandlerDetour(long a1, long a2)
+    private long StartHandlerDetour(long a1, long a2)
 	{
 		Marshal.ReadInt16(new IntPtr(a1 + 88));
 		int a1_456;

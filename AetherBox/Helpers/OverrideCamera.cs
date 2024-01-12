@@ -51,10 +51,10 @@ public class OverrideCamera : IDisposable
 
 	public void Dispose()
 	{
-		_rmiCameraHook.Dispose();
+        _rmiCameraHook.Dispose();
 	}
 
-	private unsafe void RMICameraDetour(CameraEx* self, int inputMode, float speedH, float speedV)
+    private unsafe void RMICameraDetour(CameraEx* self, int inputMode, float speedH, float speedV)
 	{
 		_rmiCameraHook.Original(self, inputMode, speedH, speedV);
 		if (IgnoreUserInput || inputMode == 0)

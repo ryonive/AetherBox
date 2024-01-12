@@ -136,13 +136,13 @@ public abstract class BaseFeature
 
     public virtual void Dispose()
     {
-        Svc.Log.Debug("Disposing " + Name);
+        //Svc.Log.Debug("Disposing " + Name);
         Ready = false;
     }
 
     protected T LoadConfig<T>() where T : FeatureConfig
     {
-        Svc.Log.Debug($"Loading config for feature: {Name}");
+        //Svc.Log.Debug($"Loading config for feature: {Name}");
         return LoadConfig<T>(Key);
     }
 

@@ -13,6 +13,9 @@ using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.ChatMethods;
 using System.Reflection;
+using AetherBox.FeaturesSetup;
+using AetherBox.Helpers;
+using AetherBox.Features.Other;
 
 namespace AetherBox;
 
@@ -49,7 +52,6 @@ public class AetherBox : IDalamudPlugin, IDisposable
     {
         #region Default load order
         ECommonsMain.Init(PluginInterface, Plugin, Module.DalamudReflector, Module.ObjectFunctions);
-
         #region Initialize Windows
         var closeImage = LoadImage("close.png");
         var iconImage = LoadImage("icon.png");
@@ -87,8 +89,8 @@ public class AetherBox : IDalamudPlugin, IDisposable
 
         Common.Setup();
         PandorasBoxIPC.Init();
-        //Events.Init();
-        //AFKTimer.Init();
+        Events.Init();
+        AFKTimer.Init();
         provider = new FeatureProvider(Assembly.GetExecutingAssembly());
         provider.LoadFeatures();
         FeatureProviders.Add(provider);
@@ -102,18 +104,46 @@ public class AetherBox : IDalamudPlugin, IDisposable
         Svc.Commands.RemoveHandler(CommandName);
         Svc.Commands.RemoveHandler(TestCommandName);
 
-        foreach (BaseFeature item in Features.Where((BaseFeature x) => x?.Enabled ?? false))
+        Svc.Log.Debug($"Disabling and Disposing features");
+
+        // Doesnt dispose of hooks of features that are not enabled
+        /*foreach (BaseFeature item in Features.Where((BaseFeature x) => x?.Enabled ?? false))
         {
-            item.Disable();
-            Svc.Log.Debug($"Feature '{item.Name}' has been disabled.");
-            item.Dispose();
-        }
-        foreach (var f in Features.Where(x => x is not null && x.Enabled))
+            try
+            {
+                item.Disable();
+                item.Dispose();
+                Svc.Log.Debug($"Feature '{item.Name}' has been disabled and disposed.");
+            }
+            catch (Exception ex)
+            {
+                Svc.Log.Error(ex, $"Error while disposing or disabling feature '{item.Name}'.");
+            }
+        }*/
+
+        // testing as solution to the problem of disabled features hooks not disposing
+        Svc.Log.Debug($"Disabling and Disposing features");
+        foreach (BaseFeature item in Features)
         {
-            f.Disable();
-            Svc.Log.Debug($"Feature '{f.Name}' has been disabled.");
-            f.Dispose();
+            try
+            {
+                // Disable the feature (if enabled)
+                if (item.Enabled)
+                {
+                    item.Disable();
+                }
+
+                // Dispose of the feature
+                item.Dispose();
+
+                Svc.Log.Debug($"Feature '{item.Name}' has been disabled and disposed.");
+            }
+            catch (Exception ex)
+            {
+                Svc.Log.Error(ex, $"Error while disposing or disabling feature '{item.Name}'.");
+            }
         }
+
 
         provider.UnloadFeatures();
 
@@ -129,8 +159,8 @@ public class AetherBox : IDalamudPlugin, IDisposable
         FeatureProviders.Clear();
         Common.Shutdown();
         PandorasBoxIPC.Dispose();
-        //Events.Disable();
-        //AFKTimer.Dispose();
+        Events.Disable();
+        AFKTimer.Dispose();
         Plugin = null;
     }
     #endregion

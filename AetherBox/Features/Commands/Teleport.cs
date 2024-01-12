@@ -48,6 +48,7 @@ public class Teleport : CommandFeature
 		}
 		catch
 		{
-		}
+            Svc.Log.Warning($"Something went wrong when trying to use /atp");
+        }
 	}
 }

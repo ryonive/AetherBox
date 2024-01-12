@@ -25,7 +25,7 @@ public class ClickToTP : CommandFeature
 
 	public override bool isDebug => true;
 
-	public override FeatureType FeatureType => FeatureType.Disabled;
+	public override FeatureType FeatureType => FeatureType.Commands;
 
 	protected override void OnCommand(List<string> args)
 	{

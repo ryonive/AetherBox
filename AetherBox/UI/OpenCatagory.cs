@@ -10,5 +10,5 @@ public enum OpenCatagory
     Other = 5,
     Achievements = 6,
     Commands = 7,
-    About = 8
+    Debug = 8,
 }

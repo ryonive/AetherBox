@@ -38,7 +38,7 @@ public class FeatureProvider : IDisposable
 				feature.Setup();
 				if ((feature.Ready && global::AetherBox.AetherBox.Config.EnabledFeatures.Contains(t.Name)) || feature.FeatureType == FeatureType.Commands)
 				{
-					if (feature.FeatureType == FeatureType.Disabled || (feature.isDebug && !global::AetherBox.AetherBox.Config.showDebugFeatures))
+					if (feature.FeatureType == FeatureType.Disabled/* || (feature.isDebug && !global::AetherBox.AetherBox.Config.ShowDebugFeatures)*/)
 					{
 						feature.Disable();
 					}

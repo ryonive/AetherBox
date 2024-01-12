@@ -14,8 +14,18 @@ using ValueType = FFXIVClientStructs.FFXIV.Component.GUI.ValueType;
 
 namespace AetherBox;
 
+/// <summary>
+/// A static class containing common utility methods.
+/// </summary>
 public static unsafe class Common
 {
+    /// <summary>
+    /// Delegate for AddonOnUpdate method.
+    /// </summary>
+    /// <param name="atkUnitBase">The AtkUnitBase pointer.</param>
+    /// <param name="nums">Pointer to NumberArrayData.</param>
+    /// <param name="strings">Pointer to StringArrayData.</param>
+    /// <returns>The result pointer.</returns>
     public delegate void* AddonOnUpdate(AtkUnitBase* atkUnitBase, NumberArrayData** nums, StringArrayData** strings);
     //public unsafe delegate void* AddonOnUpdate(AtkUnitBase* atkUnitBase, NumberArrayData** nums, StringArrayData** strings);
 
@@ -44,25 +54,55 @@ public static unsafe class Common
     public static void* ThrowawayOut { get; private set; } = (void*)Marshal.AllocHGlobal(1024);
     //public unsafe static void* ThrowawayOut { get; private set; } = (void*)Marshal.AllocHGlobal(1024);
 
-
+    /// <summary>
+    /// Event triggered when an addon is set up.
+    /// </summary>
     public static event Action<SetupAddonArgs> OnAddonSetup;
+
+    /// <summary>
+    /// Event triggered before an addon is set up.
+    /// </summary>
     public static event Action<SetupAddonArgs> OnAddonPreSetup;
+
+    /// <summary>
+    /// Event triggered when an addon is finalized.
+    /// </summary>
     public static event Action<SetupAddonArgs> OnAddonFinalize;
 
+    /// <summary>
+    /// Initializes the Common class and sets up hooks.
+    /// </summary>
     public unsafe static void Setup()
     {
+        // Find the memory address for a specific signature.
         LastCommandAddress = Svc.SigScanner.GetStaticAddressFromSig("4C 8D 05 ?? ?? ?? ?? 41 B1 01 49 8B D4 E8 ?? ?? ?? ?? 83 EB 06");
+
+        // Cast the address to a Utf8String pointer.
         LastCommand = (Utf8String*)LastCommandAddress;
+
+        // Set up a hook for the AddonSetupDetour method.
         AddonSetupHook = Svc.Hook.HookFromSignature<AddonSetupDelegate>("E8 ?? ?? ?? ?? 8B 83 ?? ?? ?? ?? C1 E8 14", AddonSetupDetour);
+
+        // Enable the AddonSetupHook.
         AddonSetupHook?.Enable();
+
+        // Set up a hook for the FinalizeAddonDetour method.
         FinalizeAddonHook = Svc.Hook.HookFromSignature<FinalizeAddonDelegate>("E8 ?? ?? ?? ?? 48 8B 7C 24 ?? 41 8B C6", FinalizeAddonDetour);
+
+        // Enable the FinalizeAddonHook.
         FinalizeAddonHook?.Enable();
     }
 
+    /// <summary>
+    /// Detour method for the AddonSetupDelegate hook.
+    /// </summary>
+    /// <param name="addon">The AtkUnitBase pointer.</param>
+    /// <returns>The result pointer.</returns>
     private unsafe static void* AddonSetupDetour(AtkUnitBase* addon)
     {
         try
         {
+            // Invoke the OnAddonPreSetup event before setup.
             Common.OnAddonPreSetup?.Invoke(new SetupAddonArgs
             {
                 Addon = addon
@@ -72,10 +112,14 @@ public static unsafe class Common
         {
             Svc.Log.Error(exception, "AddonSetupError");
         }
+
         void* retVal;
+        // Call the original AddonSetupDelegate method.
         retVal = AddonSetupHook.Original(addon);
+
         try
         {
+            // Invoke the OnAddonSetup event after setup.
             Common.OnAddonSetup?.Invoke(new SetupAddonArgs
             {
                 Addon = addon
@@ -88,10 +132,16 @@ public static unsafe class Common
         return retVal;
     }
 
+    /// <summary>
+    /// Detour method for the FinalizeAddonDelegate hook.
+    /// </summary>
+    /// <param name="unitManager">The AtkUnitManager pointer.</param>
+    /// <param name="atkUnitBase">The AtkUnitBase pointer.</param>
     private unsafe static void FinalizeAddonDetour(AtkUnitManager* unitManager, AtkUnitBase** atkUnitBase)
     {
         try
         {
+            // Invoke the OnAddonFinalize event.
             Common.OnAddonFinalize?.Invoke(new SetupAddonArgs
             {
                 Addon = *atkUnitBase
@@ -101,6 +151,8 @@ public static unsafe class Common
         {
             Svc.Log.Error(exception, "FinalizeAddonError");
         }
+
+        // Call the original FinalizeAddonDelegate method.
         FinalizeAddonHook?.Original(unitManager, atkUnitBase);
     }
 
@@ -177,15 +229,22 @@ public static unsafe class Common
         }
     }
 
+    /// <summary>
+    /// Shuts down the Common class and disables hooks.
+    /// </summary>
     public unsafe static void Shutdown()
     {
+        // Free allocated memory if it's not null.
         if (ThrowawayOut != null)
         {
             Marshal.FreeHGlobal(new IntPtr(ThrowawayOut));
             ThrowawayOut = null;
         }
+        // Disable and dispose the AddonSetupHook.
         AddonSetupHook?.Disable();
         AddonSetupHook?.Dispose();
+
+        // Disable and dispose the FinalizeAddonHook.
         FinalizeAddonHook?.Disable();
         FinalizeAddonHook?.Dispose();
     }
@@ -266,8 +325,15 @@ public static unsafe class Common
     }
 }
 
+/// <summary>
+/// Arguments for addon setup events.
+/// </summary>
 public unsafe class SetupAddonArgs
 {
+    /// <summary>
+    /// <br>Gets or sets the addon pointer.</br>
+    /// <br>Gets or sets the reference to a part of the game.</br>
+    /// </summary>
     public AtkUnitBase* Addon { get; init; }
     private string addonName;
     public string AddonName => addonName ??= MemoryHelper.ReadString(new IntPtr(Addon->Name), 0x20).Split('\0')[0];

@@ -15,7 +15,7 @@ public class Configuration : IPluginConfiguration
 
     public bool DisabledTheme = false;
 
-    public bool showDebugFeatures;
+    public bool ShowDebugFeatures;
 
     [NonSerialized]
     private DalamudPluginInterface pluginInterface;
@@ -25,6 +25,7 @@ public class Configuration : IPluginConfiguration
     public void Initialize(DalamudPluginInterface pluginInterface)
     {
         this.pluginInterface = pluginInterface;
+        ShowDebugFeatures = false;
     }
 
     public void Save()
