@@ -22,6 +22,7 @@
         <RootNamespace>$(InternalName)</RootNamespace>
         <NoWarn>CS1591</NoWarn>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DalamudDevPlugins>$(appdata)\XIVLauncher\devPlugins\$(InternalName)\</DalamudDevPlugins>
     </PropertyGroup>
 
     <!-- Exclude from Build -->
@@ -46,7 +47,9 @@
 
     <!-- Debug build config -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+        <OutputPath>$(DalamudDevPlugins)</OutputPath>
         <NoWarn>1701;1702;S125;IDE1006;S3010</NoWarn>
+        <DebugType>full</DebugType>
     </PropertyGroup>
 
     <!-- Release build config -->
