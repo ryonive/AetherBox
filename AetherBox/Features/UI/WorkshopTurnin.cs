@@ -116,7 +116,7 @@ public class WorkshopTurnin : Feature
 	public override void Disable()
 	{
 		SaveConfig(Config);
-		Plugin.WindowSystem.RemoveWindow(overlay);
+		Plugin.Ws.RemoveWindow(overlay);
 		Svc.Framework.Update -= Tick;
 		base.Disable();
 	}

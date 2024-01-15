@@ -34,7 +34,7 @@ public class FeatureProvider : IDisposable
 			{
 				Feature feature;
 				feature = (Feature)Activator.CreateInstance(t);
-				feature.InterfaceSetup(global::AetherBox.AetherBox.Plugin, global::AetherBox.AetherBox.PluginInterface, global::AetherBox.AetherBox.Config, this);
+				feature.InterfaceSetup(global::AetherBox.AetherBox.P, global::AetherBox.AetherBox.pi, global::AetherBox.AetherBox.Config, this);
 				feature.Setup();
 				if ((feature.Ready && global::AetherBox.AetherBox.Config.EnabledFeatures.Contains(t.Name)) || feature.FeatureType == FeatureType.Commands)
 				{

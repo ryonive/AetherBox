@@ -14,7 +14,7 @@ public static class FeatureHelper
 	{
 		get
 		{
-			if (!global::AetherBox.AetherBox.Plugin.TaskManager.IsBusy)
+			if (!global::AetherBox.AetherBox.P.TaskManager.IsBusy)
 			{
 				return WorkshopTurnin.active;
 			}
@@ -41,7 +41,7 @@ public static class FeatureHelper
 			where x == typeof(T)
 			select x).First();
 		BaseFeature f;
-		f = global::AetherBox.AetherBox.Plugin.Features.Where((BaseFeature x) => x.GetType().Name == t.Name).FirstOrDefault();
+		f = global::AetherBox.AetherBox.P.Features.Where((BaseFeature x) => x.GetType().Name == t.Name).FirstOrDefault();
 		if (f != null && !f.Enabled)
 		{
 			f.Enable();
@@ -55,7 +55,7 @@ public static class FeatureHelper
 			where x == typeof(T)
 			select x).First();
 		BaseFeature f;
-		f = global::AetherBox.AetherBox.Plugin.Features.Where((BaseFeature x) => x.GetType().Name == t.Name).FirstOrDefault();
+		f = global::AetherBox.AetherBox.P.Features.Where((BaseFeature x) => x.GetType().Name == t.Name).FirstOrDefault();
 		if (f != null && f.Enabled)
 		{
 			f.Disable();
@@ -69,7 +69,7 @@ public static class FeatureHelper
 			where x == typeof(T)
 			select x).First();
 		BaseFeature f;
-		f = global::AetherBox.AetherBox.Plugin.Features.Where((BaseFeature x) => x.GetType().Name == t.Name).FirstOrDefault();
+		f = global::AetherBox.AetherBox.P.Features.Where((BaseFeature x) => x.GetType().Name == t.Name).FirstOrDefault();
 		if (f != null)
 		{
 			object config;

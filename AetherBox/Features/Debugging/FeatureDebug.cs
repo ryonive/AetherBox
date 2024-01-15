@@ -1,8 +1,5 @@
-using System.Linq;
 using System.Reflection;
-using AetherBox;
 using AetherBox.Debugging;
-using AetherBox.Features;
 using ImGuiNET;
 
 namespace AetherBox.Features.Debugging;
@@ -20,17 +17,17 @@ public class FeatureDebug : DebugHelper
 		if (ImGui.Button("Load Features"))
 		{
 			provider.LoadFeatures();
-			global::AetherBox.AetherBox.Plugin.FeatureProviders.Add(provider);
+			global::AetherBox.AetherBox.P.FeatureProviders.Add(provider);
 		}
 		if (!ImGui.Button("Unload Features"))
 		{
 			return;
 		}
-		foreach (BaseFeature item in global::AetherBox.AetherBox.Plugin.Features.Where((BaseFeature x) => x?.Enabled ?? false))
+		foreach (BaseFeature item in global::AetherBox.AetherBox.P.Features.Where((BaseFeature x) => x?.Enabled ?? false))
 		{
 			item.Disable();
 		}
-		global::AetherBox.AetherBox.Plugin.FeatureProviders.Clear();
+		global::AetherBox.AetherBox.P.FeatureProviders.Clear();
 		provider.UnloadFeatures();
 	}
 }

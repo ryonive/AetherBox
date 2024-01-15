@@ -324,17 +324,3 @@ public static unsafe class Common
         return wh;
     }
 }
-
-/// <summary>
-/// Arguments for addon setup events.
-/// </summary>
-public unsafe class SetupAddonArgs
-{
-    /// <summary>
-    /// <br>Gets or sets the addon pointer.</br>
-    /// <br>Gets or sets the reference to a part of the game.</br>
-    /// </summary>
-    public AtkUnitBase* Addon { get; init; }
-    private string addonName;
-    public string AddonName => addonName ??= MemoryHelper.ReadString(new IntPtr(Addon->Name), 0x20).Split('\0')[0];
-}

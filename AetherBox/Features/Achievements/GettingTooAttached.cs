@@ -55,7 +55,7 @@ public class GettingTooAttached : Feature
 	public override void Disable()
 	{
 		SaveConfig(Config);
-		Plugin.WindowSystem.RemoveWindow(overlay);
+		Plugin.Ws.RemoveWindow(overlay);
 		Svc.Toasts.ErrorToast -= CheckForErrors;
 		Common.OnAddonSetup -= ConfirmMateriaDialog;
 		Common.OnAddonSetup -= ConfirmRetrievalDialog;

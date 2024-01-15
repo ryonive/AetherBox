@@ -36,7 +36,7 @@ public class FelicitousTokenInMenu : Feature
 
 	public override void Disable()
 	{
-		Plugin.WindowSystem.RemoveWindow(overlay);
+		Plugin.Ws.RemoveWindow(overlay);
 		Svc.Framework.Update -= OnUpdate;
 		base.Disable();
 	}

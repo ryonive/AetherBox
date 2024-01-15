@@ -80,7 +80,7 @@ public static class DebugManager
             dh.Dispose();
             return true;
         });
-        foreach (FeatureProvider tp in global::AetherBox.AetherBox.Plugin.FeatureProviders)
+        foreach (FeatureProvider tp in global::AetherBox.AetherBox.P.FeatureProviders)
         {
             if (tp.Disposed)
             {
@@ -95,7 +95,7 @@ public static class DebugManager
                     DebugHelper debugger;
                     debugger = (DebugHelper)Activator.CreateInstance(t2);
                     debugger.FeatureProvider = tp;
-                    debugger.Plugin = global::AetherBox.AetherBox.Plugin;
+                    debugger.Plugin = global::AetherBox.AetherBox.P;
                     RegisterDebugPage(debugger.FullName, debugger.Draw);
                     DebugHelpers.Add(debugger);
                 }
@@ -109,7 +109,7 @@ public static class DebugManager
         {
             return;
         }
-        if (global::AetherBox.AetherBox.Plugin == null)
+        if (global::AetherBox.AetherBox.P == null)
         {
             Svc.Log.Info("null");
             return;
@@ -119,7 +119,7 @@ public static class DebugManager
             SetupDebugHelpers = true;
             try
             {
-                foreach (FeatureProvider tp in global::AetherBox.AetherBox.Plugin.FeatureProviders)
+                foreach (FeatureProvider tp in global::AetherBox.AetherBox.P.FeatureProviders)
                 {
                     if (tp.Disposed)
                     {
@@ -132,7 +132,7 @@ public static class DebugManager
                         DebugHelper debugger;
                         debugger = (DebugHelper)Activator.CreateInstance(item);
                         debugger.FeatureProvider = tp;
-                        debugger.Plugin = global::AetherBox.AetherBox.Plugin;
+                        debugger.Plugin = global::AetherBox.AetherBox.P;
                         RegisterDebugPage(debugger.FullName, debugger.Draw);
                         DebugHelpers.Add(debugger);
                     }
@@ -143,7 +143,7 @@ public static class DebugManager
                 Svc.Log.Error(ex3, "");
                 SetupDebugHelpers = false;
                 DebugHelpers.Clear();
-                global::AetherBox.AetherBox.Plugin.DebugWindow.IsOpen = false;
+                global::AetherBox.AetherBox.P.DebugWindow.IsOpen = false;
                 return;
             }
         }

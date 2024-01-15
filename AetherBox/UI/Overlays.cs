@@ -22,7 +22,7 @@ namespace AetherBox.UI
             {
                 MaximumSize = new Vector2(0f, 0f)
             };
-            global::AetherBox.AetherBox.Plugin.WindowSystem.AddWindow(this);
+            global::AetherBox.AetherBox.P.Ws.AddWindow(this);
         }
 
         public override void Draw()

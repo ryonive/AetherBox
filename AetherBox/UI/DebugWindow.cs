@@ -9,7 +9,7 @@ internal class DebugWindow : Window
 
 
     public DebugWindow()
-        : base($"{AetherBox.Name} - Debug {AetherBox.Plugin.GetType().Assembly.GetName().Version}###{AetherBox.Name}{"DebugWindow"}")
+        : base($"{AetherBox.Name} - Debug {AetherBox.P.GetType().Assembly.GetName().Version}###{AetherBox.Name}{"DebugWindow"}")
     {
         base.SizeConstraints = new WindowSizeConstraints
         {

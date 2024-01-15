@@ -40,7 +40,7 @@ public class MarketUpdater : Feature
 
 	public override void Disable()
 	{
-		Plugin.WindowSystem.RemoveWindow(overlay);
+		Plugin.Ws.RemoveWindow(overlay);
 		base.Disable();
 	}
 

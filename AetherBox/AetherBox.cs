@@ -14,8 +14,6 @@ using ECommons.DalamudServices;
 using ECommons.ChatMethods;
 using System.Reflection;
 using AetherBox.FeaturesSetup;
-using AetherBox.Helpers;
-using AetherBox.Features.Other;
 
 namespace AetherBox;
 
@@ -24,12 +22,12 @@ public class AetherBox : IDalamudPlugin, IDisposable
     public static string Name => "AetherBox";
     private const string CommandName = "/atb";
     private const string TestCommandName = "/atbtest";
-    internal WindowSystem WindowSystem;
+    internal WindowSystem Ws;
     internal MainWindow MainWindow;
     internal DebugWindow DebugWindow;
 
-    internal static AetherBox Plugin;
-    internal static DalamudPluginInterface PluginInterface;
+    internal static AetherBox P;
+    internal static DalamudPluginInterface pi;
     internal static Configuration Config;
 
     public List<FeatureProvider> FeatureProviders = new List<FeatureProvider>();
@@ -42,8 +40,8 @@ public class AetherBox : IDalamudPlugin, IDisposable
 
     public AetherBox(DalamudPluginInterface pluginInterface)
     {
-        Plugin = this;
-        PluginInterface = pluginInterface;
+        P = this;
+        pi = pluginInterface;
         InitializePlugin();
     }
 
@@ -51,19 +49,19 @@ public class AetherBox : IDalamudPlugin, IDisposable
     private void InitializePlugin()
     {
         #region Default load order
-        ECommonsMain.Init(PluginInterface, Plugin, Module.DalamudReflector, Module.ObjectFunctions);
+        ECommonsMain.Init(pi, P, Module.All);
         #region Initialize Windows
         var closeImage = LoadImage("close.png");
         var iconImage = LoadImage("icon.png");
         var bannerImage = LoadImage("banner.png");
-        WindowSystem = new WindowSystem();
+        Ws = new WindowSystem();
         MainWindow = new MainWindow(bannerImage, iconImage);
         DebugWindow = new DebugWindow();
-        WindowSystem.AddWindow(MainWindow);
-        WindowSystem.AddWindow(DebugWindow);
+        Ws.AddWindow(MainWindow);
+        Ws.AddWindow(DebugWindow);
         #endregion
         TaskManager = new TaskManager();
-        Config = (PluginInterface.GetPluginConfig() as Configuration) ?? new Configuration();
+        Config = (pi.GetPluginConfig() as Configuration) ?? new Configuration();
         Config.Initialize(Svc.PluginInterface);
         #region Commands
         Svc.Commands.AddHandler(CommandName, new CommandInfo(OnCommand)
@@ -82,7 +80,7 @@ public class AetherBox : IDalamudPlugin, IDisposable
         #endregion
 
         #region Events
-        Svc.PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+        Svc.PluginInterface.UiBuilder.Draw += Ws.Draw;
         Svc.PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
         Svc.PluginInterface.UiBuilder.OpenConfigUi += ToggleDebugUI;
         #endregion
@@ -148,20 +146,20 @@ public class AetherBox : IDalamudPlugin, IDisposable
         provider.UnloadFeatures();
 
 
-        Svc.PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
+        Svc.PluginInterface.UiBuilder.Draw -= Ws.Draw;
         Svc.PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUI;
         Svc.PluginInterface.UiBuilder.OpenConfigUi -= ToggleDebugUI;
-        WindowSystem.RemoveAllWindows();
+        Ws.RemoveAllWindows();
         MainWindow = null;
         DebugWindow = null;
-        WindowSystem = null;
+        Ws = null;
         ECommonsMain.Dispose();
         FeatureProviders.Clear();
         Common.Shutdown();
         PandorasBoxIPC.Dispose();
         Events.Disable();
         AFKTimer.Dispose();
-        Plugin = null;
+        P = null;
     }
     #endregion
 
@@ -249,14 +247,14 @@ public class AetherBox : IDalamudPlugin, IDisposable
     /// <returns></returns>
     public static IDalamudTextureWrap LoadImage(string imageName)
     {
-        var imagesDirectory = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!);
+        var imagesDirectory = Path.Combine(pi.AssemblyLocation.Directory?.FullName!);
         var imagePath = Path.Combine(imagesDirectory, imageName);
 
         if (File.Exists(imagePath))
         {
             try
             {
-                return PluginInterface.UiBuilder.LoadImage(imagePath);
+                return pi.UiBuilder.LoadImage(imagePath);
             }
             catch (Exception ex)
             {

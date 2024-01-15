@@ -150,7 +150,7 @@ public abstract class BaseFeature
     {
         try
         {
-            string configFile = Path.Combine(AetherBox.PluginInterface.GetPluginConfigDirectory(), key + ".json");
+            string configFile = Path.Combine(AetherBox.pi.GetPluginConfigDirectory(), key + ".json");
             if (!File.Exists(configFile))
             {
                 Svc.Log.Debug($"Config file does not exist for feature: {Name}");
@@ -171,7 +171,7 @@ public abstract class BaseFeature
     {
         try
         {
-            var configDirectory = AetherBox.PluginInterface.GetPluginConfigDirectory();
+            var configDirectory = AetherBox.pi.GetPluginConfigDirectory();
             var configFile = Path.Combine(configDirectory, key + ".json");
             var jsonString = JsonConvert.SerializeObject(config, Formatting.Indented);
 
