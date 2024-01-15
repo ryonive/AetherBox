@@ -37,7 +37,7 @@ public abstract class BaseFeature
 
     protected delegate void DrawConfigDelegate(ref bool hasChanged);
 
-    protected global::AetherBox.AetherBox Plugin;
+    protected global::AetherBox.AetherBox P;
 
     protected DalamudPluginInterface Pi;
 
@@ -99,7 +99,7 @@ public abstract class BaseFeature
 
     public void InterfaceSetup(global::AetherBox.AetherBox plugin, DalamudPluginInterface pluginInterface, Configuration config, FeatureProvider fp)
     {
-        Plugin = plugin;
+        P = plugin;
         Pi = pluginInterface;
         this.config = config;
         Provider = fp;
@@ -114,7 +114,7 @@ public abstract class BaseFeature
 
     public virtual void Enable()
     {
-        Svc.Log.Debug("Enabling " + Name);
+        PluginLog.Debug("Enabling " + Name);
         Svc.Framework.Update += CheckJob;
         Enabled = true;
     }
@@ -129,20 +129,17 @@ public abstract class BaseFeature
 
     public virtual void Disable()
     {
-        Svc.Log.Debug("Disabling " + Name);
         Svc.Framework.Update -= CheckJob;
         Enabled = false;
     }
 
     public virtual void Dispose()
     {
-        //Svc.Log.Debug("Disposing " + Name);
         Ready = false;
     }
 
     protected T LoadConfig<T>() where T : FeatureConfig
     {
-        //Svc.Log.Debug($"Loading config for feature: {Name}");
         return LoadConfig<T>(Key);
     }
 
@@ -150,36 +147,39 @@ public abstract class BaseFeature
     {
         try
         {
-            string configFile = Path.Combine(AetherBox.pi.GetPluginConfigDirectory(), key + ".json");
+            string configFile;
+            configFile = Path.Combine(global::AetherBox.AetherBox.pi.GetPluginConfigDirectory(), key + ".json");
             if (!File.Exists(configFile))
             {
-                Svc.Log.Debug($"Config file does not exist for feature: {Name}");
                 return null;
             }
             return JsonConvert.DeserializeObject<T>(File.ReadAllText(configFile));
         }
         catch (Exception exception)
         {
-            Svc.Log.Error(exception, $"Failed to load config for feature: {Name}");
+            PluginLog.Error(exception, "Failed to load config for feature " + Name);
             return null;
         }
     }
 
-    protected void SaveConfig<T>(T config) where T : FeatureConfig => SaveConfig<T>(config, this.Key);
+    protected void SaveConfig<T>(T config) where T : FeatureConfig
+    {
+        SaveConfig(config, Key);
+    }
 
     protected void SaveConfig<T>(T config, string key) where T : FeatureConfig
     {
         try
         {
-            var configDirectory = AetherBox.pi.GetPluginConfigDirectory();
-            var configFile = Path.Combine(configDirectory, key + ".json");
-            var jsonString = JsonConvert.SerializeObject(config, Formatting.Indented);
-
-            File.WriteAllText(configFile, jsonString);
+            string path;
+            path = Path.Combine(global::AetherBox.AetherBox.pi.GetPluginConfigDirectory(), key + ".json");
+            string jsonString;
+            jsonString = JsonConvert.SerializeObject(config, Formatting.Indented);
+            File.WriteAllText(path, jsonString);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            Svc.Log.Error(ex, $"Feature failed to write config {this.Name}");
+            PluginLog.Error(exception, "Feature failed to write config " + Name);
         }
     }
 
@@ -383,15 +383,20 @@ public abstract class BaseFeature
 
     protected virtual void ConfigChanged()
     {
-        if (this is null) return;
-
-        var config = this.GetType().GetProperties().FirstOrDefault(p => p.PropertyType.IsSubclassOf(typeof(FeatureConfig)));
-
+        if (this == null)
+        {
+            return;
+        }
+        PropertyInfo config;
+        config = GetType().GetProperties().FirstOrDefault((PropertyInfo p) => p.PropertyType.IsSubclassOf(typeof(FeatureConfig)));
         if (config != null)
         {
-            var configObj = config.GetValue(this);
+            object configObj;
+            configObj = config.GetValue(this);
             if (configObj != null)
+            {
                 SaveConfig((FeatureConfig)configObj);
+            }
         }
     }
 
@@ -503,14 +508,14 @@ public abstract class BaseFeature
                     text = MemoryHelper.ReadSeString(&addon->UldManager.NodeList[15]->GetAsAtkTextNode()->NodeText).ExtractText();
                     if (compare(text))
                     {
-                        Svc.Log.Verbose($"SelectYesno {text} addon {i} by predicate");
+                        PluginLog.Verbose($"SelectYesno {text} addon {i} by predicate");
                         return addon;
                     }
                 }
             }
             catch (Exception e)
             {
-                Svc.Log.Error("", e);
+                PluginLog.Error("", e);
                 return null;
             }
         }
@@ -532,13 +537,13 @@ public abstract class BaseFeature
                 if (GenericHelpers.IsAddonReady(addon) && MemoryHelper.ReadSeString(&addon->UldManager.NodeList[15]->GetAsAtkTextNode()->NodeText).ExtractText().Replace(" ", "")
                     .EqualsAny<string>(s.Select((string x) => x.Replace(" ", ""))))
                 {
-                    Svc.Log.Verbose($"SelectYesno {s.Print()} addon {i}");
+                    PluginLog.Verbose($"SelectYesno {s.Print()} addon {i}");
                     return addon;
                 }
             }
             catch (Exception e)
             {
-                Svc.Log.Error("", e);
+                PluginLog.Error("", e);
                 return null;
             }
         }
@@ -563,7 +568,7 @@ public abstract class BaseFeature
                 if (index >= 0 && IsSelectItemEnabled(addon, index) && (Throttler?.Invoke() ?? GenericThrottle))
                 {
                     ClickSelectString.Using((nint)addon).SelectItem((ushort)index);
-                    Svc.Log.Debug($"TrySelectSpecificEntry: selecting {entry}/{index} as requested by {text.Print()}");
+                    PluginLog.Debug($"TrySelectSpecificEntry: selecting {entry}/{index} as requested by {text.Print()}");
                     return true;
                 }
             }
