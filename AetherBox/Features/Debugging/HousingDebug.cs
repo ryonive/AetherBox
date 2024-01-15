@@ -149,24 +149,15 @@ public class HousingDebug : DebugHelper
 
     public override void Draw()
     {
-        if (Svc.ClientState.IsLoggedIn)
-        {
-            ImGui.Text(Name ?? "");
-            ImGui.Separator();
-            PositionInfoAddress pia;
-            pia = new PositionInfoAddress(Svc.SigScanner);
-            ImGui.Text($"District: {pia.Zone}");
-            ImGui.Text($"Ward: {pia.Ward}");
-            ImGui.Text($"House: {pia.House}");
-            ImGui.Text($"Subdivision: {pia.Subdivision}");
-            ImGui.Text($"Plot: {pia.Plot}");
-            ImGui.Text($"Floor: {pia.Floor}");
-        }
-        if (!Svc.ClientState.IsLoggedIn)
-        {
-            ImGui.Text(Name ?? "");
-            ImGui.Separator();
-            ImGui.TextDisabled("Log in first!");
-        }
+        ImGui.Text(Name ?? "");
+        ImGui.Separator();
+        PositionInfoAddress pia;
+        pia = new PositionInfoAddress(Svc.SigScanner);
+        ImGui.Text($"District: {pia.Zone}");
+        ImGui.Text($"Ward: {pia.Ward}");
+        ImGui.Text($"House: {pia.House}");
+        ImGui.Text($"Subdivision: {pia.Subdivision}");
+        ImGui.Text($"Plot: {pia.Plot}");
+        ImGui.Text($"Floor: {pia.Floor}");
     }
 }
