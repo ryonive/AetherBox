@@ -359,10 +359,14 @@ public static class DebugManager
                 value = type.GetMethod("ToArray")?.Invoke(value, null);
                 type = value.GetType();
             }
-            Attribute? customAttribute = member.GetCustomAttribute(typeof(ValueParser));
-            FixedBufferAttribute fixedBuffer = (FixedBufferAttribute)member.GetCustomAttribute(typeof(FixedBufferAttribute));
-            FixedArrayAttribute fixedArray = (FixedArrayAttribute)member.GetCustomAttribute(typeof(FixedArrayAttribute));
-            Attribute fixedSizeArray = member.GetCustomAttribute(typeof(FixedSizeArrayAttribute<>));
+            Attribute? customAttribute;
+            customAttribute = member.GetCustomAttribute(typeof(ValueParser));
+            FixedBufferAttribute fixedBuffer;
+            fixedBuffer = (FixedBufferAttribute)member.GetCustomAttribute(typeof(FixedBufferAttribute));
+            FixedArrayAttribute fixedArray;
+            fixedArray = (FixedArrayAttribute)member.GetCustomAttribute(typeof(FixedArrayAttribute));
+            Attribute fixedSizeArray;
+            fixedSizeArray = member.GetCustomAttribute(typeof(FixedSizeArrayAttribute<>));
             if (customAttribute is ValueParser vp)
             {
                 vp.ImGuiPrint(type, value, member, addr);
@@ -383,10 +387,12 @@ public static class DebugManager
                     }
                     try
                     {
-                        Type eType = type.GetElementType();
-                        object? obj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
+                        Type eType;
+                        eType = type.GetElementType();
+                        object? obj;
+                        obj = SafeMemory.PtrToStructure(new IntPtr(unboxed), eType);
                         ImGui.SameLine();
-                        PrintOutObject(obj, (ulong)unboxedAddr, new List<string>(path));
+                        PrintOutObject(obj, (ulong)unboxed, new List<string>(path));
                         return;
                     }
                     catch
@@ -394,15 +400,12 @@ public static class DebugManager
                         return;
                     }
                 }
-                else
-                {
-                    ImGui.Text("null");
-                }
                 ImGui.Text("null");
             }
             else if (type.IsArray)
             {
-                Array arr = (Array)value;
+                Array arr;
+                arr = (Array)value;
                 if (ImGui.TreeNode($"Values##{member.Name}-{addr}-{string.Join("-", path)}"))
                 {
                     for (int i = 0; i < arr.Length; i++)
@@ -418,16 +421,20 @@ public static class DebugManager
             {
                 if (fixedSizeArray != null)
                 {
-                    Type fixedType = fixedSizeArray.GetType().GetGenericArguments()[0];
-                    int size = (int)fixedSizeArray.GetType().GetProperty("Count").GetValue(fixedSizeArray);
+                    Type fixedType;
+                    fixedType = fixedSizeArray.GetType().GetGenericArguments()[0];
+                    int size;
+                    size = (int)fixedSizeArray.GetType().GetProperty("Count").GetValue(fixedSizeArray);
                     if (!ImGui.TreeNode($"Fixed {ParseTypeName(fixedType)} Array##{member.Name}-{addr}-{string.Join("-", path)}"))
                     {
                         return;
                     }
                     if (fixedType.Namespace + "." + fixedType.Name == "FFXIVClientStructs.Interop.Pointer`1")
                     {
-                        Type pointerType = fixedType.GetGenericArguments()[0];
-                        void** arrAddr = (void**)addr;
+                        Type pointerType;
+                        pointerType = fixedType.GetGenericArguments()[0];
+                        void** arrAddr;
+                        arrAddr = (void**)addr;
                         if (arrAddr != null)
                         {
                             for (int j = 0; j < size; j++)
@@ -440,7 +447,8 @@ public static class DebugManager
                                     }
                                     continue;
                                 }
-                                object arrObj = SafeMemory.PtrToStructure(new IntPtr(arrAddr[j]), pointerType);
+                                object arrObj;
+                                arrObj = SafeMemory.PtrToStructure(new IntPtr(arrAddr[j]), pointerType);
                                 if (arrObj == null)
                                 {
                                     if (ImGui.GetIO().KeyAlt)
@@ -465,10 +473,12 @@ public static class DebugManager
                     }
                     else
                     {
-                        nint arrAddr2 = (nint)addr;
+                        nint arrAddr2;
+                        arrAddr2 = (nint)addr;
                         for (int k = 0; k < size; k++)
                         {
-                            object arrObj2 = SafeMemory.PtrToStructure(arrAddr2, fixedType);
+                            object arrObj2;
+                            arrObj2 = SafeMemory.PtrToStructure(arrAddr2, fixedType);
                             PrintOutObject(arrObj2, (ulong)((IntPtr)arrAddr2).ToInt64(), new List<string>(path) { $"_arrValue_{k}" }, autoExpand: false, $"[{k}] {arrObj2}");
                             arrAddr2 += Marshal.SizeOf(fixedType);
                         }
@@ -479,7 +489,8 @@ public static class DebugManager
                 {
                     if (fixedArray.Type == typeof(string) && fixedArray.Count == 1)
                     {
-                        string text = Marshal.PtrToStringUTF8((nint)addr);
+                        string text;
+                        text = Marshal.PtrToStringUTF8((nint)addr);
                         if (text != null)
                         {
                             ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(0f, 0f));
@@ -497,10 +508,12 @@ public static class DebugManager
                     }
                     else if (ImGui.TreeNode($"Fixed {ParseTypeName(fixedArray.Type)} Array##{member.Name}-{addr}-{string.Join("-", path)}"))
                     {
-                        nint arrAddr3 = (nint)addr;
+                        nint arrAddr3;
+                        arrAddr3 = (nint)addr;
                         for (int l = 0; l < fixedArray.Count; l++)
                         {
-                            object arrObj3 = SafeMemory.PtrToStructure(arrAddr3, fixedArray.Type);
+                            object arrObj3;
+                            arrObj3 = SafeMemory.PtrToStructure(arrAddr3, fixedArray.Type);
                             PrintOutObject(arrObj3, (ulong)((IntPtr)arrAddr3).ToInt64(), new List<string>(path) { $"_arrValue_{l}" }, autoExpand: false, $"[{l}] {arrObj3}");
                             arrAddr3 += Marshal.SizeOf(fixedArray.Type);
                         }
@@ -513,8 +526,10 @@ public static class DebugManager
                     {
                         return;
                     }
-                    bool display = true;
-                    bool child = false;
+                    bool display;
+                    display = true;
+                    bool child;
+                    child = false;
                     if (fixedBuffer.ElementType == typeof(byte) && fixedBuffer.Length > 128)
                     {
                         display = ImGui.BeginChild($"scrollBuffer##{member.Name}-{addr}-{string.Join("-", path)}", new Vector2(ImGui.GetTextLineHeight() * 30f, ImGui.GetTextLineHeight() * 8f), border: true);
@@ -522,12 +537,14 @@ public static class DebugManager
                     }
                     if (display)
                     {
-                        float sX = ImGui.GetCursorPosX();
+                        float sX;
+                        sX = ImGui.GetCursorPosX();
                         for (uint m = 0u; m < fixedBuffer.Length; m++)
                         {
                             if (fixedBuffer.ElementType == typeof(byte))
                             {
-                                byte v = *(byte*)(addr + m);
+                                byte v;
+                                v = *(byte*)(addr + m);
                                 if (m != 0 && m % 16 != 0)
                                 {
                                     ImGui.SameLine();
@@ -537,7 +554,8 @@ public static class DebugManager
                             }
                             else if (fixedBuffer.ElementType == typeof(short))
                             {
-                                short v7 = *(short*)(addr + m * 2);
+                                short v7;
+                                v7 = *(short*)(addr + m * 2);
                                 if (m != 0 && m % 8 != 0)
                                 {
                                     ImGui.SameLine();
@@ -546,7 +564,8 @@ public static class DebugManager
                             }
                             else if (fixedBuffer.ElementType == typeof(ushort))
                             {
-                                ushort v8 = *(ushort*)(addr + m * 2);
+                                ushort v8;
+                                v8 = *(ushort*)(addr + m * 2);
                                 if (m != 0 && m % 8 != 0)
                                 {
                                     ImGui.SameLine();
@@ -555,7 +574,8 @@ public static class DebugManager
                             }
                             else if (fixedBuffer.ElementType == typeof(int))
                             {
-                                int v6 = *(int*)(addr + m * 4);
+                                int v6;
+                                v6 = *(int*)(addr + m * 4);
                                 if (m != 0 && m % 4 != 0)
                                 {
                                     ImGui.SameLine();
@@ -564,7 +584,8 @@ public static class DebugManager
                             }
                             else if (fixedBuffer.ElementType == typeof(uint))
                             {
-                                uint v5 = *(uint*)(addr + m * 4);
+                                uint v5;
+                                v5 = *(uint*)(addr + m * 4);
                                 if (m != 0 && m % 4 != 0)
                                 {
                                     ImGui.SameLine();
@@ -573,17 +594,20 @@ public static class DebugManager
                             }
                             else if (fixedBuffer.ElementType == typeof(long))
                             {
-                                long v4 = *(long*)(addr + m * 8);
+                                long v4;
+                                v4 = *(long*)(addr + m * 8);
                                 ImGui.Text(ImGui.GetIO().KeyShift ? $"{v4}" : $"{v4:X16}");
                             }
                             else if (fixedBuffer.ElementType == typeof(ulong))
                             {
-                                ulong v3 = *(ulong*)(addr + m * 8);
+                                ulong v3;
+                                v3 = *(ulong*)(addr + m * 8);
                                 ImGui.Text(ImGui.GetIO().KeyShift ? $"{v3}" : $"{v3:X16}");
                             }
                             else
                             {
-                                byte v2 = *(byte*)(addr + m);
+                                byte v2;
+                                v2 = *(byte*)(addr + m);
                                 if (m != 0 && m % 16 != 0)
                                 {
                                     ImGui.SameLine();
@@ -613,10 +637,12 @@ public static class DebugManager
                     }
                     return;
                 }
-                PropertyInfo p2 = ilr.GetType().GetProperty("Value", BindingFlags.Instance | BindingFlags.Public);
+                PropertyInfo p2;
+                p2 = ilr.GetType().GetProperty("Value", BindingFlags.Instance | BindingFlags.Public);
                 if (p2 != null)
                 {
-                    MethodInfo getter = p2.GetGetMethod();
+                    MethodInfo getter;
+                    getter = p2.GetGetMethod();
                     if (getter != null)
                     {
                         PrintOutObject(getter.Invoke(ilr, Array.Empty<object>()), addr, new List<string>(path));
@@ -627,7 +653,8 @@ public static class DebugManager
             }
             else if (value is nint p)
             {
-                ulong pAddr = (ulong)((IntPtr)p).ToInt64();
+                ulong pAddr;
+                pAddr = (ulong)((IntPtr)p).ToInt64();
                 ClickToCopyText($"{p:X}");
                 if (BeginModule != 0 && pAddr >= BeginModule && pAddr <= EndModule)
                 {
