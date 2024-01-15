@@ -4,11 +4,11 @@ namespace AetherBox.Helpers;
 
 public interface IHookWrapper : IDisposable
 {
-	bool IsEnabled { get; }
+    bool IsEnabled { get; }
 
-	bool IsDisposed { get; }
+    bool IsDisposed { get; }
 
-	void Enable();
+    void Enable();
 
-	void Disable();
+    void Disable();
 }

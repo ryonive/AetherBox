@@ -31,7 +31,6 @@
         <Compile Remove="Features\Other\NoKill.cs" />
         <Compile Remove="GlobalSuppressions.cs" />
         <Compile Remove="Helpers\Faloop\.Jurisdiction.cs" />
-        <Compile Remove="Helpers\OverrideCamera.cs" />
         <Compile Remove="UI\ConfigWindow.cs" />
         <Compile Remove="UI\MainWindowConfigWindowTab.cs" />
         <Compile Remove="UI\OldMainWindow.cs" />
@@ -42,7 +41,6 @@
     <!-- Include in Solution explorer -->
     <ItemGroup>
         <None Include="Features\Other\NoKill.cs" />
-        <None Include="Helpers\OverrideCamera.cs" />
         <None Include="UI\ConfigWindow.cs" />
     </ItemGroup>
 

@@ -5,12 +5,12 @@ namespace AetherBox.Helpers.Faloop.Model;
 
 public class FaloopEventPayload
 {
-	[JsonPropertyName("type")]
-	public string Type { get; set; }
+    [JsonPropertyName("type")]
+    public string Type { get; set; }
 
-	[JsonPropertyName("subType")]
-	public string SubType { get; set; }
+    [JsonPropertyName("subType")]
+    public string SubType { get; set; }
 
-	[JsonPropertyName("data")]
-	public JsonObject Data { get; set; }
+    [JsonPropertyName("data")]
+    public JsonObject Data { get; set; }
 }
