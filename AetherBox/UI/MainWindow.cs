@@ -26,9 +26,8 @@ public class MainWindow : Window
 {
     private readonly IDalamudTextureWrap ? IconImage;
     private readonly IDalamudTextureWrap ? BannerImage;
-    // internal readonly AetherBox Plugin;
-    private static float Scale => ImGuiHelpers.GlobalScale;
 
+    private static float Scale => ImGuiHelpers.GlobalScale;
 
     private string searchString = string.Empty;
     private readonly List<BaseFeature> FilteredFeatures = new List<BaseFeature>();

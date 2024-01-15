@@ -11,7 +11,7 @@ public class Configuration : IPluginConfiguration
 {
     public List<string> EnabledFeatures = new List<string>();
 
-    public bool showDebugFeatures;
+    public bool ShowDebugFeatures;
 
     [NonSerialized]
     private DalamudPluginInterface pluginInterface;
