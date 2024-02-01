@@ -264,7 +264,7 @@ public class AutoFollow : Feature
             Svc.Log.Debug($"{ex}");
         }
     }
-
+ 
     private unsafe void Follow(IFramework framework)
     {
         master = Svc.Objects.FirstOrDefault((Dalamud.Game.ClientState.Objects.Types.GameObject x) => x.ObjectId == masterObjectID);
