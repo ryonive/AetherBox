@@ -8,57 +8,57 @@ namespace AetherBox.Helpers.Faloop.Model;
 
 public class MobReportData
 {
-	public class Spawn
-	{
-		public class Reporter
-		{
-			[JsonPropertyName("id")]
-			public int Id { get; set; }
+    public class Spawn
+    {
+        public class Reporter
+        {
+            [JsonPropertyName("id")]
+            public int Id { get; set; }
 
-			[JsonPropertyName("name")]
-			public string Name { get; set; }
-		}
+            [JsonPropertyName("name")]
+            public string Name { get; set; }
+        }
 
-		[JsonPropertyName("timestamp")]
-		public DateTime Timestamp { get; set; }
+        [JsonPropertyName("timestamp")]
+        public DateTime Timestamp { get; set; }
 
-		[JsonPropertyName("window")]
-		public int Window { get; set; }
+        [JsonPropertyName("window")]
+        public int Window { get; set; }
 
-		[JsonPropertyName("zoneId")]
-		public uint ZoneId { get; set; }
+        [JsonPropertyName("zoneId")]
+        public uint ZoneId { get; set; }
 
-		[JsonPropertyName("zonePoiIds")]
-		public List<int> ZonePoiIds { get; set; }
+        [JsonPropertyName("zonePoiIds")]
+        public List<int> ZonePoiIds { get; set; }
 
-		[JsonPropertyName("reporters")]
-		public List<Reporter>? Reporters { get; set; }
-	}
+        [JsonPropertyName("reporters")]
+        public List<Reporter>? Reporters { get; set; }
+    }
 
-	public class Death
-	{
-		[JsonPropertyName("num")]
-		public int Num { get; set; }
+    public class Death
+    {
+        [JsonPropertyName("num")]
+        public int Num { get; set; }
 
-		[JsonPropertyName("prevStartedAt")]
-		public DateTime PrevStartedAt { get; set; }
+        [JsonPropertyName("prevStartedAt")]
+        public DateTime PrevStartedAt { get; set; }
 
-		[JsonPropertyName("startedAt")]
-		public DateTime StartedAt { get; set; }
-	}
+        [JsonPropertyName("startedAt")]
+        public DateTime StartedAt { get; set; }
+    }
 
-	[JsonPropertyName("action")]
-	public string Action { get; set; }
+    [JsonPropertyName("action")]
+    public string Action { get; set; }
 
-	[JsonPropertyName("data")]
-	public JsonObject Data { get; set; }
+    [JsonPropertyName("data")]
+    public JsonObject Data { get; set; }
 
-	[JsonPropertyName("mobId")]
-	public uint MobId { get; set; }
+    [JsonPropertyName("mobId")]
+    public uint MobId { get; set; }
 
-	[JsonPropertyName("worldId")]
-	public uint WorldId { get; set; }
+    [JsonPropertyName("worldId")]
+    public uint WorldId { get; set; }
 
-	[JsonPropertyName("zoneInstance")]
-	public int? ZoneInstance { get; set; }
+    [JsonPropertyName("zoneInstance")]
+    public int? ZoneInstance { get; set; }
 }

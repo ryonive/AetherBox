@@ -142,11 +142,7 @@ public class PositionDebug : DebugHelper
         TerritoryType map;
         map = Svc.Data.GetExcelSheet<TerritoryType>().GetRow(territoryID);
         ImGui.Text($"Territory ID: {territoryID}");
-        if (territoryID != 0)
-        {
-            ImGui.Text($"Territory Name: {map.PlaceName.Value?.Name}");
-        }
-
+        ImGui.Text($"Territory Name: {map.PlaceName.Value?.Name}");
         if (Svc.ClientState.LocalPlayer != null)
         {
             ImGui.Text("Nearest Aetheryte: " + CoordinatesHelper.GetNearestAetheryte(Svc.ClientState.LocalPlayer.Position, map));

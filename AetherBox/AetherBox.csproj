@@ -6,7 +6,7 @@
     <!-- General properties -->
     <PropertyGroup>
         <Authors>Kirbo</Authors>
-        <Version>1.0.0.2</Version>
+        <Version>1.0.0.3</Version>
     </PropertyGroup>
 
     <!-- General properties -->
@@ -22,6 +22,7 @@
         <RootNamespace>$(InternalName)</RootNamespace>
         <NoWarn>CS1591</NoWarn>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DalamudDevPlugins>$(appdata)\XIVLauncher\devPlugins\$(InternalName)\</DalamudDevPlugins>
     </PropertyGroup>
 
     <!-- Exclude from Build -->
@@ -31,7 +32,6 @@
         <Compile Remove="Features\Other\NoKill.cs" />
         <Compile Remove="GlobalSuppressions.cs" />
         <Compile Remove="Helpers\Faloop\.Jurisdiction.cs" />
-        <Compile Remove="Helpers\OverrideCamera.cs" />
         <Compile Remove="UI\ConfigWindow.cs" />
         <Compile Remove="UI\MainWindowConfigWindowTab.cs" />
         <Compile Remove="UI\OldMainWindow.cs" />
@@ -42,13 +42,14 @@
     <!-- Include in Solution explorer -->
     <ItemGroup>
         <None Include="Features\Other\NoKill.cs" />
-        <None Include="Helpers\OverrideCamera.cs" />
         <None Include="UI\ConfigWindow.cs" />
     </ItemGroup>
 
     <!-- Debug build config -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+        <OutputPath>$(DalamudDevPlugins)</OutputPath>
         <NoWarn>1701;1702;S125;IDE1006;S3010</NoWarn>
+        <DebugType>full</DebugType>
     </PropertyGroup>
 
     <!-- Release build config -->

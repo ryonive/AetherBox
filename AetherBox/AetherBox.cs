@@ -1,49 +1,56 @@
+using System.Reflection;
+using AetherBox.Attributes;
 using AetherBox.Features;
+using AetherBox.FeaturesSetup;
 using AetherBox.IPC;
 using AetherBox.UI;
 using Dalamud.Game.Command;
-using Dalamud.Interface.Internal;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
-using Module = ECommons.Module;
 using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
-using ECommons.ChatMethods;
-using System.Reflection;
-using AetherBox.FeaturesSetup;
-using AetherBox.Helpers;
-using AetherBox.Features.Other;
 
 namespace AetherBox;
 
-public class AetherBox : IDalamudPlugin, IDisposable
+public class AetherBox : IDalamudPlugin
 {
+    internal static PluginCommandManager<IDalamudPlugin> pluginCommandManager;
+    public AetherBox(IDalamudPlugin plugin) => pluginCommandManager ??= new(plugin);
+
     public static string Name => "AetherBox";
     private const string CommandName = "/atb";
     private const string TestCommandName = "/atbtest";
-    internal WindowSystem WindowSystem;
+
+    internal WindowSystem Ws;
     internal MainWindow MainWindow;
     internal DebugWindow DebugWindow;
 
-    internal static AetherBox Plugin;
-    internal static DalamudPluginInterface PluginInterface;
-    internal static Configuration Config;
-
+    internal static AetherBox P;
+    internal static DalamudPluginInterface pi;
+    public static Configuration Config;
     public List<FeatureProvider> FeatureProviders = new List<FeatureProvider>();
     private FeatureProvider provider;
-    public IEnumerable<BaseFeature> Features => FeatureProviders.Where(x => !x.Disposed).SelectMany(x => x.Features).OrderBy(x => x.Name);
     internal TaskManager TaskManager;
+
+
+    public IEnumerable<BaseFeature> Features => FeatureProviders.Where(x => !x.Disposed).SelectMany(x => x.Features).OrderBy(x => x.Name);
 
     [PluginService]
     public static IAddonLifecycle AddonLifecycle { get; private set; }
 
     public AetherBox(DalamudPluginInterface pluginInterface)
     {
-        Plugin = this;
-        PluginInterface = pluginInterface;
+        P = this;
+        pi = pluginInterface;
+        if (!pluginInterface.Inject(this))
+        {
+            Svc.Log.Error("Failed loading AetherBox!");
+            return;
+        }
+        pluginCommandManager ??= new(P);
         InitializePlugin();
     }
 
@@ -51,19 +58,19 @@ public class AetherBox : IDalamudPlugin, IDisposable
     private void InitializePlugin()
     {
         #region Default load order
-        ECommonsMain.Init(PluginInterface, Plugin, Module.DalamudReflector, Module.ObjectFunctions);
+        ECommonsMain.Init(pi, P, ECommons.Module.DalamudReflector, ECommons.Module.ObjectFunctions);
         #region Initialize Windows
         var closeImage = LoadImage("close.png");
         var iconImage = LoadImage("icon.png");
         var bannerImage = LoadImage("banner.png");
-        WindowSystem = new WindowSystem();
+        Ws = new WindowSystem();
         MainWindow = new MainWindow(bannerImage, iconImage);
         DebugWindow = new DebugWindow();
-        WindowSystem.AddWindow(MainWindow);
-        WindowSystem.AddWindow(DebugWindow);
+        Ws.AddWindow(MainWindow);
+        Ws.AddWindow(DebugWindow);
         #endregion
         TaskManager = new TaskManager();
-        Config = (PluginInterface.GetPluginConfig() as Configuration) ?? new Configuration();
+        Config = (pi.GetPluginConfig() as Configuration) ?? new Configuration();
         Config.Initialize(Svc.PluginInterface);
         #region Commands
         Svc.Commands.AddHandler(CommandName, new CommandInfo(OnCommand)
@@ -82,7 +89,7 @@ public class AetherBox : IDalamudPlugin, IDisposable
         #endregion
 
         #region Events
-        Svc.PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+        Svc.PluginInterface.UiBuilder.Draw += Ws.Draw;
         Svc.PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
         Svc.PluginInterface.UiBuilder.OpenConfigUi += ToggleDebugUI;
         #endregion
@@ -103,25 +110,6 @@ public class AetherBox : IDalamudPlugin, IDisposable
     {
         Svc.Commands.RemoveHandler(CommandName);
         Svc.Commands.RemoveHandler(TestCommandName);
-
-        Svc.Log.Debug($"Disabling and Disposing features");
-
-        // Doesnt dispose of hooks of features that are not enabled
-        /*foreach (BaseFeature item in Features.Where((BaseFeature x) => x?.Enabled ?? false))
-        {
-            try
-            {
-                item.Disable();
-                item.Dispose();
-                Svc.Log.Debug($"Feature '{item.Name}' has been disabled and disposed.");
-            }
-            catch (Exception ex)
-            {
-                Svc.Log.Error(ex, $"Error while disposing or disabling feature '{item.Name}'.");
-            }
-        }*/
-
-        // testing as solution to the problem of disabled features hooks not disposing
         Svc.Log.Debug($"Disabling and Disposing features");
         foreach (BaseFeature item in Features)
         {
@@ -143,25 +131,21 @@ public class AetherBox : IDalamudPlugin, IDisposable
                 Svc.Log.Error(ex, $"Error while disposing or disabling feature '{item.Name}'.");
             }
         }
-
-
         provider.UnloadFeatures();
-
-
-        Svc.PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
+        Svc.PluginInterface.UiBuilder.Draw -= Ws.Draw;
         Svc.PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUI;
         Svc.PluginInterface.UiBuilder.OpenConfigUi -= ToggleDebugUI;
-        WindowSystem.RemoveAllWindows();
+        Ws.RemoveAllWindows();
         MainWindow = null;
         DebugWindow = null;
-        WindowSystem = null;
+        Ws = null;
         ECommonsMain.Dispose();
         FeatureProviders.Clear();
         Common.Shutdown();
         PandorasBoxIPC.Dispose();
         Events.Disable();
         AFKTimer.Dispose();
-        Plugin = null;
+        P = null;
     }
     #endregion
 
@@ -170,7 +154,7 @@ public class AetherBox : IDalamudPlugin, IDisposable
     /// </summary>
     /// <param name="command"></param>
     /// <param name="args"></param>
-    internal void OnCommand(string command, string args)
+    private void OnCommand(string command, string args)
     {
         try
         {
@@ -232,7 +216,7 @@ public class AetherBox : IDalamudPlugin, IDisposable
         {
             if (string.IsNullOrWhiteSpace(args))
             {
-                Svc.Chat.Print("This is a test message!", "AetherBox ", (ushort?)UIColor._color541);
+                Svc.Chat.Print("This is a test message!", "AetherBox ", (ushort?)ECommons.ChatMethods.UIColor._color541);
                 Svc.Log.Debug("This is a test message!");
             }
         }
@@ -247,16 +231,16 @@ public class AetherBox : IDalamudPlugin, IDisposable
     /// </summary>
     /// <param name="imageName"></param>
     /// <returns></returns>
-    public static IDalamudTextureWrap LoadImage(string imageName)
+    public static Dalamud.Interface.Internal.IDalamudTextureWrap LoadImage(string imageName)
     {
-        var imagesDirectory = Path.Combine(PluginInterface.AssemblyLocation.Directory?.FullName!);
+        var imagesDirectory = Path.Combine(pi.AssemblyLocation.Directory?.FullName!);
         var imagePath = Path.Combine(imagesDirectory, imageName);
 
         if (File.Exists(imagePath))
         {
             try
             {
-                return PluginInterface.UiBuilder.LoadImage(imagePath);
+                return pi.UiBuilder.LoadImage(imagePath);
             }
             catch (Exception ex)
             {

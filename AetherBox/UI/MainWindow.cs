@@ -26,9 +26,8 @@ public class MainWindow : Window
 {
     private readonly IDalamudTextureWrap ? IconImage;
     private readonly IDalamudTextureWrap ? BannerImage;
-    // internal readonly AetherBox Plugin;
-    private static float Scale => ImGuiHelpers.GlobalScale;
 
+    private static float Scale => ImGuiHelpers.GlobalScale;
 
     private string searchString = string.Empty;
     private readonly List<BaseFeature> FilteredFeatures = new List<BaseFeature>();
@@ -36,7 +35,7 @@ public class MainWindow : Window
     public OpenCatagory OpenCatagory { get; private set; }
 
     public MainWindow(IDalamudTextureWrap bannerImage, IDalamudTextureWrap iconImage)
-        : base($"{AetherBox.Name} {AetherBox.Plugin.GetType().Assembly.GetName().Version}###{AetherBox.Name}",
+        : base($"{AetherBox.Name} {AetherBox.P.GetType().Assembly.GetName().Version}###{AetherBox.Name}",
                ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding,
                false)
     {
@@ -118,7 +117,7 @@ public class MainWindow : Window
                     FilteredFeatures.Clear();
                     if (searchString.Length > 0)
                     {
-                        foreach (BaseFeature feature in global::AetherBox.AetherBox.Plugin.Features)
+                        foreach (BaseFeature feature in global::AetherBox.AetherBox.P.Features)
                         {
                             if (feature.FeatureType != FeatureType.Commands && feature.FeatureType != 0 && (feature.Description.Contains(searchString, StringComparison.CurrentCultureIgnoreCase) || feature.Name.Contains(searchString, StringComparison.CurrentCultureIgnoreCase)))
                             {
@@ -143,28 +142,28 @@ public class MainWindow : Window
                     switch (OpenCatagory)
                     {
                         case OpenCatagory.Actions:
-                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Actions && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
+                            DrawFeatures(AetherBox.P.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Actions && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.UI:
-                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.UI && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
+                            DrawFeatures(AetherBox.P.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.UI && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.Other:
-                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Other && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
+                            DrawFeatures(AetherBox.P.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Other && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.Targets:
-                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Targeting && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
+                            DrawFeatures(AetherBox.P.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Targeting && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.Chat:
-                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.ChatFeature && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
+                            DrawFeatures(AetherBox.P.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.ChatFeature && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.Achievements:
-                            DrawFeatures(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Achievements && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
+                            DrawFeatures(AetherBox.P.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Achievements && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.Commands:
-                            DrawCommands(AetherBox.Plugin.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Commands && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
+                            DrawCommands(AetherBox.P.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Commands && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.Debug:
-                            DrawDebug(AetherBox.Plugin.Features.Where((BaseFeature x) => (x.isDebug)).ToArray());
+                            DrawDebug(AetherBox.P.Features.Where((BaseFeature x) => (x.isDebug)).ToArray());
                             break;
                     }
                 }
