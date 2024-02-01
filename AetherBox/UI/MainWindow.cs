@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using AetherBox.Debugging;
 using AetherBox.Features;
 using AetherBox.FeaturesSetup;
+using AetherBox.Helpers;
 using AetherBox.Helpers.Extensions;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Internal;
@@ -31,7 +32,7 @@ public class MainWindow : Window
 
     private string searchString = string.Empty;
     private readonly List<BaseFeature> FilteredFeatures = new List<BaseFeature>();
-    private bool hornybonk;
+    private bool toothless;
     public OpenCatagory OpenCatagory { get; private set; }
 
     public MainWindow(IDalamudTextureWrap bannerImage, IDalamudTextureWrap iconImage)
@@ -70,7 +71,7 @@ public class MainWindow : Window
         var contentRegionAvail = ImGui.GetContentRegionAvail();
         _ = ref ImGui.GetStyle().ItemSpacing;
         var topLeftSideHeight = contentRegionAvail.Y;
-        if (!ImGui.BeginTable("$" + global::AetherBox.AetherBox.Name + "TableContainer", 2, ImGuiTableFlags.Resizable))
+        if (!ImGui.BeginTable("$" + AetherBox.Name + "TableContainer", 2, ImGuiTableFlags.Resizable))
         {
             return;
         }
@@ -81,7 +82,7 @@ public class MainWindow : Window
             ImGui.TableNextColumn();
             Vector2 regionSize = ImGui.GetContentRegionAvail();
             ImGui.PushStyleVar(ImGuiStyleVar.SelectableTextAlign, new Vector2(0.5f, 0.5f));
-            string str_id = "###" + global::AetherBox.AetherBox.Name + "Left";
+            string str_id = "###" + AetherBox.Name + "Left";
             Vector2 size = regionSize;
             size.Y = topLeftSideHeight;
             if (ImGui.BeginChild(str_id, size, border: false, ImGuiWindowFlags.NoDecoration))
@@ -104,20 +105,20 @@ public class MainWindow : Window
                 ImGuiEx.SetNextItemFullWidth();
                 if (ImGui.InputText("###FeatureSearch", ref searchString, 500u))
                 {
-                    if (searchString.Equals("ERP", StringComparison.CurrentCultureIgnoreCase) && !hornybonk)
+                    if (searchString.Equals("toothless", StringComparison.CurrentCultureIgnoreCase) && !toothless)
                     {
-                        hornybonk = true;
-                        var YTurl = "https://www.youtube.com/watch?v=UsCwVqtF0-Q";
+                        toothless = true;
+                        var YTurl = "https://www.youtube.com/watch?v=4t7BgyA7IOI";
                         Util.OpenLink(YTurl);
                     }
                     else
                     {
-                        hornybonk = false;
+                        toothless = false;
                     }
                     FilteredFeatures.Clear();
                     if (searchString.Length > 0)
                     {
-                        foreach (BaseFeature feature in global::AetherBox.AetherBox.P.Features)
+                        foreach (BaseFeature feature in AetherBox.P.Features)
                         {
                             if (feature.FeatureType != FeatureType.Commands && feature.FeatureType != 0 && (feature.Description.Contains(searchString, StringComparison.CurrentCultureIgnoreCase) || feature.Name.Contains(searchString, StringComparison.CurrentCultureIgnoreCase)))
                             {
@@ -312,7 +313,9 @@ public class MainWindow : Window
                         {
                             feature.Enable();
                             if (feature.Enabled)
-                                AetherBox.Config.EnabledFeatures.Add(feature.GetType().Name);
+                            {
+                                AetherBox.Config?.EnabledFeatures.Add(feature.GetType().Name);
+                            }
                         }
                         catch (Exception ex)
                         {

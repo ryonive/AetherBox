@@ -17,29 +17,29 @@ namespace AetherBox;
 
 public class AetherBox : IDalamudPlugin
 {
-    internal static PluginCommandManager<IDalamudPlugin> pluginCommandManager;
-    public AetherBox(IDalamudPlugin plugin) => pluginCommandManager ??= new(plugin);
+    internal static PluginCommandManager<IDalamudPlugin> ? pluginCommandManager;
+    public AetherBox(IDalamudPlugin? plugin) => pluginCommandManager ??= new PluginCommandManager<IDalamudPlugin>(plugin);
 
     public static string Name => "AetherBox";
     private const string CommandName = "/atb";
     private const string TestCommandName = "/atbtest";
 
-    internal WindowSystem Ws;
-    internal MainWindow MainWindow;
-    internal DebugWindow DebugWindow;
+    internal WindowSystem? Ws;
+    internal MainWindow? MainWindow;
+    internal DebugWindow? DebugWindow;
 
-    internal static AetherBox P;
-    internal static DalamudPluginInterface pi;
-    public static Configuration Config;
+    internal static AetherBox? P;
+    internal static DalamudPluginInterface? pi;
+    public static Configuration? Config;
     public List<FeatureProvider> FeatureProviders = new List<FeatureProvider>();
-    private FeatureProvider provider;
-    internal TaskManager TaskManager;
+    private FeatureProvider? provider;
+    internal TaskManager? TaskManager;
 
 
     public IEnumerable<BaseFeature> Features => FeatureProviders.Where(x => !x.Disposed).SelectMany(x => x.Features).OrderBy(x => x.Name);
 
     [PluginService]
-    public static IAddonLifecycle AddonLifecycle { get; private set; }
+    public static IAddonLifecycle? AddonLifecycle { get; private set; }
 
     public AetherBox(DalamudPluginInterface pluginInterface)
     {
@@ -70,8 +70,8 @@ public class AetherBox : IDalamudPlugin
         Ws.AddWindow(DebugWindow);
         #endregion
         TaskManager = new TaskManager();
-        Config = (pi.GetPluginConfig() as Configuration) ?? new Configuration();
-        Config.Initialize(Svc.PluginInterface);
+        Config = (pi?.GetPluginConfig() as Configuration) ?? new Configuration();
+        Config?.Initialize(Svc.PluginInterface);
         #region Commands
         Svc.Commands.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
@@ -100,7 +100,7 @@ public class AetherBox : IDalamudPlugin
         AFKTimer.Init();
         provider = new FeatureProvider(Assembly.GetExecutingAssembly());
         provider.LoadFeatures();
-        FeatureProviders.Add(provider);
+        FeatureProviders?.Add(provider);
         #endregion
     }
     #endregion
@@ -131,16 +131,16 @@ public class AetherBox : IDalamudPlugin
                 Svc.Log.Error(ex, $"Error while disposing or disabling feature '{item.Name}'.");
             }
         }
-        provider.UnloadFeatures();
+        provider?.UnloadFeatures();
         Svc.PluginInterface.UiBuilder.Draw -= Ws.Draw;
         Svc.PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUI;
         Svc.PluginInterface.UiBuilder.OpenConfigUi -= ToggleDebugUI;
-        Ws.RemoveAllWindows();
+        Ws?.RemoveAllWindows();
         MainWindow = null;
         DebugWindow = null;
         Ws = null;
         ECommonsMain.Dispose();
-        FeatureProviders.Clear();
+        FeatureProviders?.Clear();
         Common.Shutdown();
         PandorasBoxIPC.Dispose();
         Events.Disable();
@@ -160,13 +160,21 @@ public class AetherBox : IDalamudPlugin
         {
             if (string.IsNullOrWhiteSpace(args) || args.Equals("menu", StringComparison.OrdinalIgnoreCase) || args.Equals("m", StringComparison.OrdinalIgnoreCase))
             {
-                // Toggle main UI
-                MainWindow.IsOpen = !MainWindow.IsOpen;
+                if (MainWindow != null)
+                {
+                    // Toggle main UI
+                    MainWindow.IsOpen = !MainWindow.IsOpen;
+                }
+
             }
             else if (args.Equals("d", StringComparison.OrdinalIgnoreCase) || args.Equals("debug", StringComparison.OrdinalIgnoreCase))
             {
-                // Toggle Debug UI
-                DebugWindow.IsOpen = !DebugWindow.IsOpen;
+                if (DebugWindow != null)
+                {
+                    // Toggle Debug UI
+                    DebugWindow.IsOpen = !DebugWindow.IsOpen;
+                }
+
             }
         }
         catch (Exception ex)
@@ -245,13 +253,13 @@ public class AetherBox : IDalamudPlugin
             catch (Exception ex)
             {
                 Svc.Log.Warning($"{ex}, Error loading image");
-                return null;
+                throw new InvalidOperationException("Error loading image", ex);
             }
         }
         else
         {
             Svc.Log.Error($"Image not found: {imagePath}");
-            return null;
+            throw new InvalidOperationException($"Image not found: {imagePath}");
         }
     }
 }
