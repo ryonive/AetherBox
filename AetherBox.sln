@@ -11,8 +11,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		AetherBox\AetherBox.json = AetherBox\AetherBox.json
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OOBlugin", "..\OOBlugin\OOBlugin.csproj", "{E9090C1E-9CFF-404C-95E8-F904DC789A77}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github Workflows", "Github Workflows", "{4AC639D5-D666-4EFF-BEAF-DC32F3476D8F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ClickLib", "ClickLib\ClickLib\ClickLib.csproj", "{3A95D0A9-02DD-4BEB-8B01-B7DBCE46BB6B}"
@@ -29,10 +27,6 @@ Global
 		{13C812E9-0D42-4B95-8646-40EEBF30636F}.Debug|x64.Build.0 = Debug|x64
 		{13C812E9-0D42-4B95-8646-40EEBF30636F}.Release|x64.ActiveCfg = Release|x64
 		{13C812E9-0D42-4B95-8646-40EEBF30636F}.Release|x64.Build.0 = Release|x64
-		{E9090C1E-9CFF-404C-95E8-F904DC789A77}.Debug|x64.ActiveCfg = Debug|x64
-		{E9090C1E-9CFF-404C-95E8-F904DC789A77}.Debug|x64.Build.0 = Debug|x64
-		{E9090C1E-9CFF-404C-95E8-F904DC789A77}.Release|x64.ActiveCfg = Release|x64
-		{E9090C1E-9CFF-404C-95E8-F904DC789A77}.Release|x64.Build.0 = Release|x64
 		{3A95D0A9-02DD-4BEB-8B01-B7DBCE46BB6B}.Debug|x64.ActiveCfg = Debug|x64
 		{3A95D0A9-02DD-4BEB-8B01-B7DBCE46BB6B}.Debug|x64.Build.0 = Debug|x64
 		{3A95D0A9-02DD-4BEB-8B01-B7DBCE46BB6B}.Release|x64.ActiveCfg = Release|x64
