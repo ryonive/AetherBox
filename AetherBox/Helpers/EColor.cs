@@ -26,11 +26,14 @@ internal static class AetherColor
     public readonly  static Vector4 Orange = ImGuiHelper.Vector4FromRGB(0xAA5400);
     public readonly  static Vector4 Bronze = ImGuiHelper.Vector4FromRGB(0xCD7F32);
     public readonly static Vector4 Indigo = ImGuiHelper.Vector4FromRGB(0x4B0082);
+    public readonly static Vector4 DarkType = ImGuiHelper.Vector4FromRGB(0x5e1196);
     public readonly  static Vector4 GhostType = ImGuiHelper.Vector4FromRGB(0xFF6E59FF);
+    public readonly static Vector4 BrightGhostType = ImGuiHelper.Vector4FromRGB(0xab57ff);
     public readonly static Vector4 Violet = ImGuiHelper.Vector4FromRGB(0xAA00AA);
     public readonly static Vector4 Purple = ImGuiHelper.Vector4FromRGB(0xAA0058);
     public readonly static Vector4 Fuchsia = ImGuiHelper.Vector4FromRGB(0xAD0066);
     public readonly static Vector4 VioletBright = ImGuiHelper.Vector4FromRGB(0xFF00FF);
+    public readonly static Vector4 PastelPurple = ImGuiHelper.Vector4FromRGB(0xd557ff);
     public readonly static Vector4 Pink = ImGuiHelper.Vector4FromRGB(0xFF6FFF);
     public readonly static Vector4 PinkLight = ImGuiHelper.Vector4FromRGB(0xFFABD6);
     public readonly static Vector4 Blue = ImGuiHelper.Vector4FromRGB(0x0000AA);

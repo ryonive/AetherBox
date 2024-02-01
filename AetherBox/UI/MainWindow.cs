@@ -16,6 +16,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
+using EasyCombat.UI.Helpers;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ImGuiMethods;
@@ -34,7 +35,7 @@ public class MainWindow : Window
     private readonly List<BaseFeature> FilteredFeatures = new List<BaseFeature>();
     private bool toothless;
     public OpenCatagory OpenCatagory { get; private set; }
-
+    public string InfoMarker { get; private set; } = "More information can be found\nby either hovering the mouse over the featurename or checkbox";
     public MainWindow(IDalamudTextureWrap bannerImage, IDalamudTextureWrap iconImage)
         : base($"{AetherBox.Name} {AetherBox.P.GetType().Assembly.GetName().Version}###{AetherBox.Name}",
                ImGuiWindowFlags.AlwaysHorizontalScrollbar | ImGuiWindowFlags.AlwaysVerticalScrollbar | ImGuiWindowFlags.AlwaysUseWindowPadding,
@@ -278,69 +279,27 @@ public class MainWindow : Window
         }
     }
 
+
+
+
     private void DrawFeatures(IEnumerable<BaseFeature> features)
     {
         try
         {
-            if (features == null || !features.Any() || !features.Any())
+            if (features == null || !features.Any())
                 return;
-            var interpolatedStringHandler1 = new DefaultInterpolatedStringHandler(13, 1);
-            interpolatedStringHandler1.AppendLiteral("featureHeader");
-            interpolatedStringHandler1.AppendFormatted(features.First().FeatureType);
-            ImGuiEx.ImGuiLineCentered(interpolatedStringHandler1.ToStringAndClear(), () =>
+
+            // Header
+            var featureType = features.First().FeatureType;
+            var headerText = FilteredFeatures?.Count > 0 ? "Search Results" : featureType.ToString();
+            ImGuiHelper.ImGuiLineCentered("featureHeader" + featureType, () => ImGui.Text(headerText));
+            ImGuiHelper.HelpMarker(InfoMarker ?? "");
+            ImGuiHelper.SeperatorWithSpacing();
+
+            // Feature List
+            foreach (var feature in features)
             {
-                if (FilteredFeatures?.Count > 0)
-                {
-                    ImGui.Text("Search Results");
-                }
-                else
-                {
-                    var interpolatedStringHandler2 = new DefaultInterpolatedStringHandler(0, 1);
-                    interpolatedStringHandler2.AppendFormatted(features.First().FeatureType);
-                    ImGui.Text(interpolatedStringHandler2.ToStringAndClear());
-                }
-            });
-            ImGui.Separator();
-            foreach (var feature1 in features)
-            {
-                var feature = feature1;
-                var enabled = feature.Enabled;
-                if (ImGui.Checkbox("###" + feature.Name, ref enabled))
-                {
-                    if (enabled)
-                    {
-                        try
-                        {
-                            feature.Enable();
-                            if (feature.Enabled)
-                            {
-                                AetherBox.Config?.EnabledFeatures.Add(feature.GetType().Name);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Svc.Log.Error(ex, "Failed to enabled " + feature.Name);
-                        }
-                    }
-                    else
-                    {
-                        try
-                        {
-                            feature.Disable();
-                            AetherBox.Config.EnabledFeatures.RemoveAll(x => x == feature.GetType().Name);
-                        }
-                        catch (Exception ex)
-                        {
-                            Svc.Log.Error(ex, "Failed to enabled " + feature.Name);
-                        }
-                    }
-                    AetherBox.Config.Save();
-                }
-                ImGui.SameLine();
-                feature.DrawConfig(ref enabled);
-                ImGui.Spacing();
-                ImGui.TextWrapped(feature.Description ?? "");
-                ImGui.Separator();
+                DrawFeature(feature);
             }
         }
         catch (Exception ex)
@@ -348,6 +307,121 @@ public class MainWindow : Window
             Svc.Log.Error($"{ex}, Error at DrawFeatures");
         }
     }
+
+    private void DrawFeature(BaseFeature feature)
+    {
+        var enabled = feature.Enabled;
+        if (ImGui.Checkbox("###" + feature.Name, ref enabled))
+        {
+            ToggleFeature(feature, enabled);
+        }
+        ImGuiHelper.ColoredTextTooltip(feature.Description ?? "", AetherColor.GhostType);
+        ImGui.SameLine();
+        feature.DrawConfig(ref enabled);
+        ImGuiHelper.SeperatorWithSpacing();
+    }
+
+    private void ToggleFeature(BaseFeature feature, bool enabled)
+    {
+        try
+        {
+            if (enabled)
+            {
+                feature.Enable();
+                if (feature.Enabled)
+                {
+                    AetherBox.Config?.EnabledFeatures.Add(feature.GetType().Name);
+                }
+            }
+            else
+            {
+                feature.Disable();
+                AetherBox.Config.EnabledFeatures.RemoveAll(x => x == feature.GetType().Name);
+            }
+
+            AetherBox.Config.Save();
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Error(ex, "Failed to enable/disable " + feature.Name);
+        }
+    }
+
+
+
+
+    /* // testing other method
+        private void DrawFeatures(IEnumerable<BaseFeature> features)
+        {
+            try
+            {
+                if (features == null || !features.Any() || !features.Any())
+                    return;
+                var interpolatedStringHandler1 = new DefaultInterpolatedStringHandler(13, 1);
+                interpolatedStringHandler1.AppendLiteral("featureHeader");
+                interpolatedStringHandler1.AppendFormatted(features.First().FeatureType);
+                ImGuiEx.ImGuiLineCentered(interpolatedStringHandler1.ToStringAndClear(), () =>
+                {
+                    if (FilteredFeatures?.Count > 0)
+                    {
+                        ImGui.Text("Search Results");
+                    }
+                    else
+                    {
+                        var interpolatedStringHandler2 = new DefaultInterpolatedStringHandler(0, 1);
+                        interpolatedStringHandler2.AppendFormatted(features.First().FeatureType);
+                        ImGui.Text(interpolatedStringHandler2.ToStringAndClear());
+                    }
+                });
+                ImGui.Separator();
+                foreach (var feature1 in features)
+                {
+                    var feature = feature1;
+                    var enabled = feature.Enabled;
+                    if (ImGui.Checkbox("###" + feature.Name, ref enabled))
+                    {
+                        if (enabled)
+                        {
+                            try
+                            {
+                                feature.Enable();
+                                if (feature.Enabled)
+                                {
+                                    AetherBox.Config?.EnabledFeatures.Add(feature.GetType().Name);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Svc.Log.Error(ex, "Failed to enabled " + feature.Name);
+                            }
+                        }
+                        else
+                        {
+                            try
+                            {
+                                feature.Disable();
+                                AetherBox.Config.EnabledFeatures.RemoveAll(x => x == feature.GetType().Name);
+                            }
+                            catch (Exception ex)
+                            {
+                                Svc.Log.Error(ex, "Failed to enabled " + feature.Name);
+                            }
+                        }
+                        AetherBox.Config.Save();
+                    }
+                    ImGui.SameLine();
+                    feature.DrawConfig(ref enabled);
+                    ImGui.Spacing();
+                    ImGui.TextWrapped(feature.Description ?? "");
+                    ImGui.Separator();
+                }
+            }
+            catch (Exception ex)
+            {
+                Svc.Log.Error($"{ex}, Error at DrawFeatures");
+            }
+        }
+    */
 
     private void DrawHeader()
     {

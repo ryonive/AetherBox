@@ -377,6 +377,8 @@ public static unsafe partial class ImGuiHelper
         return pressed;
     }
 
+
+
     public static bool CollectionCheckbox<T>(string label, T value, List<T> collection, bool inverted = false)
     {
         var x = collection.Contains(value);
@@ -520,6 +522,7 @@ public static unsafe partial class ImGuiHelper
         ImGui.Dummy(Vector2.Zero);
     }
 
+
     public static void SetNextItemFullWidth(int mod = 0)
     {
         ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X + mod);
@@ -644,6 +647,17 @@ public static unsafe partial class ImGuiHelper
             ImGui.SetTooltip(s);
         }
     }
+
+    public static void ColoredTextTooltip(string text, Vector4 color)
+    {
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.BeginTooltip();
+            ImGui.TextColored(color, text);
+            ImGui.EndTooltip();
+        }
+    }
+
 
     /// <summary>
     /// Aligns text vertically to a standard size button.

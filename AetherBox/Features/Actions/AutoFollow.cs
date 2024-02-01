@@ -16,7 +16,10 @@ using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
+using Dalamud.Interface.Utility.Table;
 using Dalamud.Plugin.Services;
+using EasyCombat.UI.Helpers;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ImGuiMethods;
@@ -69,16 +72,32 @@ public class AutoFollow : Feature
 
     protected override DrawConfigDelegate DrawConfigTree => delegate (ref bool hasChanged)
     {
-        if (ImGui.Checkbox("Function Only in Duty", ref Config.OnlyInDuty))
+        if (ImGui.BeginTable("AutoFollow header options", 2, ImGuiTableFlags.SizingStretchProp))
         {
-            hasChanged = true;
+            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
+            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            if (ImGui.Checkbox("Function Only in Duty", ref Config.OnlyInDuty))
+            {
+                hasChanged = true;
+            }
+            ImGuiHelper.HelpMarker("When enabled, Auto Follow will only work while you're in a duty.");
+            ImGui.TableNextColumn();
+            if (ImGui.Checkbox("Mount & Fly", ref Config.MountAndFly))
+            {
+                hasChanged = true;
+            }
+            ImGuiHelper.HelpMarker("Lets Auto Follow use mount");
+            ImGui.EndTable();
         }
         ImGuiHelper.SeperatorWithSpacing();
+
         if (ImGui.Checkbox("Change master on chat message", ref Config.changeMasterOnChat))
         {
             hasChanged = true;
         }
-        ImGuiComponents.HelpMarker("If a party chat message contains \"autofollow\", the current master will be switched to them.");
+        ImGuiHelper.HelpMarker("If a party chat message contains \"autofollow\"\nthe current master will be switched to them.");
 
         // Define your chatTypeOptions array with the chat type names
         string[] chatTypeOptions = Constants.NormalChatTypes.Select(chatType => chatType.ToString()).ToArray();
@@ -93,26 +112,25 @@ public class AutoFollow : Feature
                 hasChanged = true;
             }
         }
-
+        ImGuiHelper.HelpMarker("Select the channel that should be listend to for the \"autofollow\" command!\nNOTE: \"CrossParty\" functions the same as regular party chat!");
         ImGuiHelper.SeperatorWithSpacing();
 
-        if (ImGui.Checkbox("Mount & Fly", ref Config.MountAndFly))
-        {
-            hasChanged = true;
-        }
+
+
         ImGui.PushItemWidth(150);
         if (ImGui.SliderInt("Distance to Keep (yalms)", ref Config.distanceToKeep, 0, 30))
         {
             hasChanged = true;
         }
+        ImGui.SameLine();
         ImGui.PushItemWidth(150);
         if (ImGui.SliderInt("Disable if Further Than (yalms)", ref Config.disableIfFurtherThan, 0, 300))
         {
             hasChanged = true;
         }
-        ImGui.Text($"Current Master: {((master != null) ? master.Name : ((SeString)"null"))}");
         ImGuiHelper.SeperatorWithSpacing();
-
+        ImGui.Spacing();
+        ImGui.TextColored(AetherColor.BrightGhostType, $"Current Master: {((master != null) ? master.Name : ((SeString)"null"))}");
         if (Svc.ClientState.LocalPlayer == null)
         {
             ImGui.Text("Your Position: x: null, y: null, z: null");
@@ -142,6 +160,13 @@ public class AutoFollow : Feature
         {
             ClearMaster();
         }
+        ImGui.SameLine();
+        if (ImGui.Button("Jump"))
+        {
+            Jump();
+        }
+
+
     };
 
     public string Command { get; set; } = "/autofollow";
@@ -254,6 +279,12 @@ public class AutoFollow : Feature
             return;
         }
         if (Config.OnlyInDuty && GameMain.Instance()->CurrentContentFinderConditionId == 0)
+        {
+            movement.Enabled = false;
+            return;
+        }
+        var player = Svc.ClientState.LocalPlayer;
+        if (Svc.ClientState.LocalPlayer != null && player.IsDead)
         {
             movement.Enabled = false;
             return;
