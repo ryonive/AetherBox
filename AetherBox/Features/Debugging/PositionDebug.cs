@@ -15,11 +15,11 @@ namespace AetherBox.Features.Debugging;
 
 public class PositionDebug : DebugHelper
 {
-    private float playerPositionX;
+    // private float playerPositionX;
 
-    private float playerPositionY;
+    // private float playerPositionY;
 
-    private float playerPositionZ;
+    // private float playerPositionZ;
 
     private bool noclip;
 
@@ -55,6 +55,10 @@ public class PositionDebug : DebugHelper
         ImGui.Separator();
         if (Svc.ClientState.LocalPlayer != null)
         {
+            float playerPositionX;
+            float playerPositionY;
+            float playerPositionZ;
+
             Vector3 curPos;
             curPos = Svc.ClientState.LocalPlayer.Position;
             playerPositionX = curPos.X;

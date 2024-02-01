@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using AetherBox.Helpers.Faloop.Model;
+using ECommons.DalamudServices;
 
 namespace AetherBox.Helpers.Faloop
 {
@@ -30,7 +31,7 @@ namespace AetherBox.Helpers.Faloop
             {
                 Stream stream = await response.Content.ReadAsStreamAsync();
                 int num = 0;
-                UserRefreshResponse userRefreshResponse = default(UserRefreshResponse);
+                UserRefreshResponse? userRefreshResponse = default(UserRefreshResponse);
                 try
                 {
                     userRefreshResponse = await JsonSerializer.DeserializeAsync<UserRefreshResponse>(stream, new JsonSerializerOptions
@@ -41,7 +42,7 @@ namespace AetherBox.Helpers.Faloop
                 }
                 catch (JsonException jsonException)
                 {
-                    throw jsonException; // Throw the JsonException explicitly
+                    Svc.Log.Warning($"{jsonException}");
                 }
                 if (stream != null)
                 {
@@ -82,7 +83,7 @@ namespace AetherBox.Helpers.Faloop
             {
                 Stream stream = await response.Content.ReadAsStreamAsync();
                 int num = 0;
-                UserLoginResponse userLoginResponse = default(UserLoginResponse);
+                UserLoginResponse? userLoginResponse = default(UserLoginResponse);
                 try
                 {
                     userLoginResponse = await JsonSerializer.DeserializeAsync<UserLoginResponse>(stream, new JsonSerializerOptions
@@ -93,7 +94,8 @@ namespace AetherBox.Helpers.Faloop
                 }
                 catch (JsonException jsonException)
                 {
-                    throw jsonException; // Throw the JsonException explicitly
+                    Svc.Log.Warning($"{jsonException}");
+
                 }
                 if (stream != null)
                 {

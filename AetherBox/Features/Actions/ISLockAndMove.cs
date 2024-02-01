@@ -42,7 +42,7 @@ public class ISLockAndMove : Feature
 
     private unsafe void CheckToJump(IFramework framework)
     {
-        if (!(Svc.Targets.Target == null) && Svc.Targets.Target.ObjectKind == ObjectKind.CardStand && IsMoving() && BaseFeature.IsTargetLocked && MJIManager.Instance()->IsPlayerInSanctuary != 0 && ActionManager.Instance()->GetActionStatus(ActionType.GeneralAction, 2u, 3758096384uL, checkRecastActive: true, checkCastingActive: true, null) == 0 && Vector3.Distance(Svc.Targets.Target.Position, Player.Object.Position) > 8f && !TaskManager.IsBusy)
+        if ((Svc.Targets.Target != null) && Svc.Targets.Target.ObjectKind == ObjectKind.CardStand && IsMoving() && BaseFeature.IsTargetLocked && MJIManager.Instance()->IsPlayerInSanctuary != 0 && ActionManager.Instance()->GetActionStatus(ActionType.GeneralAction, 2u, 3758096384uL, checkRecastActive: true, checkCastingActive: true, null) == 0 && Vector3.Distance(Svc.Targets.Target.Position, Player.Object.Position) > 8f && !TaskManager.IsBusy)
         {
             TaskManager.DelayNext(new Random().Next(300, 550));
             TaskManager.Enqueue(() => ActionManager.Instance()->UseAction(ActionType.GeneralAction, 2u, 3758096384uL, 0u, 0u, 0u, null));

@@ -15,7 +15,11 @@ using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
+using Dalamud.Interface.Utility.Table;
 using Dalamud.Plugin.Services;
+using EasyCombat.UI.Helpers;
 using ECommons;
 using ECommons.DalamudServices;
 using ECommons.ImGuiMethods;
@@ -60,30 +64,45 @@ public class AutoFollow : Feature
 
     public override string Name => "Auto Follow";
 
-    public override string Description => "True Auto Follow. Trigger with /autofollow while targeting someone. Use it with no target to wipe the current master.";
+    public override string Description => "True Auto Follow. Trigger with /autofollow while targeting someone.\nUse it with no target to wipe the current master.";
 
     public override FeatureType FeatureType => FeatureType.Actions;
 
-    public Configs Config { get; private set; }
+    public Configs? Config { get; private set; }
 
     protected override DrawConfigDelegate DrawConfigTree => delegate (ref bool hasChanged)
     {
-        if (ImGui.Checkbox("Function Only in Duty", ref Config.OnlyInDuty))
+        if (ImGui.BeginTable("AutoFollow header options", 2, ImGuiTableFlags.SizingStretchProp))
         {
-            hasChanged = true;
+            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
+            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            if (ImGui.Checkbox("Function Only in Duty", ref Config.OnlyInDuty))
+            {
+                hasChanged = true;
+            }
+            ImGuiHelper.HelpMarker("When enabled, Auto Follow will only work while you're in a duty.");
+            ImGui.TableNextColumn();
+            if (ImGui.Checkbox("Mount & Fly", ref Config.MountAndFly))
+            {
+                hasChanged = true;
+            }
+            ImGuiHelper.HelpMarker("Lets Auto Follow use mount");
+            ImGui.EndTable();
         }
+        ImGuiHelper.SeperatorWithSpacing();
+
         if (ImGui.Checkbox("Change master on chat message", ref Config.changeMasterOnChat))
         {
             hasChanged = true;
         }
-        ImGuiComponents.HelpMarker("If a party chat message contains \"autofollow\", the current master will be switched to them.");
-
+        ImGuiHelper.HelpMarker("If a party chat message contains \"autofollow\"\nthe current master will be switched to them.");
 
         // Define your chatTypeOptions array with the chat type names
         string[] chatTypeOptions = Constants.NormalChatTypes.Select(chatType => chatType.ToString()).ToArray();
-
         int selectedChatTypeIndex = Array.IndexOf(chatTypeOptions, Config.SelectedChatType.ToString());
-
+        ImGui.PushItemWidth(150f);
         if (ImGui.Combo("Select Chat Type", ref selectedChatTypeIndex, chatTypeOptions, chatTypeOptions.Length))
         {
             // User has selected a chat type
@@ -93,28 +112,25 @@ public class AutoFollow : Feature
                 hasChanged = true;
             }
         }
+        ImGuiHelper.HelpMarker("Select the channel that should be listend to for the \"autofollow\" command!\nNOTE: \"CrossParty\" functions the same as regular party chat!");
+        ImGuiHelper.SeperatorWithSpacing();
 
 
 
-
-
-
-
-        if (ImGui.Checkbox("Mount & Fly", ref Config.MountAndFly))
-        {
-            hasChanged = true;
-        }
-        ImGui.PushItemWidth(300f);
+        ImGui.PushItemWidth(150);
         if (ImGui.SliderInt("Distance to Keep (yalms)", ref Config.distanceToKeep, 0, 30))
         {
             hasChanged = true;
         }
-        ImGui.PushItemWidth(300f);
+        ImGui.SameLine();
+        ImGui.PushItemWidth(150);
         if (ImGui.SliderInt("Disable if Further Than (yalms)", ref Config.disableIfFurtherThan, 0, 300))
         {
             hasChanged = true;
         }
-        ImGui.Text($"Current Master: {((master != null) ? master.Name : ((SeString)"null"))}");
+        ImGuiHelper.SeperatorWithSpacing();
+        ImGui.Spacing();
+        ImGui.TextColored(AetherColor.BrightGhostType, $"Current Master: {((master != null) ? master.Name : ((SeString)"null"))}");
         if (Svc.ClientState.LocalPlayer == null)
         {
             ImGui.Text("Your Position: x: null, y: null, z: null");
@@ -144,6 +160,13 @@ public class AutoFollow : Feature
         {
             ClearMaster();
         }
+        ImGui.SameLine();
+        if (ImGui.Button("Jump"))
+        {
+            Jump();
+        }
+
+
     };
 
     public string Command { get; set; } = "/autofollow";
@@ -217,9 +240,9 @@ public class AutoFollow : Feature
     {
         try
         {
-            master = Svc.Targets.Target;
-            masterObjectID = Svc.Targets.Target.ObjectId;
-            PrintModuleMessage($"Master is set to {master.Name}");
+            master = Svc.Targets?.Target;
+            masterObjectID = Svc.Targets?.Target?.ObjectId;
+            PrintModuleMessage($"Master is set to {master?.Name}");
         }
         catch (Exception ex)
         {
@@ -241,7 +264,7 @@ public class AutoFollow : Feature
             Svc.Log.Debug($"{ex}");
         }
     }
-
+ 
     private unsafe void Follow(IFramework framework)
     {
         master = Svc.Objects.FirstOrDefault((Dalamud.Game.ClientState.Objects.Types.GameObject x) => x.ObjectId == masterObjectID);
@@ -256,6 +279,12 @@ public class AutoFollow : Feature
             return;
         }
         if (Config.OnlyInDuty && GameMain.Instance()->CurrentContentFinderConditionId == 0)
+        {
+            movement.Enabled = false;
+            return;
+        }
+        var player = Svc.ClientState.LocalPlayer;
+        if (Svc.ClientState.LocalPlayer != null && player.IsDead)
         {
             movement.Enabled = false;
             return;
@@ -328,8 +357,8 @@ public class AutoFollow : Feature
         //    return;
         //}
 
-        PlayerPayload player;
-        player = sender.Payloads.SingleOrDefault((Payload x) => x is PlayerPayload) as PlayerPayload;
+        PlayerPayload? player;
+        player = sender?.Payloads.SingleOrDefault((Payload x) => x is PlayerPayload) as PlayerPayload;
 
         // Convert the message to lowercase for case-insensitive comparison
         string lowerMessage = message.TextValue.ToLowerInvariant();
@@ -340,9 +369,9 @@ public class AutoFollow : Feature
             {
                 if (actor != null)
                 {
-                    Svc.Log.Info($"{actor.Name.TextValue} == {player.PlayerName} {actor.Name.TextValue.ToLowerInvariant().Equals(player.PlayerName)}");
+                    Svc.Log.Info($"{actor.Name.TextValue} == {player?.PlayerName} {actor.Name.TextValue.ToLowerInvariant().Equals(player?.PlayerName)}");
 
-                    if (actor.Name.TextValue.Equals(player.PlayerName) && ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actor.Address)->GetIsTargetable())
+                    if (actor.Name.TextValue.Equals(player?.PlayerName) && ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actor.Address)->GetIsTargetable())
                     {
                         Svc.Targets.Target = actor;
                         SetMaster();
@@ -357,9 +386,9 @@ public class AutoFollow : Feature
             {
                 if (actor != null)
                 {
-                    Svc.Log.Info($"{actor.Name.TextValue} == {player.PlayerName} {actor.Name.TextValue.ToLowerInvariant().Equals(player.PlayerName)}");
+                    Svc.Log.Info($"{actor.Name.TextValue} == {player?.PlayerName} {actor.Name.TextValue.ToLowerInvariant().Equals(player?.PlayerName)}");
 
-                    if (actor.Name.TextValue.Equals(player.PlayerName) && ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actor.Address)->GetIsTargetable())
+                    if (actor.Name.TextValue.Equals(player?.PlayerName) && ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actor.Address)->GetIsTargetable())
                     {
                         Svc.Targets.Target = actor;
                         ClearMaster();
