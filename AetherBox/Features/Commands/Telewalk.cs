@@ -29,7 +29,7 @@ public class Telewalk : CommandFeature
 
     public override List<string> Parameters => new List<string> { "<displacement factor>" };
 
-    public override bool isDebug => true;
+    //public override bool isDebug => true;
 
     public override FeatureType FeatureType => FeatureType.Commands;
 

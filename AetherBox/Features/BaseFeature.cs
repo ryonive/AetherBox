@@ -154,6 +154,7 @@ public abstract class BaseFeature
                 return null;
             }
             return JsonConvert.DeserializeObject<T>(File.ReadAllText(configFile));
+
         }
         catch (Exception exception)
         {
@@ -179,7 +180,7 @@ public abstract class BaseFeature
         }
         catch (Exception exception)
         {
-            PluginLog.Error(exception, "Feature failed to write config " + Name);
+            Svc.Log.Error(exception, "Feature failed to write config " + Name);
         }
     }
 
@@ -508,14 +509,14 @@ public abstract class BaseFeature
                     text = MemoryHelper.ReadSeString(&addon->UldManager.NodeList[15]->GetAsAtkTextNode()->NodeText).ExtractText();
                     if (compare(text))
                     {
-                        PluginLog.Verbose($"SelectYesno {text} addon {i} by predicate");
+                        Svc.Log.Verbose($"SelectYesno {text} addon {i} by predicate");
                         return addon;
                     }
                 }
             }
             catch (Exception e)
             {
-                PluginLog.Error("", e);
+                Svc.Log.Error("", e);
                 return null;
             }
         }
@@ -537,13 +538,13 @@ public abstract class BaseFeature
                 if (GenericHelpers.IsAddonReady(addon) && MemoryHelper.ReadSeString(&addon->UldManager.NodeList[15]->GetAsAtkTextNode()->NodeText).ExtractText().Replace(" ", "")
                     .EqualsAny<string>(s.Select((string x) => x.Replace(" ", ""))))
                 {
-                    PluginLog.Verbose($"SelectYesno {s.Print()} addon {i}");
+                    Svc.Log.Verbose($"SelectYesno {s.Print()} addon {i}");
                     return addon;
                 }
             }
             catch (Exception e)
             {
-                PluginLog.Error("", e);
+                Svc.Log.Error("", e);
                 return null;
             }
         }
@@ -568,7 +569,7 @@ public abstract class BaseFeature
                 if (index >= 0 && IsSelectItemEnabled(addon, index) && (Throttler?.Invoke() ?? GenericThrottle))
                 {
                     ClickSelectString.Using((nint)addon).SelectItem((ushort)index);
-                    PluginLog.Debug($"TrySelectSpecificEntry: selecting {entry}/{index} as requested by {text.Print()}");
+                    Svc.Log.Debug($"TrySelectSpecificEntry: selecting {entry}/{index} as requested by {text.Print()}");
                     return true;
                 }
             }

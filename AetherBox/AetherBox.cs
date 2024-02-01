@@ -1,4 +1,5 @@
 using System.Reflection;
+using AetherBox.Attributes;
 using AetherBox.Features;
 using AetherBox.FeaturesSetup;
 using AetherBox.IPC;
@@ -14,8 +15,12 @@ using ECommons.DalamudServices;
 
 namespace AetherBox;
 
-public class AetherBox : IDalamudPlugin, IDisposable
+public class AetherBox : IDalamudPlugin
 {
+    internal static PluginCommandManager<IDalamudPlugin> pluginCommandManager;
+    public AetherBox(IDalamudPlugin plugin) => pluginCommandManager ??= new(plugin);
+
+    public static string Name => "AetherBox";
     private const string CommandName = "/atb";
     private const string TestCommandName = "/atbtest";
 
@@ -30,15 +35,22 @@ public class AetherBox : IDalamudPlugin, IDisposable
     private FeatureProvider provider;
     internal TaskManager TaskManager;
 
+
+    public IEnumerable<BaseFeature> Features => FeatureProviders.Where(x => !x.Disposed).SelectMany(x => x.Features).OrderBy(x => x.Name);
+
     [PluginService]
     public static IAddonLifecycle AddonLifecycle { get; private set; }
-    public static string Name => "AetherBox";
-    public IEnumerable<BaseFeature> Features => FeatureProviders.Where(x => !x.Disposed).SelectMany(x => x.Features).OrderBy(x => x.Name);
 
     public AetherBox(DalamudPluginInterface pluginInterface)
     {
         P = this;
         pi = pluginInterface;
+        if (!pluginInterface.Inject(this))
+        {
+            Svc.Log.Error("Failed loading AetherBox!");
+            return;
+        }
+        pluginCommandManager ??= new(P);
         InitializePlugin();
     }
 

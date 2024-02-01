@@ -1,5 +1,4 @@
 ﻿using ECommons.DalamudServices;
-using ECommons.Reflection;
 using Serilog.Events;
 
 namespace ECommons.Logging;
@@ -9,7 +8,7 @@ public static class PluginLog
 
     public static void Information(string s)
     {
-        PluginLog.Information($"[{DalamudReflector.GetPluginName()}] {s}");
+        Svc.Log.Information($"{s}");
         Svc.Framework?.RunOnFrameworkThread(delegate
         {
             InternalLog.Messages.PushBack(new(s, LogEventLevel.Information));
@@ -17,7 +16,7 @@ public static class PluginLog
     }
     public static void Error(string s)
     {
-        PluginLog.Error($"[{DalamudReflector.GetPluginName()}] {s}");
+        Svc.Log.Error($"{s}");
         Svc.Framework?.RunOnFrameworkThread(delegate
         {
             InternalLog.Messages.PushBack(new(s, LogEventLevel.Error));
@@ -25,7 +24,7 @@ public static class PluginLog
     }
     public static void Fatal(string s)
     {
-        PluginLog.Fatal($"[{DalamudReflector.GetPluginName()}] {s}");
+        Svc.Log.Fatal($"{s}");
         Svc.Framework?.RunOnFrameworkThread(delegate
         {
             InternalLog.Messages.PushBack(new(s, LogEventLevel.Fatal));
@@ -33,7 +32,7 @@ public static class PluginLog
     }
     public static void Debug(string s)
     {
-        PluginLog.Debug($"[{DalamudReflector.GetPluginName()}] {s}");
+        Svc.Log.Debug($"{s}");
         Svc.Framework?.RunOnFrameworkThread(delegate
         {
             InternalLog.Messages.PushBack(new(s, LogEventLevel.Debug));
@@ -41,7 +40,7 @@ public static class PluginLog
     }
     public static void Verbose(string s)
     {
-        PluginLog.Verbose($"[{DalamudReflector.GetPluginName()}] {s}");
+        Svc.Log.Verbose($"{s}");
         Svc.Framework?.RunOnFrameworkThread(delegate
         {
             InternalLog.Messages.PushBack(new(s, LogEventLevel.Verbose));
@@ -49,7 +48,7 @@ public static class PluginLog
     }
     public static void Warning(string s)
     {
-        PluginLog.Warning($"[{DalamudReflector.GetPluginName()}] {s}");
+        Svc.Log.Warning($"{s}");
         Svc.Framework?.RunOnFrameworkThread(delegate
         {
             InternalLog.Messages.PushBack(new(s, LogEventLevel.Warning));

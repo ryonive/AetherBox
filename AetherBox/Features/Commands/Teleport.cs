@@ -22,7 +22,7 @@ public class Teleport : CommandFeature
 
     public override List<string> Parameters => new List<string> { "<x offset>, <z offset>, <y offset>" };
 
-    public override bool isDebug => true;
+    //public override bool isDebug => true;
 
     public override FeatureType FeatureType => FeatureType.Commands;
 
@@ -46,8 +46,9 @@ public class Teleport : CommandFeature
             Svc.Log.Info($"Moving to {newPos.X}, {newPos.Y}, {newPos.Z}");
             PositionDebug.SetPos(newPos);
         }
-        catch
+        catch (Exception ex)
         {
+            Svc.Log.Error($"{ex}");
         }
     }
 }

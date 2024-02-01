@@ -1,17 +1,18 @@
 ﻿using Dalamud.Interface.Internal;
 using ECommons.DalamudServices;
 using ECommons.Logging;
-using ImGuiScene;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using static Dalamud.Plugin.Services.ITextureProvider;
 using static ECommons.GenericHelpers;
 
 namespace ECommons.ImGuiMethods;
+#nullable disable
 
 public class ThreadLoadImageHandler
 {
@@ -104,7 +105,7 @@ public class ThreadLoadImageHandler
                                         }
                                         catch (Exception ex)
                                         {
-                                            //TODO: I don't know how to log exception in ECommons.
+                                            ex.Log();
                                         }
                                     }
                                     keyValuePair.Value.texture = texture;
@@ -133,7 +134,7 @@ public class ThreadLoadImageHandler
                         }
                     });
                     idleTicks++;
-                    Thread.Sleep(100);
+                    if(!CachedTextures.Any(x => x.Value.isCompleted) && !CachedIcons.Any(x => x.Value.isCompleted)) Thread.Sleep(100);
                 }
             });
             PluginLog.Information($"Stopping ThreadLoadImageHandler, ticks={idleTicks}");

@@ -18,6 +18,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.DalamudServices;
+using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
@@ -41,9 +42,13 @@ public class AutoFollow : Feature
         [FeatureConfigOption("Change master on chat message", "", 4, null, IntMin = 0, IntMax = 30, EditorSize = 300, HelpText = "If a party chat message contains \"autofollow\", the current master will be switched to them.")]
         public bool changeMasterOnChat;
 
-        [FeatureConfigOption("Mount & Fly (Experimental)", "", 5, null)]
+        [FeatureConfigOption("Selected Chat Type", "", 5, null)]
+        public XivChatType SelectedChatType;
+
+        [FeatureConfigOption("Mount & Fly (Experimental)", "", 6, null)]
         public bool MountAndFly = true;
     }
+
 
     private readonly List<string> registeredCommands = new List<string>();
 
@@ -72,6 +77,29 @@ public class AutoFollow : Feature
             hasChanged = true;
         }
         ImGuiComponents.HelpMarker("If a party chat message contains \"autofollow\", the current master will be switched to them.");
+
+
+        // Define your chatTypeOptions array with the chat type names
+        string[] chatTypeOptions = Constants.NormalChatTypes.Select(chatType => chatType.ToString()).ToArray();
+
+        int selectedChatTypeIndex = Array.IndexOf(chatTypeOptions, Config.SelectedChatType.ToString());
+
+        if (ImGui.Combo("Select Chat Type", ref selectedChatTypeIndex, chatTypeOptions, chatTypeOptions.Length))
+        {
+            // User has selected a chat type
+            if (selectedChatTypeIndex >= 0 && selectedChatTypeIndex < Constants.NormalChatTypes.Length)
+            {
+                Config.SelectedChatType = Constants.NormalChatTypes[selectedChatTypeIndex];
+                hasChanged = true;
+            }
+        }
+
+
+
+
+
+
+
         if (ImGui.Checkbox("Mount & Fly", ref Config.MountAndFly))
         {
             hasChanged = true;
@@ -163,7 +191,10 @@ public class AutoFollow : Feature
             registeredCommands.Add(Command);
         }
         Svc.Framework.Update += Follow;
+        Svc.Log.Debug("Follow enabled");
+        Svc.Chat.Print($"{XivChatType.Notice}Auto Follow Module enabled");
         Svc.Chat.ChatMessage += OnChatMessage;
+        Svc.Log.Debug("OnChatMessage enabled");
         base.Enable();
     }
 
@@ -176,7 +207,9 @@ public class AutoFollow : Feature
         }
         registeredCommands.Clear();
         Svc.Framework.Update -= Follow;
+        Svc.Log.Debug("Follow disable");
         Svc.Chat.ChatMessage -= OnChatMessage;
+        Svc.Log.Debug("OnChatMessage disable");
         base.Disable();
     }
 
@@ -186,16 +219,27 @@ public class AutoFollow : Feature
         {
             master = Svc.Targets.Target;
             masterObjectID = Svc.Targets.Target.ObjectId;
+            PrintModuleMessage($"Master is set to {master.Name}");
         }
-        catch
+        catch (Exception ex)
         {
+            Svc.Log.Debug($"{ex}");
         }
     }
 
     private void ClearMaster()
     {
-        master = null;
-        masterObjectID = null;
+        try
+        {
+            master = null;
+            masterObjectID = null;
+            Svc.Log.Debug($"Clearing current master");
+            PrintModuleMessage($"Cleared current master");
+        }
+        catch (Exception ex)
+        {
+            Svc.Log.Debug($"{ex}");
+        }
     }
 
     private unsafe void Follow(IFramework framework)
@@ -264,27 +308,72 @@ public class AutoFollow : Feature
 
     private unsafe void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
     {
-        if (type != XivChatType.Party)
+
+        if (!Config.changeMasterOnChat)
         {
             return;
         }
+
+        // Check if the received chat type matches the selected chat type in Config
+        if (type != Config.SelectedChatType)
+        {
+            return;
+        }
+
+        //var partychat = XivChatType.Party;
+        //var FCchat = XivChatType.FreeCompany;
+
+        //if (type != FCchat)
+        //{
+        //    return;
+        //}
+
         PlayerPayload player;
         player = sender.Payloads.SingleOrDefault((Payload x) => x is PlayerPayload) as PlayerPayload;
-        if (!message.TextValue.ToLowerInvariant().Contains("autofollow", StringComparison.CurrentCultureIgnoreCase))
+
+        // Convert the message to lowercase for case-insensitive comparison
+        string lowerMessage = message.TextValue.ToLowerInvariant();
+
+        if (lowerMessage.Contains("autofollow", StringComparison.CurrentCultureIgnoreCase))
         {
-            return;
-        }
-        foreach (Dalamud.Game.ClientState.Objects.Types.GameObject actor in Svc.Objects)
-        {
-            if (!(actor == null))
+            foreach (Dalamud.Game.ClientState.Objects.Types.GameObject actor in Svc.Objects)
             {
-                Svc.Log.Info($"{actor.Name.TextValue} == {player.PlayerName} {actor.Name.TextValue.ToLowerInvariant().Equals(player.PlayerName)}");
-                if (actor.Name.TextValue.Equals(player.PlayerName) && ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actor.Address)->GetIsTargetable())
+                if (actor != null)
                 {
-                    Svc.Targets.Target = actor;
-                    SetMaster();
+                    Svc.Log.Info($"{actor.Name.TextValue} == {player.PlayerName} {actor.Name.TextValue.ToLowerInvariant().Equals(player.PlayerName)}");
+
+                    if (actor.Name.TextValue.Equals(player.PlayerName) && ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actor.Address)->GetIsTargetable())
+                    {
+                        Svc.Targets.Target = actor;
+                        SetMaster();
+                    }
                 }
             }
         }
+
+        if (lowerMessage.Contains("autofollowoff", StringComparison.CurrentCultureIgnoreCase))
+        {
+            foreach (Dalamud.Game.ClientState.Objects.Types.GameObject actor in Svc.Objects)
+            {
+                if (actor != null)
+                {
+                    Svc.Log.Info($"{actor.Name.TextValue} == {player.PlayerName} {actor.Name.TextValue.ToLowerInvariant().Equals(player.PlayerName)}");
+
+                    if (actor.Name.TextValue.Equals(player.PlayerName) && ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)actor.Address)->GetIsTargetable())
+                    {
+                        Svc.Targets.Target = actor;
+                        ClearMaster();
+                    }
+                }
+            }
+        }
+
+
+        // Check if the message contains "autofollow off" to clear the master
+        if (lowerMessage.Contains("autofollowoff", StringComparison.CurrentCultureIgnoreCase))
+        {
+            ClearMaster();
+        }
     }
+
 }

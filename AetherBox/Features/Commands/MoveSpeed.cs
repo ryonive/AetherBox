@@ -21,7 +21,7 @@ public class MoveSpeed : CommandFeature
 
     public override List<string> Parameters => new List<string> { "[<speed>]" };
 
-    public override bool isDebug => true;
+    //public override bool isDebug => true;
 
     public override FeatureType FeatureType => FeatureType.Commands;
 
