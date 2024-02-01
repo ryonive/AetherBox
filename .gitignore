@@ -109,7 +109,7 @@ Libraries/RunSharp/.hg/thgstatus
 # User added files/directories
 /.vs
 /AutoKirbo/packages.lock.json
-/OOBlugin
+#/OOBlugin
 /desktop.ini
 /.editorconfig
 /.gitattributes
