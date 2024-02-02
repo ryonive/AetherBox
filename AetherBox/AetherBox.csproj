@@ -22,6 +22,7 @@
         <RootNamespace>$(InternalName)</RootNamespace>
         <NoWarn>CS1591</NoWarn>
         <ImplicitUsings>enable</ImplicitUsings>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
         <DalamudDevPlugins>$(appdata)\XIVLauncher\devPlugins\$(InternalName)\</DalamudDevPlugins>
     </PropertyGroup>
 
@@ -51,7 +52,6 @@
 
     <!-- Debug build config -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-        <OutputPath>$(DalamudDevPlugins)</OutputPath>
         <NoWarn>1701;1702;S125;IDE1006;S3010;S1144</NoWarn>
         <DebugType>full</DebugType>
     </PropertyGroup>
@@ -93,7 +93,7 @@
     <ItemGroup>
         <ProjectReference Include="..\ClickLib\ClickLib\ClickLib.csproj" />
         <ProjectReference Include="..\ECommons\ECommons\ECommons.csproj" />
-        <Reference Include="..\..\Libraries\addon\SocketIOClient.dll" />
+        <Reference Include="..\lib\SocketIOClient.dll" />
     </ItemGroup>
 
     <!-- images -->
@@ -106,7 +106,15 @@
 
     <!-- audio -->
     <ItemGroup>
-        <Content Include="..\audio\*.wav">
+        <Content Include="..\AetherBox\Sounds\Light.wav">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Visible>false</Visible>
+        </Content>
+        <Content Include="..\AetherBox\Sounds\Strong.wav">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <Visible>false</Visible>
+        </Content>
+        <Content Include="..\AetherBox\Sounds\Legendary.wav">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Visible>false</Visible>
         </Content>
@@ -119,5 +127,19 @@
         <PackageReference Include="AngleSharp" Version="1.0.7" />
         <PackageReference Include="NAudio" Version="2.2.1" />
         <PackageReference Include="Svg" Version="3.4.6" />
+        <!--<PackageReference Include="TS.SocketIOClient" Version="3.1.0.2" />       -->
     </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Sounds">
+            <Visible>false</Visible>
+        </Folder>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Compile Update="UI\MainWindow.cs">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Compile>
+    </ItemGroup>
+
 </Project>
