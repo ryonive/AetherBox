@@ -11,4 +11,5 @@ public enum OpenCatagory
     Achievements = 6,
     Commands = 7,
     Debug = 8,
+    QuickLinks = 9,
 }

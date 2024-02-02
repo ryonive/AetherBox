@@ -51,7 +51,7 @@ public class MainWindow : Window
     {
         // Set initial size and size condition
         SizeCondition = ImGuiCond.FirstUseEver;
-        Size = new Vector2(750, 400);
+        Size = new Vector2(850, 420);
 
         // Set window size constraints
         var primaryScreen = System.Windows.Forms.Screen.PrimaryScreen;
@@ -60,8 +60,9 @@ public class MainWindow : Window
             var workingArea = primaryScreen.WorkingArea;
             SizeConstraints = new WindowSizeConstraints
             {
-                MinimumSize = new Vector2(300, 150),
-                MaximumSize = new Vector2(workingArea.Width, workingArea.Height)
+                MinimumSize = new Vector2(430, 250),
+                MaximumSize = new Vector2(900, workingArea.Height)
+                //MaximumSize = new Vector2(workingArea.Width, workingArea.Height)
             };
         }
         else
@@ -204,7 +205,6 @@ public class MainWindow : Window
             if (ImGui.BeginChild("###" + AetherBox.Name + "Right", Vector2.Zero, false, ImGuiWindowFlags.NoDecoration))
             {
                 //DrawBanner();
-                DrawBannerImage();
                 if (FilteredFeatures?.Count > 0)
                 {
                     DrawFeatures(FilteredFeatures?.ToArray());
@@ -236,6 +236,9 @@ public class MainWindow : Window
                             break;
                         case OpenCatagory.Debug:
                             DrawDebug(AetherBox.P.Features.Where((BaseFeature x) => (x.isDebug)).ToArray());
+                            break;
+                        case OpenCatagory.QuickLinks:
+                            QuickLinks.DrawQuickLinks();
                             break;
                     }
                 }
@@ -289,21 +292,6 @@ public class MainWindow : Window
 
     }
 
-    private void DrawBannerImage()
-    {
-        var width = ImGui.GetWindowWidth();
-        // var urlpath = "https://discordapp.com/api/guilds/1064448004498653245/embed.png?style=banner2";
-        // var urlpath2 = "https://images.logicalincrements.com/gallery/1920/822/Final%20Fantasy%20XIV%20Endwalker%20banner.jpeg";
-        var urlpath3 = "https://img.finalfantasyxiv.com/t/db506ff2f29218fefd9edfac5cd51912edca64bf.png?1704960236";
-        if (IconSet.GetTexture(urlpath3, out var icon) && ImGuiHelper.TextureButton(icon, width, width))
-        {
-            var patchNotes = "https://eu.finalfantasyxiv.com/lodestone/topics/detail/8e7360878c6a7c3209614b36a801a783f74ff21d";
-            Util.OpenLink($"{patchNotes}");
-        }
-        ImGuiHelper.Tooltip($"Patch 6.55 Notes");
-        ImGui.Separator();
-    }
-
     private void DrawBanner()
     {
         try
@@ -341,6 +329,30 @@ public class MainWindow : Window
             Svc.Log.Error($"{ex}, Error at DrawHeader");
         }
 
+    }
+
+    // Method: Is called when selecting the 'QuickLinks' catagory in the plugin
+    private static void DrawQuickLinks() 
+    {
+        // Float variable: Simply gets the available width in pixels
+        var width = ImGui.GetWindowWidth(); 
+
+        // String variable: We use this so we dont have to write the whole URL
+        var urlpath3 = "https://img.finalfantasyxiv.com/t/db506ff2f29218fefd9edfac5cd51912edca64bf.png?1704960236";
+
+        // Method: Grabs a texture (image) from a path 'urlpath3', and 'TextureButton' just maked the image a clickable button
+        if (IconSet.GetTexture(urlpath3, out var icon) && ImGuiHelper.TextureButton(icon, width, width))
+        {
+            var patchNotes = "https://eu.finalfantasyxiv.com/lodestone/topics/detail/8e7360878c6a7c3209614b36a801a783f74ff21d";
+            // Method: Opens whatever URL is provided (in this case 'patchNotes' is a string variable that holds the link to the patch notes)
+            Util.OpenLink($"{patchNotes}");
+        }
+
+        // Method: Displays a tooltip if the mouse is hovering over.
+        ImGuiHelper.Tooltip($"Patch 6.55 Notes");
+        
+        // Method: Displays a line (Yup that's it)
+        ImGui.Separator();
     }
 
     private static void DrawDebug(BaseFeature[] features)

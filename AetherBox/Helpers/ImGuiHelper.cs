@@ -18,13 +18,98 @@ namespace AetherBox.Helpers;
 
 public static unsafe partial class ImGuiHelper
 {
-    public static bool CollapsingHeader(string text, Vector4? col = null)
+    #region Buttons
+
+    /// <summary>
+    /// Button that is disabled unless CTRL key is held
+    /// </summary>
+    /// <param name="text">Button ID</param>
+    /// <param name="affix">Button affix</param>
+    /// <returns></returns>
+    public static bool ButtonCtrl(string text, string affix = " (Hold CTRL)")
     {
-        if (col != null) ImGui.PushStyleColor(ImGuiCol.Text, col.Value);
-        var ret = ImGui.CollapsingHeader(text);
-        if (col != null) ImGui.PopStyleColor();
+        var disabled = !ImGui.GetIO().KeyCtrl;
+        if (disabled)
+        {
+            ImGui.BeginDisabled();
+        }
+        var name = string.Empty;
+        if (text.Contains($"###"))
+        {
+            var p = text.Split($"###");
+            name = $"{p[0]}{affix}###{p[1]}";
+        }
+        else if (text.Contains($"##"))
+        {
+            var p = text.Split($"##");
+            name = $"{p[0]}{affix}##{p[1]}";
+        }
+        else
+        {
+            name = $"{text}{affix}";
+        }
+        var ret = ImGui.Button(name);
+        if (disabled)
+        {
+            ImGui.EndDisabled();
+        }
         return ret;
     }
+
+    public static void ButtonCopy(string buttonText, string copy)
+    {
+        if (ImGui.Button(buttonText.Replace("$COPY", copy)))
+        {
+            ImGui.SetClipboardText(copy);
+            Svc.PluginInterface.UiBuilder.AddNotification("Text copied to clipboard", null, NotificationType.Success);
+        }
+    }
+
+    public static bool IconButton(FontAwesomeIcon icon, string id = "ECommonsButton", Vector2 size = default)
+    {
+        ImGui.PushFont(UiBuilder.IconFont);
+        var result = ImGui.Button($"{icon.ToIconString()}##{icon.ToIconString()}-{id}", size);
+        ImGui.PopFont();
+        return result;
+    }
+
+    public static bool IconButton(string icon, string id = "ECommonsButton")
+    {
+        ImGui.PushFont(UiBuilder.IconFont);
+        var result = ImGui.Button($"{icon}##{icon}-{id}");
+        ImGui.PopFont();
+        return result;
+    }
+
+    public static void InvisibleButton(int width = 0)
+    {
+        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0);
+        ImGui.Button(" ");
+        ImGui.PopStyleVar();
+    }
+
+    /// <summary>
+    /// Draws two radio buttons for a boolean value.
+    /// </summary>
+    /// <param name="labelTrue">True choice radio button text</param>
+    /// <param name="labelFalse">False choice radio button text</param>
+    /// <param name="value">Value</param>
+    /// <param name="sameLine">Whether to draw radio buttons on the same line</param>
+    /// <param name="prefix">Will be invoked before each radio button draw</param>
+    /// <param name="suffix">Will be invoked after each radio button draw</param>
+    public static void RadioButtonBool(string labelTrue, string labelFalse, ref bool value, bool sameLine = false, System.Action prefix = null, System.Action suffix = null)
+    {
+        prefix?.Invoke();
+        if (ImGui.RadioButton(labelTrue, value)) value = true;
+        suffix?.Invoke();
+        if (sameLine) ImGui.SameLine();
+        prefix?.Invoke();
+        if (ImGui.RadioButton(labelFalse, !value)) value = false;
+        suffix?.Invoke();
+    }
+    #endregion
+
+    #region Checkbox
 
     public static bool CheckboxWithTooltip(string label, ref bool value, string helpText)
     {
@@ -34,14 +119,13 @@ public static unsafe partial class ImGuiHelper
         {
             ImGui.BeginTooltip();
             ImGui.PushTextWrapPos(ImGui.GetFontSize() * 40f);
-            ImGui.TextColored(EColor.YellowBright,helpText);
+            ImGui.TextColored(EColor.YellowBright, helpText);
             ImGui.PopTextWrapPos();
             ImGui.EndTooltip();
         }
 
         return changed;
     }
-
 
     /// <summary>
     /// Provides a button that can be used to switch <see langword="bool"/>? variables. Left click - to toggle between <see langword="true"/> and <see langword="null"/>, right click - to toggle between <see langword="false"/> and <see langword="null"/>.
@@ -96,30 +180,6 @@ public static unsafe partial class ImGuiHelper
         }
         if (col != null) ImGui.PopStyleColor(3);
         return ret;
-    }
-
-    /// <summary>
-    /// Converts RGB color to <see cref="Vector4"/> for ImGui
-    /// </summary>
-    /// <param name="col">Color in format 0xRRGGBB</param>
-    /// <param name="alpha">Optional transparency value between 0 and 1</param>
-    /// <returns>Color in <see cref="Vector4"/> format ready to be used with <see cref="ImGui"/> functions</returns>
-    public static Vector4 Vector4FromRGB(uint col, float alpha = 1.0f)
-    {
-        byte* bytes = (byte*)&col;
-        return new Vector4((float)bytes[2] / 255f, (float)bytes[1] / 255f, (float)bytes[0] / 255f, alpha);
-    }
-
-
-    /// <summary>
-    /// Converts RGBA color to <see cref="Vector4"/> for ImGui
-    /// </summary>
-    /// <param name="col">Color in format 0xRRGGBBAA</param>
-    /// <returns>Color in <see cref="Vector4"/> format ready to be used with <see cref="ImGui"/> functions</returns>
-    public static Vector4 Vector4FromRGBA(uint col)
-    {
-        byte* bytes = (byte*)&col;
-        return new Vector4((float)bytes[3] / 255f, (float)bytes[2] / 255f, (float)bytes[1] / 255f, (float)bytes[0] / 255f);
     }
 
     /// <summary>
@@ -196,96 +256,6 @@ public static unsafe partial class ImGuiHelper
         return ret;
     }
 
-    /// <summary>
-    /// Draws two radio buttons for a boolean value.
-    /// </summary>
-    /// <param name="labelTrue">True choice radio button text</param>
-    /// <param name="labelFalse">False choice radio button text</param>
-    /// <param name="value">Value</param>
-    /// <param name="sameLine">Whether to draw radio buttons on the same line</param>
-    /// <param name="prefix">Will be invoked before each radio button draw</param>
-    /// <param name="suffix">Will be invoked after each radio button draw</param>
-    public static void RadioButtonBool(string labelTrue, string labelFalse, ref bool value, bool sameLine = false, System.Action prefix = null, System.Action suffix = null)
-    {
-        prefix?.Invoke();
-        if (ImGui.RadioButton(labelTrue, value)) value = true;
-        suffix?.Invoke();
-        if (sameLine) ImGui.SameLine();
-        prefix?.Invoke();
-        if (ImGui.RadioButton(labelFalse, !value)) value = false;
-        suffix?.Invoke();
-    }
-
-    /// <summary>
-    /// Draws equally sized columns without ability to resize
-    /// </summary>
-    /// <param name="id">Unique ImGui ID</param>
-    /// <param name="values">List of actions for each column</param>
-    public static void EzTableColumns(string id, System.Action[] values)
-    {
-        if (values.Length == 1)
-        {
-            GenericHelpers.Safe(values[0]);
-        }
-        else
-        {
-            if (ImGui.BeginTable(id, values.Length, ImGuiTableFlags.SizingStretchSame))
-            {
-                foreach (System.Action action in values)
-                {
-                    ImGui.TableNextColumn();
-                    GenericHelpers.Safe(action);
-                }
-                ImGui.EndTable();
-            }
-        }
-    }
-
-    /// <summary>
-    /// Button that is disabled unless CTRL key is held
-    /// </summary>
-    /// <param name="text">Button ID</param>
-    /// <param name="affix">Button affix</param>
-    /// <returns></returns>
-    public static bool ButtonCtrl(string text, string affix = " (Hold CTRL)")
-    {
-        var disabled = !ImGui.GetIO().KeyCtrl;
-        if (disabled)
-        {
-            ImGui.BeginDisabled();
-        }
-        var name = string.Empty;
-        if (text.Contains($"###"))
-        {
-            var p = text.Split($"###");
-            name = $"{p[0]}{affix}###{p[1]}";
-        }
-        else if (text.Contains($"##"))
-        {
-            var p = text.Split($"##");
-            name = $"{p[0]}{affix}##{p[1]}";
-        }
-        else
-        {
-            name = $"{text}{affix}";
-        }
-        var ret = ImGui.Button(name);
-        if (disabled)
-        {
-            ImGui.EndDisabled();
-        }
-        return ret;
-    }
-
-    public static bool BeginPopupNextToElement(string popupId)
-    {
-        ImGui.SameLine(0, 0);
-        var pos = ImGui.GetCursorScreenPos();
-        ImGui.Dummy(Vector2.Zero);
-        ImGui.SetNextWindowPos(pos, ImGuiCond.Appearing);
-        return ImGui.BeginPopup(popupId);
-    }
-
     [Obsolete("Please switch to CollectionCheckbox")]
     public static bool HashSetCheckbox<T>(string label, T value, HashSet<T> collection) => CollectionCheckbox(label, value, collection);
 
@@ -307,6 +277,198 @@ public static unsafe partial class ImGuiHelper
         return false;
     }
 
+    public static bool CollectionCheckbox<T>(string label, T value, List<T> collection, bool inverted = false)
+    {
+        var x = collection.Contains(value);
+        if (inverted) x = !x;
+        if (ImGui.Checkbox(label, ref x))
+        {
+            if (inverted) x = !x;
+            if (x)
+            {
+                collection.Add(value);
+            }
+            else
+            {
+                collection.RemoveAll(x => x.Equals(value));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    #endregion
+
+    #region Conversions (colours)
+    public static Vector4 MutateColor(ImGuiCol col, byte r, byte g, byte b)
+    {
+        return ImGui.GetStyle().Colors[(int)col] with { X = (float)r / 255f, Y = (float)g / 255f, Z = (float)b / 255f };
+    }
+
+    /// <summary>
+    /// Converts RGB color to <see cref="Vector4"/> for ImGui
+    /// </summary>
+    /// <param name="col">Color in format 0xRRGGBB</param>
+    /// <param name="alpha">Optional transparency value between 0 and 1</param>
+    /// <returns>Color in <see cref="Vector4"/> format ready to be used with <see cref="ImGui"/> functions</returns>
+    public static Vector4 Vector4FromRGB(uint col, float alpha = 1.0f)
+    {
+        byte* bytes = (byte*)&col;
+        return new Vector4((float)bytes[2] / 255f, (float)bytes[1] / 255f, (float)bytes[0] / 255f, alpha);
+    }
+
+    /// <summary>
+    /// Converts RGBA color to <see cref="Vector4"/> for ImGui
+    /// </summary>
+    /// <param name="col">Color in format 0xRRGGBBAA</param>
+    /// <returns>Color in <see cref="Vector4"/> format ready to be used with <see cref="ImGui"/> functions</returns>
+    public static Vector4 Vector4FromRGBA(uint col)
+    {
+        byte* bytes = (byte*)&col;
+        return new Vector4((float)bytes[3] / 255f, (float)bytes[2] / 255f, (float)bytes[1] / 255f, (float)bytes[0] / 255f);
+    }
+    #endregion
+
+    #region Colours
+    public static Vector4 GetParsedColor(int percent)
+    {
+        if (percent < 25)
+        {
+            return ImGuiColors.ParsedGrey;
+        }
+        else if (percent < 50)
+        {
+            return ImGuiColors.ParsedGreen;
+        }
+        else if (percent < 75)
+        {
+            return ImGuiColors.ParsedBlue;
+        }
+        else if (percent < 95)
+        {
+            return ImGuiColors.ParsedPurple;
+        }
+        else if (percent < 99)
+        {
+            return ImGuiColors.ParsedOrange;
+        }
+        else if (percent == 99)
+        {
+            return ImGuiColors.ParsedPink;
+        }
+        else if (percent == 100)
+        {
+            return ImGuiColors.ParsedGold;
+        }
+        else
+        {
+            return ImGuiColors.DalamudRed;
+        }
+    }
+    #endregion
+
+    #region Combo
+    public static Dictionary<string, Box<string>> EnumComboSearch = new();
+    /// <summary>
+    /// Draws an easy combo selector for an enum with a search field for long lists.
+    /// </summary>
+    /// <typeparam name="T">Enum</typeparam>
+    /// <param name="name">ImGui ID</param>
+    /// <param name="refConfigField">Value</param>
+    /// <param name="names">Optional Name overrides</param>
+    public static bool EnumCombo<T>(string name, ref T refConfigField, IDictionary<T, string> names) where T : IConvertible
+    {
+        return EnumCombo(name, ref refConfigField, null, names);
+    }
+
+    /// <summary>
+    /// Draws an easy combo selector for an enum with a search field for long lists.
+    /// </summary>
+    /// <typeparam name="T">Enum</typeparam>
+    /// <param name="name">ImGui ID</param>
+    /// <param name="refConfigField">Value</param>
+    /// <param name="filter">Optional filter</param>
+    /// <param name="names">Optional Name overrides</param>
+    /// <returns></returns>
+    public static bool EnumCombo<T>(string name, ref T refConfigField, Func<T, bool> filter = null, IDictionary<T, string> names = null) where T : IConvertible
+    {
+        var ret = false;
+        if (ImGui.BeginCombo(name, (names != null && names.TryGetValue(refConfigField, out var n)) ? n : refConfigField.ToString().Replace("_", " ")))
+        {
+            var values = Enum.GetValues(typeof(T));
+            Box<string> fltr = null;
+            if (values.Length > 10)
+            {
+                if (!EnumComboSearch.ContainsKey(name)) EnumComboSearch.Add(name, new(""));
+                fltr = EnumComboSearch[name];
+                ImGuiHelper.SetNextItemFullWidth();
+                ImGui.InputTextWithHint($"##{name.Replace("#", "_")}", "Filter...", ref fltr.Value, 50);
+            }
+            foreach (var x in values)
+            {
+                var equals = EqualityComparer<T>.Default.Equals((T)x, refConfigField);
+                var element = (names != null && names.TryGetValue((T)x, out n)) ? n : x.ToString().Replace("_", " ");
+                if ((filter == null || filter((T)x))
+                    && (fltr == null || element.Contains(fltr.Value, StringComparison.OrdinalIgnoreCase))
+                    && ImGui.Selectable(element, equals)
+                    )
+                {
+                    ret = true;
+                    refConfigField = (T)x;
+                }
+                if (ImGui.IsWindowAppearing() && equals) ImGui.SetScrollHereY();
+            }
+            ImGui.EndCombo();
+        }
+        return ret;
+    }
+
+    public static Dictionary<string, Box<string>> ComboSearch = new();
+    public static bool Combo<T>(string name, ref T refConfigField, IEnumerable<T> values, Func<T, bool> filter = null, Dictionary<T, string> names = null)
+    {
+        var ret = false;
+        if (ImGui.BeginCombo(name, (names != null && names.TryGetValue(refConfigField, out var n)) ? n : refConfigField.ToString()))
+        {
+            Box<string> fltr = null;
+            if (values.Count() > 10)
+            {
+                if (!ComboSearch.ContainsKey(name)) ComboSearch.Add(name, new(""));
+                fltr = ComboSearch[name];
+                ImGuiHelper.SetNextItemFullWidth();
+                ImGui.InputTextWithHint($"##{name}fltr", "Filter...", ref fltr.Value, 50);
+            }
+            foreach (var x in values)
+            {
+                var equals = EqualityComparer<T>.Default.Equals(x, refConfigField);
+                var element = (names != null && names.TryGetValue(x, out n)) ? n : x.ToString();
+                if ((filter == null || filter(x))
+                    && (fltr == null || element.Contains(fltr.Value, StringComparison.OrdinalIgnoreCase))
+                    && ImGui.Selectable(element, equals)
+                    )
+                {
+                    ret = true;
+                    refConfigField = x;
+                }
+                if (ImGui.IsWindowAppearing() && equals) ImGui.SetScrollHereY();
+            }
+            ImGui.EndCombo();
+        }
+        return ret;
+    }
+    #endregion
+
+    #region Headers
+    public static bool CollapsingHeader(string text, Vector4? col = null)
+    {
+        if (col != null) ImGui.PushStyleColor(ImGuiCol.Text, col.Value);
+        var ret = ImGui.CollapsingHeader(text);
+        if (col != null) ImGui.PopStyleColor();
+        return ret;
+    }
+    #endregion
+
+    #region Icons
+
     public record HeaderIconOptions
     {
         public Vector2 Offset { get; init; } = Vector2.Zero;
@@ -321,7 +483,6 @@ public static unsafe partial class ImGuiHelper
     private static ulong headerLastFrame = 0;
     private static float headerCurrentPos = 0;
     private static float headerImGuiButtonWidth = 0;
-
     public static bool AddHeaderIcon(string id, FontAwesomeIcon icon, HeaderIconOptions options = null)
     {
         if (ImGui.IsWindowCollapsed()) return false;
@@ -378,64 +539,19 @@ public static unsafe partial class ImGuiHelper
         return pressed;
     }
 
-    public static bool CollectionCheckbox<T>(string label, T value, List<T> collection, bool inverted = false)
+    public static Vector2 CalcIconSize(FontAwesomeIcon icon)
     {
-        var x = collection.Contains(value);
-        if (inverted) x = !x;
-        if (ImGui.Checkbox(label, ref x))
-        {
-            if (inverted) x = !x;
-            if (x)
-            {
-                collection.Add(value);
-            }
-            else
-            {
-                collection.RemoveAll(x => x.Equals(value));
-            }
-            return true;
-        }
-        return false;
-    }
-
-    public static Vector4 MutateColor(ImGuiCol col, byte r, byte g, byte b)
-    {
-        return ImGui.GetStyle().Colors[(int)col] with { X = (float)r / 255f, Y = (float)g / 255f, Z = (float)b / 255f };
+        ImGui.PushFont(UiBuilder.IconFont);
+        var result = ImGui.CalcTextSize($"{icon.ToIconString()}");
+        ImGui.PopFont();
+        return result;
     }
 
     /// <summary>
-    /// Displays ImGui.SliderFloat for internal int value.
+    /// <br>HelpMarker component to add a help icon with text on hover.</br>
+    /// <br>helpText: The text to display on hover.</br>
     /// </summary>
-    /// <param name="id">ImGui ID</param>
-    /// <param name="value">Integer value</param>
-    /// <param name="min">Minimal value</param>
-    /// <param name="max">Maximum value</param>
-    /// <param name="divider">Value is divided by divider before being presented to user</param>
-    /// <returns></returns>
-    public static bool SliderIntAsFloat(string id, ref int value, int min, int max, float divider = 1000)
-    {
-        var f = (float)value / divider;
-        var ret = ImGui.SliderFloat(id, ref f, (float)min / divider, (float)max / divider);
-        if (ret)
-        {
-            value = (int)(f * divider);
-        }
-        return ret;
-    }
-
-    public static bool IsKeyPressed(int key, bool repeat)
-    {
-        byte repeat2 = (byte)(repeat ? 1 : 0);
-        return ImGuiNative.igIsKeyPressed((ImGuiKey)key, repeat2) != 0;
-    }
-
-    //
-    // Summary:
-    //     HelpMarker component to add a help icon with text on hover.
-    //
-    // Parameters:
-    //   helpText:
-    //     The text to display on hover.
+    /// <param name="helpText"></param>
     public static void HelpMarker(string helpText)
     {
         ImGui.SameLine();
@@ -451,85 +567,144 @@ public static unsafe partial class ImGuiHelper
             ImGui.EndTooltip();
         }
     }
+    #endregion
 
-    public static void TextUnderlined(uint color, string text)
+    #region Images
+    /// <summary>
+    /// texture is the image.   Image will scale if the maxWidth(image width?) is lower then wholewidth(threshold for when to scale)
+    /// </summary>
+    /// <param name="texture"></param>
+    /// <param name="wholeWidth"></param>
+    /// <param name="maxWidth"></param>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    internal static bool TextureButton(IDalamudTextureWrap texture, float wholeWidth, float maxWidth, string id = "")
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, color);
-        TextUnderlined(text);
-        ImGui.PopStyleColor();
-    }
+        if (texture == null) return false;
 
-    public static void TextUnderlined(Vector4 color, string text)
-    {
-        ImGui.PushStyleColor(ImGuiCol.Text, color);
-        TextUnderlined(text);
-        ImGui.PopStyleColor();
-    }
+        var size = new Vector2(texture.Width, texture.Height) * MathF.Min(1, MathF.Min(maxWidth, wholeWidth) / texture.Width);
 
-    public static void SeperatorWithSpacing()
-    {
-        ImGui.Spacing();
-        ImGui.Separator();
-        ImGui.Spacing();
-    }
-
-    public static void TextUnderlined(string text)
-    {
-        var size = ImGui.CalcTextSize(text);
-        var cur = ImGui.GetCursorScreenPos();
-        cur.Y += size.Y;
-        ImGui.GetWindowDrawList().PathLineTo(cur);
-        cur.X += size.X;
-        ImGui.GetWindowDrawList().PathLineTo(cur);
-        ImGui.GetWindowDrawList().PathStroke(ImGuiColors.DalamudWhite.ToUint());
-        ImGuiHelper.Text(text);
-    }
-
-    public static float GetWindowContentRegionWidth()
-    {
-        return ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X;
-    }
-
-    public static void Spacing(float pix = 10f, bool accountForScale = true)
-    {
-        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (accountForScale ? pix : pix * ImGuiHelpers.GlobalScale));
-    }
-
-    public static float Scale(this float f)
-    {
-        return f * ImGuiHelpers.GlobalScale;
-    }
-
-    public static void SetTooltip(string text)
-    {
-        ImGui.BeginTooltip();
-        ImGui.TextUnformatted(text);
-        ImGui.EndTooltip();
-    }
-
-    static readonly Dictionary<string, float> CenteredLineWidths = new();
-    public static void ImGuiLineCentered(string id, System.Action func)
-    {
-        if (CenteredLineWidths.TryGetValue(id, out var dims))
+        var result = false;
+        DrawItemMiddle(() =>
         {
-            ImGui.SetCursorPosX(ImGui.GetContentRegionAvail().X / 2 - dims / 2);
+            result = NoPaddingNoColorImageButton(texture.ImGuiHandle, size, id);
+        }, wholeWidth, size.X);
+        return result;
+    }
+
+    internal static void ImageInNewColumn(IDalamudTextureWrap texture, float columnWidth, float maxWidth, float maxHeight)
+    {
+        if (texture == null) return;
+
+        float aspectRatio = (float)texture.Width / texture.Height;
+        float width = Math.Min(columnWidth, maxWidth); // Adjust the maxWidth as needed
+
+
+        ImGui.TableNextColumn();
+        ImGui.Spacing();
+        if (texture != null)
+        {
+            // Calculate the height while maintaining aspect ratio
+            float height = Math.Min(width / aspectRatio, maxHeight); // Adjust the maxHeight as needed
+            NoPaddingImageButton(texture.ImGuiHandle, new Vector2(width, height), new Vector2(0, 0), new Vector2(1, 1));
+            // NoPaddingNoColorImageButton(texture.ImGuiHandle, new Vector2(width, height));
         }
-        var oldCur = ImGui.GetCursorPosX();
-        func();
-        ImGui.SameLine(0, 0);
-        CenteredLineWidths[id] = ImGui.GetCursorPosX() - oldCur;
-        ImGui.Dummy(Vector2.Zero);
+        ImGui.Spacing();
     }
 
 
-    public static void SetNextItemFullWidth(int mod = 0)
+    internal unsafe static bool NoPaddingNoColorImageButton(nint handle, Vector2 size, string id = "")
+        => NoPaddingNoColorImageButton(handle, size, Vector2.Zero, Vector2.One, id);
+
+    internal unsafe static bool NoPaddingNoColorImageButton(nint handle, Vector2 size, Vector2 uv0, Vector2 uv1, string id = "")
     {
-        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X + mod);
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
+        ImGui.PushStyleColor(ImGuiCol.Button, 0);
+        var result = NoPaddingImageButton(handle, size, uv0, uv1, id);
+        ImGui.PopStyleColor(3);
+
+        return result;
     }
 
-    public static void SetNextItemWidth(float percent, int mod = 0)
+    /// <summary>
+    /// Renders an image button without padding and allows specifying texture coordinates for rendering.
+    /// </summary>
+    /// <param name="handle">A pointer to the image texture.</param>
+    /// <param name="size">The size of the image button.</param>
+    /// <param name="uv0">The UV (texture) coordinates of the upper-left corner of the image within the texture.</param>
+    /// <param name="uv1">The UV (texture) coordinates of the lower-right corner of the image within the texture.</param>
+    /// <param name="id">Optional identifier for the button.</param>
+    /// <returns>True if the button is pressed; otherwise, false.</returns>
+    internal static bool NoPaddingImageButton(nint handle, Vector2 size, Vector2 uv0, Vector2 uv1, string id = "")
     {
-        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X * percent + mod);
+        var padding = ImGui.GetStyle().FramePadding;
+        ImGui.GetStyle().FramePadding = Vector2.Zero;
+
+        ImGui.PushID(id);
+        var result = ImGui.ImageButton(handle, size, uv0, uv1);
+        ImGui.PopID();
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+        }
+
+        ImGui.GetStyle().FramePadding = padding;
+        return result;
+    }
+    #endregion
+
+    #region InputLists
+    public static void InputHex(string name, ref uint hexInt)
+    {
+        var text = $"{hexInt:X}";
+        if (ImGui.InputText(name, ref text, 8))
+        {
+            if (uint.TryParse(text.Replace("0x", ""), NumberStyles.HexNumber, null, out var num))
+            {
+                hexInt = num;
+            }
+        }
+    }
+
+    public static void InputHex(string name, ref byte hexByte)
+    {
+        var text = $"{hexByte:X}";
+        if (ImGui.InputText(name, ref text, 2))
+        {
+            if (byte.TryParse(text, NumberStyles.HexNumber, null, out var num))
+            {
+                hexByte = num;
+            }
+        }
+    }
+
+    public static void InputUint(string name, ref uint uInt)
+    {
+        var text = $"{uInt}";
+        if (ImGui.InputText(name, ref text, 16))
+        {
+            if (uint.TryParse(text, out var num))
+            {
+                uInt = num;
+            }
+        }
+    }
+
+    public static bool InputIntBounded(string label, ref int value, int minValue, int maxValue)
+    {
+        if (ImGui.InputInt(label, ref value))
+        {
+            if (value > maxValue)
+                value = maxValue;
+
+            if (value < minValue)
+                value = minValue;
+
+            return true;
+        }
+
+        return false;
     }
 
     static Dictionary<string, float> InputWithRightButtonsAreaValues = new();
@@ -631,33 +806,254 @@ public static unsafe partial class ImGuiHelper
             ImGui.EndCombo();
         }
     }
+    #endregion
 
-    public static void WithTextColor(Vector4 col, System.Action func)
+    #region Keys
+    public static bool IsKeyPressed(int key, bool repeat)
     {
-        ImGui.PushStyleColor(ImGuiCol.Text, col);
-        GenericHelpers.Safe(func);
-        ImGui.PopStyleColor();
+        byte repeat2 = (byte)(repeat ? 1 : 0);
+        return ImGuiNative.igIsKeyPressed((ImGuiKey)key, repeat2) != 0;
+    }
+    #endregion
+
+    #region LayOut
+    public static void Spacing(float pix = 10f, bool accountForScale = true)
+    {
+        ImGui.SetCursorPosX(ImGui.GetCursorPosX() + (accountForScale ? pix : pix * ImGuiHelpers.GlobalScale));
     }
 
-    public static void Tooltip(string s)
+    public static float Scale(this float f)
     {
-        if (ImGui.IsItemHovered())
+        return f * ImGuiHelpers.GlobalScale;
+    }
+
+    static readonly Dictionary<string, float> CenteredLineWidths = new();
+    public static void ImGuiLineCentered(string id, System.Action func)
+    {
+        if (CenteredLineWidths.TryGetValue(id, out var dims))
         {
-            ImGui.SetTooltip(s);
+            ImGui.SetCursorPosX(ImGui.GetContentRegionAvail().X / 2 - dims / 2);
+        }
+        var oldCur = ImGui.GetCursorPosX();
+        func();
+        ImGui.SameLine(0, 0);
+        CenteredLineWidths[id] = ImGui.GetCursorPosX() - oldCur;
+        ImGui.Dummy(Vector2.Zero);
+    }
+
+
+    public static void SetNextItemFullWidth(int mod = 0)
+    {
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X + mod);
+    }
+
+    public static void SetNextItemWidth(float percent, int mod = 0)
+    {
+        ImGui.SetNextItemWidth(ImGui.GetContentRegionAvail().X * percent + mod);
+    }
+    #endregion
+
+    #region Measurement
+    public static float Measure(Action func, bool includeSpacing = true)
+    {
+        var pos = ImGui.GetCursorPosX();
+        func();
+        ImGui.SameLine(0, 0);
+        var diff = ImGui.GetCursorPosX() - pos;
+        ImGui.Dummy(Vector2.Zero);
+        return diff + (includeSpacing ? ImGui.GetStyle().ItemSpacing.X : 0);
+    }
+    #endregion
+
+    #region Memory Management
+    internal unsafe static byte* Allocate(int byteCount)
+    {
+        return (byte*)(void*)Marshal.AllocHGlobal(byteCount);
+    }
+
+    internal unsafe static void Free(byte* ptr)
+    {
+        Marshal.FreeHGlobal((IntPtr)ptr);
+    }
+    #endregion
+
+    #region Pop-ups
+    public static bool BeginPopupNextToElement(string popupId)
+    {
+        ImGui.SameLine(0, 0);
+        var pos = ImGui.GetCursorScreenPos();
+        ImGui.Dummy(Vector2.Zero);
+        ImGui.SetNextWindowPos(pos, ImGuiCond.Appearing);
+        return ImGui.BeginPopup(popupId);
+    }
+    #endregion
+
+    #region Sliders
+    /// <summary>
+    /// Displays ImGui.SliderFloat for internal int value.
+    /// </summary>
+    /// <param name="id">ImGui ID</param>
+    /// <param name="value">Integer value</param>
+    /// <param name="min">Minimal value</param>
+    /// <param name="max">Maximum value</param>
+    /// <param name="divider">Value is divided by divider before being presented to user</param>
+    /// <returns></returns>
+    public static bool SliderIntAsFloat(string id, ref int value, int min, int max, float divider = 1000)
+    {
+        var f = (float)value / divider;
+        var ret = ImGui.SliderFloat(id, ref f, (float)min / divider, (float)max / divider);
+        if (ret)
+        {
+            value = (int)(f * divider);
+        }
+        return ret;
+    }
+    #endregion
+
+    #region Spacing
+    internal static void DrawItemMiddle(Action drawAction, float wholeWidth, float width, bool leftAlign = true)
+    {
+        if (drawAction == null) return;
+        var distance = (wholeWidth - width) / 2;
+        if (leftAlign) distance = MathF.Max(distance, 0);
+        ImGui.SetCursorPosX(distance);
+        drawAction();
+    }
+
+    internal static void DrawItemMiddle(Action drawAction, float width, bool leftAlign = true)
+    {
+        if (drawAction == null) return;
+
+        // Get the available content width
+        var availableWidth = ImGui.GetContentRegionAvail().X;
+
+        // Calculate the distance to center the item
+        var distance = (availableWidth - width) / 2;
+
+        // Ensure the item is left-aligned if leftAlign is true
+        if (leftAlign) distance = MathF.Max(distance, 0);
+
+        // Set the cursor position to the calculated distance
+        ImGui.SetCursorPosX(distance);
+
+        // Execute the draw action
+        drawAction();
+    }
+
+    public static float GetWindowContentRegionWidth()
+    {
+        return ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X;
+    }
+
+    public static void SeperatorWithSpacing()
+    {
+        ImGui.Spacing();
+        ImGui.Separator();
+        ImGui.Spacing();
+    }
+
+
+    #endregion
+
+    #region Tabs
+    public static void EzTabBar(string id, params (string name, System.Action function, Vector4? color, bool child)[] tabs) => EzTabBar(id, false, tabs);
+
+    public static void EzTabBar(string id, bool KoFiTransparent, params (string name, System.Action function, Vector4? color, bool child)[] tabs)
+    {
+        ImGui.BeginTabBar(id);
+        foreach (var x in tabs)
+        {
+            if (x.name == null) continue;
+            if (x.color != null)
+            {
+                ImGui.PushStyleColor(ImGuiCol.Text, x.color.Value);
+            }
+            if (ImGui.BeginTabItem(x.name))
+            {
+                if (x.color != null)
+                {
+                    ImGui.PopStyleColor();
+                }
+                if (x.child) ImGui.BeginChild(x.name + "child");
+                x.function();
+                if (x.child) ImGui.EndChild();
+                ImGui.EndTabItem();
+            }
+            else
+            {
+                if (x.color != null)
+                {
+                    ImGui.PopStyleColor();
+                }
+            }
+        }
+        if (KoFiTransparent) KoFiButton.RightTransparentTab();
+        ImGui.EndTabBar();
+    }
+
+    public unsafe static bool BeginTabItem(string label, ImGuiTabItemFlags flags)
+    {
+        int num = 0;
+        byte* ptr;
+        if (label != null)
+        {
+            num = Encoding.UTF8.GetByteCount(label);
+            ptr = Allocate(num + 1);
+            int utf = GetUtf8(label, ptr, num);
+            ptr[utf] = 0;
+        }
+        else
+        {
+            ptr = null;
+        }
+
+        byte* p_open2 = null;
+        byte num2 = ImGuiNative.igBeginTabItem(ptr, p_open2, flags);
+        if (num > 2048)
+        {
+            Free(ptr);
+        }
+        return num2 != 0;
+    }
+    #endregion
+
+    #region Tables
+    /// <summary>
+    /// Draws equally sized columns without ability to resize
+    /// </summary>
+    /// <param name="id">Unique ImGui ID</param>
+    /// <param name="values">List of actions for each column</param>
+    public static void EzTableColumns(string id, System.Action[] values)
+    {
+        if (values.Length == 1)
+        {
+            GenericHelpers.Safe(values[0]);
+        }
+        else
+        {
+            if (ImGui.BeginTable(id, values.Length, ImGuiTableFlags.SizingStretchSame))
+            {
+                foreach (System.Action action in values)
+                {
+                    ImGui.TableNextColumn();
+                    GenericHelpers.Safe(action);
+                }
+                ImGui.EndTable();
+            }
         }
     }
-
-    public static void ColoredTextTooltip(string text, Vector4 color)
+    internal static void TableNextRowWithMaxHeight(float maxRowHeight)
     {
-        if (ImGui.IsItemHovered())
+        ImGui.TableNextRow();
+        float currentRowHeight = ImGui.GetContentRegionAvail().Y;
+        if (currentRowHeight > maxRowHeight)
         {
-            ImGui.BeginTooltip();
-            ImGui.TextColored(color, text);
-            ImGui.EndTooltip();
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() + currentRowHeight - maxRowHeight);
         }
     }
+    #endregion
 
-
+    #region Text
     /// <summary>
     /// Aligns text vertically to a standard size button.
     /// </summary>
@@ -704,6 +1100,18 @@ public static unsafe partial class ImGuiHelper
         ImGui.PopStyleColor();
     }
 
+    public static void Text(Vector4? col, string text)
+    {
+        if (col == null)
+        {
+            Text(text);
+        }
+        else
+        {
+            Text(col.Value, text);
+        }
+    }
+
     public static void TextWrapped(string s)
     {
         ImGui.PushTextWrapPos();
@@ -732,240 +1140,30 @@ public static unsafe partial class ImGuiHelper
         ImGui.PopTextWrapPos();
     }
 
-    public static Vector4 GetParsedColor(int percent)
+    public static void TextUnderlined(uint color, string text)
     {
-        if (percent < 25)
-        {
-            return ImGuiColors.ParsedGrey;
-        }
-        else if (percent < 50)
-        {
-            return ImGuiColors.ParsedGreen;
-        }
-        else if (percent < 75)
-        {
-            return ImGuiColors.ParsedBlue;
-        }
-        else if (percent < 95)
-        {
-            return ImGuiColors.ParsedPurple;
-        }
-        else if (percent < 99)
-        {
-            return ImGuiColors.ParsedOrange;
-        }
-        else if (percent == 99)
-        {
-            return ImGuiColors.ParsedPink;
-        }
-        else if (percent == 100)
-        {
-            return ImGuiColors.ParsedGold;
-        }
-        else
-        {
-            return ImGuiColors.DalamudRed;
-        }
+        ImGui.PushStyleColor(ImGuiCol.Text, color);
+        TextUnderlined(text);
+        ImGui.PopStyleColor();
     }
 
-    public static void EzTabBar(string id, params (string name, System.Action function, Vector4? color, bool child)[] tabs) => EzTabBar(id, false, tabs);
-
-    public static void EzTabBar(string id, bool KoFiTransparent, params (string name, System.Action function, Vector4? color, bool child)[] tabs)
+    public static void TextUnderlined(Vector4 color, string text)
     {
-        ImGui.BeginTabBar(id);
-        foreach (var x in tabs)
-        {
-            if (x.name == null) continue;
-            if (x.color != null)
-            {
-                ImGui.PushStyleColor(ImGuiCol.Text, x.color.Value);
-            }
-            if (ImGui.BeginTabItem(x.name))
-            {
-                if (x.color != null)
-                {
-                    ImGui.PopStyleColor();
-                }
-                if (x.child) ImGui.BeginChild(x.name + "child");
-                x.function();
-                if (x.child) ImGui.EndChild();
-                ImGui.EndTabItem();
-            }
-            else
-            {
-                if (x.color != null)
-                {
-                    ImGui.PopStyleColor();
-                }
-            }
-        }
-        if (KoFiTransparent) KoFiButton.RightTransparentTab();
-        ImGui.EndTabBar();
+        ImGui.PushStyleColor(ImGuiCol.Text, color);
+        TextUnderlined(text);
+        ImGui.PopStyleColor();
     }
 
-    public static void InvisibleButton(int width = 0)
+    public static void TextUnderlined(string text)
     {
-        ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0);
-        ImGui.Button(" ");
-        ImGui.PopStyleVar();
-    }
-
-    public static Dictionary<string, Box<string>> EnumComboSearch = new();
-    /// <summary>
-    /// Draws an easy combo selector for an enum with a search field for long lists.
-    /// </summary>
-    /// <typeparam name="T">Enum</typeparam>
-    /// <param name="name">ImGui ID</param>
-    /// <param name="refConfigField">Value</param>
-    /// <param name="names">Optional Name overrides</param>
-    public static bool EnumCombo<T>(string name, ref T refConfigField, IDictionary<T, string> names) where T : IConvertible
-    {
-        return EnumCombo(name, ref refConfigField, null, names);
-    }
-
-    /// <summary>
-    /// Draws an easy combo selector for an enum with a search field for long lists.
-    /// </summary>
-    /// <typeparam name="T">Enum</typeparam>
-    /// <param name="name">ImGui ID</param>
-    /// <param name="refConfigField">Value</param>
-    /// <param name="filter">Optional filter</param>
-    /// <param name="names">Optional Name overrides</param>
-    /// <returns></returns>
-    public static bool EnumCombo<T>(string name, ref T refConfigField, Func<T, bool> filter = null, IDictionary<T, string> names = null) where T : IConvertible
-    {
-        var ret = false;
-        if (ImGui.BeginCombo(name, (names != null && names.TryGetValue(refConfigField, out var n)) ? n : refConfigField.ToString().Replace("_", " ")))
-        {
-            var values = Enum.GetValues(typeof(T));
-            Box<string> fltr = null;
-            if (values.Length > 10)
-            {
-                if (!EnumComboSearch.ContainsKey(name)) EnumComboSearch.Add(name, new(""));
-                fltr = EnumComboSearch[name];
-                ImGuiHelper.SetNextItemFullWidth();
-                ImGui.InputTextWithHint($"##{name.Replace("#", "_")}", "Filter...", ref fltr.Value, 50);
-            }
-            foreach (var x in values)
-            {
-                var equals = EqualityComparer<T>.Default.Equals((T)x, refConfigField);
-                var element = (names != null && names.TryGetValue((T)x, out n)) ? n : x.ToString().Replace("_", " ");
-                if ((filter == null || filter((T)x))
-                    && (fltr == null || element.Contains(fltr.Value, StringComparison.OrdinalIgnoreCase))
-                    && ImGui.Selectable(element, equals)
-                    )
-                {
-                    ret = true;
-                    refConfigField = (T)x;
-                }
-                if (ImGui.IsWindowAppearing() && equals) ImGui.SetScrollHereY();
-            }
-            ImGui.EndCombo();
-        }
-        return ret;
-    }
-
-    public static Dictionary<string, Box<string>> ComboSearch = new();
-    public static bool Combo<T>(string name, ref T refConfigField, IEnumerable<T> values, Func<T, bool> filter = null, Dictionary<T, string> names = null)
-    {
-        var ret = false;
-        if (ImGui.BeginCombo(name, (names != null && names.TryGetValue(refConfigField, out var n)) ? n : refConfigField.ToString()))
-        {
-            Box<string> fltr = null;
-            if (values.Count() > 10)
-            {
-                if (!ComboSearch.ContainsKey(name)) ComboSearch.Add(name, new(""));
-                fltr = ComboSearch[name];
-                ImGuiHelper.SetNextItemFullWidth();
-                ImGui.InputTextWithHint($"##{name}fltr", "Filter...", ref fltr.Value, 50);
-            }
-            foreach (var x in values)
-            {
-                var equals = EqualityComparer<T>.Default.Equals(x, refConfigField);
-                var element = (names != null && names.TryGetValue(x, out n)) ? n : x.ToString();
-                if ((filter == null || filter(x))
-                    && (fltr == null || element.Contains(fltr.Value, StringComparison.OrdinalIgnoreCase))
-                    && ImGui.Selectable(element, equals)
-                    )
-                {
-                    ret = true;
-                    refConfigField = x;
-                }
-                if (ImGui.IsWindowAppearing() && equals) ImGui.SetScrollHereY();
-            }
-            ImGui.EndCombo();
-        }
-        return ret;
-    }
-
-    public static bool IconButton(FontAwesomeIcon icon, string id = "ECommonsButton", Vector2 size = default)
-    {
-        ImGui.PushFont(UiBuilder.IconFont);
-        var result = ImGui.Button($"{icon.ToIconString()}##{icon.ToIconString()}-{id}", size);
-        ImGui.PopFont();
-        return result;
-    }
-
-    public static bool IconButton(string icon, string id = "ECommonsButton")
-    {
-        ImGui.PushFont(UiBuilder.IconFont);
-        var result = ImGui.Button($"{icon}##{icon}-{id}");
-        ImGui.PopFont();
-        return result;
-    }
-
-    public static Vector2 CalcIconSize(FontAwesomeIcon icon)
-    {
-        ImGui.PushFont(UiBuilder.IconFont);
-        var result = ImGui.CalcTextSize($"{icon.ToIconString()}");
-        ImGui.PopFont();
-        return result;
-    }
-
-    public static float Measure(System.Action func, bool includeSpacing = true)
-    {
-        var pos = ImGui.GetCursorPosX();
-        func();
-        ImGui.SameLine(0, 0);
-        var diff = ImGui.GetCursorPosX() - pos;
-        ImGui.Dummy(Vector2.Zero);
-        return diff + (includeSpacing ? ImGui.GetStyle().ItemSpacing.X : 0);
-    }
-
-    public static void InputHex(string name, ref uint hexInt)
-    {
-        var text = $"{hexInt:X}";
-        if (ImGui.InputText(name, ref text, 8))
-        {
-            if (uint.TryParse(text.Replace("0x", ""), NumberStyles.HexNumber, null, out var num))
-            {
-                hexInt = num;
-            }
-        }
-    }
-
-    public static void InputHex(string name, ref byte hexByte)
-    {
-        var text = $"{hexByte:X}";
-        if (ImGui.InputText(name, ref text, 2))
-        {
-            if (byte.TryParse(text, NumberStyles.HexNumber, null, out var num))
-            {
-                hexByte = num;
-            }
-        }
-    }
-
-    public static void InputUint(string name, ref uint uInt)
-    {
-        var text = $"{uInt}";
-        if (ImGui.InputText(name, ref text, 16))
-        {
-            if (uint.TryParse(text, out var num))
-            {
-                uInt = num;
-            }
-        }
+        var size = ImGui.CalcTextSize(text);
+        var cur = ImGui.GetCursorScreenPos();
+        cur.Y += size.Y;
+        ImGui.GetWindowDrawList().PathLineTo(cur);
+        cur.X += size.X;
+        ImGui.GetWindowDrawList().PathLineTo(cur);
+        ImGui.GetWindowDrawList().PathStroke(ImGuiColors.DalamudWhite.ToUint());
+        ImGuiHelper.Text(text);
     }
 
     public static void TextCopy(Vector4 col, string text)
@@ -1030,18 +1228,6 @@ public static unsafe partial class ImGuiHelper
         ImGui.PopStyleColor();
     }
 
-    public static void Text(Vector4? col, string text)
-    {
-        if (col == null)
-        {
-            Text(text);
-        }
-        else
-        {
-            Text(col.Value, text);
-        }
-    }
-
     public static void TextCentered(Vector4? col, string text)
     {
         if (col == null)
@@ -1051,15 +1237,6 @@ public static unsafe partial class ImGuiHelper
         else
         {
             TextCentered(col.Value, text);
-        }
-    }
-
-    public static void ButtonCopy(string buttonText, string copy)
-    {
-        if (ImGui.Button(buttonText.Replace("$COPY", copy)))
-        {
-            ImGui.SetClipboardText(copy);
-            Svc.PluginInterface.UiBuilder.AddNotification("Text copied to clipboard", null, NotificationType.Success);
         }
     }
 
@@ -1079,41 +1256,15 @@ public static unsafe partial class ImGuiHelper
         ImGui.PopStyleColor();
     }
 
-    public unsafe static bool BeginTabItem(string label, ImGuiTabItemFlags flags)
+    public static void WithTextColor(Vector4 col, System.Action func)
     {
-        int num = 0;
-        byte* ptr;
-        if (label != null)
-        {
-            num = Encoding.UTF8.GetByteCount(label);
-            ptr = Allocate(num + 1);
-            int utf = GetUtf8(label, ptr, num);
-            ptr[utf] = 0;
-        }
-        else
-        {
-            ptr = null;
-        }
-
-        byte* p_open2 = null;
-        byte num2 = ImGuiNative.igBeginTabItem(ptr, p_open2, flags);
-        if (num > 2048)
-        {
-            Free(ptr);
-        }
-        return num2 != 0;
+        ImGui.PushStyleColor(ImGuiCol.Text, col);
+        GenericHelpers.Safe(func);
+        ImGui.PopStyleColor();
     }
+    #endregion
 
-    internal unsafe static byte* Allocate(int byteCount)
-    {
-        return (byte*)(void*)Marshal.AllocHGlobal(byteCount);
-    }
-
-    internal unsafe static void Free(byte* ptr)
-    {
-        Marshal.FreeHGlobal((IntPtr)ptr);
-    }
-
+    #region Text Encoding
     internal unsafe static int GetUtf8(string s, byte* utf8Bytes, int utf8ByteCount)
     {
         fixed (char* chars = s)
@@ -1121,98 +1272,32 @@ public static unsafe partial class ImGuiHelper
             return Encoding.UTF8.GetBytes(chars, s.Length, utf8Bytes, utf8ByteCount);
         }
     }
-
-    public static bool InputIntBounded(string label, ref int value, int minValue, int maxValue)
-    {
-        if (ImGui.InputInt(label, ref value))
-        {
-            if (value > maxValue)
-                value = maxValue;
-
-            if (value < minValue)
-                value = minValue;
-
-            return true;
-        }
-
-        return false;
-    }
-
-    #region Spacing
-    internal static void DrawItemMiddle(Action drawAction, float wholeWidth, float width, bool leftAlign = true)
-    {
-        if (drawAction == null) return;
-        var distance = (wholeWidth - width) / 2;
-        if (leftAlign) distance = MathF.Max(distance, 0);
-        ImGui.SetCursorPosX(distance);
-        drawAction();
-    }
-
-    internal static void DrawItemMiddle(Action drawAction, float width, bool leftAlign = true)
-    {
-        if (drawAction == null) return;
-
-        // Get the available content width
-        var availableWidth = ImGui.GetContentRegionAvail().X;
-
-        // Calculate the distance to center the item
-        var distance = (availableWidth - width) / 2;
-
-        // Ensure the item is left-aligned if leftAlign is true
-        if (leftAlign) distance = MathF.Max(distance, 0);
-
-        // Set the cursor position to the calculated distance
-        ImGui.SetCursorPosX(distance);
-
-        // Execute the draw action
-        drawAction();
-    }
     #endregion
 
-    #region Images
-    internal static bool TextureButton(IDalamudTextureWrap texture, float wholeWidth, float maxWidth, string id = "")
+    #region tooltips
+    public static void Tooltip(string s)
     {
-        if (texture == null) return false;
-
-        var size = new Vector2(texture.Width, texture.Height) * MathF.Min(1, MathF.Min(maxWidth, wholeWidth) / texture.Width);
-
-        var result = false;
-        DrawItemMiddle(() =>
-        {
-            result = NoPaddingNoColorImageButton(texture.ImGuiHandle, size, id);
-        }, wholeWidth, size.X);
-        return result;
-    }
-
-    internal unsafe static bool NoPaddingNoColorImageButton(nint handle, Vector2 size, string id = "")
-        => NoPaddingNoColorImageButton(handle, size, Vector2.Zero, Vector2.One, id);
-
-    internal unsafe static bool NoPaddingNoColorImageButton(nint handle, Vector2 size, Vector2 uv0, Vector2 uv1, string id = "")
-    {
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
-        ImGui.PushStyleColor(ImGuiCol.Button, 0);
-        var result = NoPaddingImageButton(handle, size, uv0, uv1, id);
-        ImGui.PopStyleColor(3);
-
-        return result;
-    }
-
-    internal static bool NoPaddingImageButton(nint handle, Vector2 size, Vector2 uv0, Vector2 uv1, string id = "")
-    {
-        var padding = ImGui.GetStyle().FramePadding;
-        ImGui.GetStyle().FramePadding = Vector2.Zero;
-
-        ImGui.PushID(id);
-        var result = ImGui.ImageButton(handle, size, uv0, uv1);
-        ImGui.PopID();
         if (ImGui.IsItemHovered())
         {
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+            ImGui.SetTooltip(s);
         }
+    }
 
-        ImGui.GetStyle().FramePadding = padding;
-        return result;
+    public static void SetTooltip(string text)
+    {
+        ImGui.BeginTooltip();
+        ImGui.TextUnformatted(text);
+        ImGui.EndTooltip();
+    }
+
+    public static void ColoredTextTooltip(string text, Vector4 color)
+    {
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.BeginTooltip();
+            ImGui.TextColored(color, text);
+            ImGui.EndTooltip();
+        }
     }
     #endregion
 }
