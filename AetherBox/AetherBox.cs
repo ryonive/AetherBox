@@ -4,6 +4,7 @@ using AetherBox.Features;
 using AetherBox.FeaturesSetup;
 using AetherBox.IPC;
 using AetherBox.UI;
+using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
@@ -12,6 +13,7 @@ using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 
 namespace AetherBox;
 
@@ -26,7 +28,7 @@ public class AetherBox : IDalamudPlugin
 
     internal WindowSystem? Ws;
     internal MainWindow? MainWindow;
-    internal DebugWindow? DebugWindow;
+    // internal DebugWindow? DebugWindow;
 
     internal static AetherBox? P;
     internal static DalamudPluginInterface? pi;
@@ -60,14 +62,14 @@ public class AetherBox : IDalamudPlugin
         #region Default load order
         ECommonsMain.Init(pi, P, ECommons.Module.DalamudReflector, ECommons.Module.ObjectFunctions);
         #region Initialize Windows
-        var closeImage = LoadImage("close.png");
+        //var closeImage = LoadImage("close.png");
         var iconImage = LoadImage("icon.png");
         var bannerImage = LoadImage("banner.png");
         Ws = new WindowSystem();
         MainWindow = new MainWindow(bannerImage, iconImage);
-        DebugWindow = new DebugWindow();
+        //DebugWindow = new DebugWindow();
         Ws.AddWindow(MainWindow);
-        Ws.AddWindow(DebugWindow);
+        //Ws.AddWindow(DebugWindow);
         #endregion
         TaskManager = new TaskManager();
         Config = (pi?.GetPluginConfig() as Configuration) ?? new Configuration();
@@ -77,8 +79,7 @@ public class AetherBox : IDalamudPlugin
         {
             HelpMessage = "This command is used to toggle various UI elements:\n" +
                             "/atb                         → alias for '/Aetherbox' \n" +
-                          "/atb menu or m    → Toggles the main menu UI.\n" +
-                          "/atb debug or d     → Toggles the debug menu.",
+                          "/atb menu or m    → Toggles the main menu UI.\n",
             ShowInHelp = true,
         });
         Svc.Commands.AddHandler(TestCommandName, new CommandInfo(TestCommand) // Add a reserved command handler for "/atb text"
@@ -89,9 +90,10 @@ public class AetherBox : IDalamudPlugin
         #endregion
 
         #region Events
+        Svc.Condition.ConditionChange += OnConditionChanged;
         Svc.PluginInterface.UiBuilder.Draw += Ws.Draw;
         Svc.PluginInterface.UiBuilder.OpenMainUi += ToggleMainUI;
-        Svc.PluginInterface.UiBuilder.OpenConfigUi += ToggleDebugUI;
+        //Svc.PluginInterface.UiBuilder.OpenConfigUi += ToggleDebugUI;
         #endregion
 
         Common.Setup();
@@ -132,12 +134,16 @@ public class AetherBox : IDalamudPlugin
             }
         }
         provider?.UnloadFeatures();
-        Svc.PluginInterface.UiBuilder.Draw -= Ws.Draw;
+        Svc.Condition.ConditionChange -= OnConditionChanged;
+        if (Ws != null)
+        {
+            Svc.PluginInterface.UiBuilder.Draw -= Ws.Draw;
+        }
         Svc.PluginInterface.UiBuilder.OpenMainUi -= ToggleMainUI;
-        Svc.PluginInterface.UiBuilder.OpenConfigUi -= ToggleDebugUI;
+        //Svc.PluginInterface.UiBuilder.OpenConfigUi -= ToggleDebugUI;
         Ws?.RemoveAllWindows();
         MainWindow = null;
-        DebugWindow = null;
+        // DebugWindow = null;
         Ws = null;
         ECommonsMain.Dispose();
         FeatureProviders?.Clear();
@@ -145,7 +151,7 @@ public class AetherBox : IDalamudPlugin
         PandorasBoxIPC.Dispose();
         Events.Disable();
         AFKTimer.Dispose();
-        P = null;
+        //P. = null;
     }
     #endregion
 
@@ -158,16 +164,12 @@ public class AetherBox : IDalamudPlugin
     {
         try
         {
-            if (string.IsNullOrWhiteSpace(args) || args.Equals("menu", StringComparison.OrdinalIgnoreCase) || args.Equals("m", StringComparison.OrdinalIgnoreCase))
+            if ((string.IsNullOrWhiteSpace(args) || args.Equals("menu", StringComparison.OrdinalIgnoreCase) || args.Equals("m", StringComparison.OrdinalIgnoreCase)) && MainWindow != null)
             {
-                if (MainWindow != null)
-                {
-                    // Toggle main UI
-                    MainWindow.IsOpen = !MainWindow.IsOpen;
-                }
-
+                // Toggle main UI
+                MainWindow.IsOpen = !MainWindow.IsOpen;
             }
-            else if (args.Equals("d", StringComparison.OrdinalIgnoreCase) || args.Equals("debug", StringComparison.OrdinalIgnoreCase))
+            /*else if (args.Equals("d", StringComparison.OrdinalIgnoreCase) || args.Equals("debug", StringComparison.OrdinalIgnoreCase))
             {
                 if (DebugWindow != null)
                 {
@@ -175,7 +177,7 @@ public class AetherBox : IDalamudPlugin
                     DebugWindow.IsOpen = !DebugWindow.IsOpen;
                 }
 
-            }
+            }*/
         }
         catch (Exception ex)
         {
@@ -190,7 +192,11 @@ public class AetherBox : IDalamudPlugin
     {
         try
         {
-            MainWindow.IsOpen = !MainWindow.IsOpen;
+            if (MainWindow != null)
+            {
+                MainWindow.IsOpen = !MainWindow.IsOpen;
+            }
+            else { Svc.Log.Warning($"MainWindow is Null"); }
         }
         catch (Exception ex)
         {
@@ -201,7 +207,7 @@ public class AetherBox : IDalamudPlugin
     /// <summary>
     /// Opens the settings UI window via the 'settings' button in the Plugin Installer Menu
     /// </summary>
-    public void ToggleDebugUI()
+    /*public void ToggleDebugUI()
     {
         try
         {
@@ -211,7 +217,7 @@ public class AetherBox : IDalamudPlugin
         {
             Svc.Log.Error($"{ex}, Error with 'DebugWindow'");
         }
-    }
+    }*/
 
     /// <summary>
     /// Sends a test message , with /atb text
@@ -239,16 +245,24 @@ public class AetherBox : IDalamudPlugin
     /// </summary>
     /// <param name="imageName"></param>
     /// <returns></returns>
-    public static Dalamud.Interface.Internal.IDalamudTextureWrap LoadImage(string imageName)
+    public static Dalamud.Interface.Internal.IDalamudTextureWrap? LoadImage(string imageName)
     {
-        var imagesDirectory = Path.Combine(pi.AssemblyLocation.Directory?.FullName!);
+        var imagesDirectory = Path.Combine(pi?.AssemblyLocation.Directory?.FullName!);
         var imagePath = Path.Combine(imagesDirectory, imageName);
 
         if (File.Exists(imagePath))
         {
             try
             {
-                return pi.UiBuilder.LoadImage(imagePath);
+                if (pi != null)
+                {
+                    return pi.UiBuilder.LoadImage(imagePath);
+                }
+                else
+                {
+                    Svc.Log.Warning("Plugin Interface is null");
+                    return null;
+                }
             }
             catch (Exception ex)
             {
@@ -261,5 +275,10 @@ public class AetherBox : IDalamudPlugin
             Svc.Log.Error($"Image not found: {imagePath}");
             throw new InvalidOperationException($"Image not found: {imagePath}");
         }
+    }
+
+    private void OnConditionChanged(ConditionFlag flag, bool value)
+    {
+        Svc.Log.Debug($"Condition chage: {flag}={value}");
     }
 }

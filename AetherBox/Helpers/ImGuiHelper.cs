@@ -12,6 +12,7 @@ using Dalamud.Interface.Internal.Notifications;
 using ECommons.DalamudServices;
 using ECommons.Reflection;
 using EasyCombat.UI.Helpers;
+using Dalamud.Interface.Internal;
 
 namespace AetherBox.Helpers;
 
@@ -376,8 +377,6 @@ public static unsafe partial class ImGuiHelper
 
         return pressed;
     }
-
-
 
     public static bool CollectionCheckbox<T>(string label, T value, List<T> collection, bool inverted = false)
     {
@@ -1138,6 +1137,84 @@ public static unsafe partial class ImGuiHelper
 
         return false;
     }
+
+    #region Spacing
+    internal static void DrawItemMiddle(Action drawAction, float wholeWidth, float width, bool leftAlign = true)
+    {
+        if (drawAction == null) return;
+        var distance = (wholeWidth - width) / 2;
+        if (leftAlign) distance = MathF.Max(distance, 0);
+        ImGui.SetCursorPosX(distance);
+        drawAction();
+    }
+
+    internal static void DrawItemMiddle(Action drawAction, float width, bool leftAlign = true)
+    {
+        if (drawAction == null) return;
+
+        // Get the available content width
+        var availableWidth = ImGui.GetContentRegionAvail().X;
+
+        // Calculate the distance to center the item
+        var distance = (availableWidth - width) / 2;
+
+        // Ensure the item is left-aligned if leftAlign is true
+        if (leftAlign) distance = MathF.Max(distance, 0);
+
+        // Set the cursor position to the calculated distance
+        ImGui.SetCursorPosX(distance);
+
+        // Execute the draw action
+        drawAction();
+    }
+    #endregion
+
+    #region Images
+    internal static bool TextureButton(IDalamudTextureWrap texture, float wholeWidth, float maxWidth, string id = "")
+    {
+        if (texture == null) return false;
+
+        var size = new Vector2(texture.Width, texture.Height) * MathF.Min(1, MathF.Min(maxWidth, wholeWidth) / texture.Width);
+
+        var result = false;
+        DrawItemMiddle(() =>
+        {
+            result = NoPaddingNoColorImageButton(texture.ImGuiHandle, size, id);
+        }, wholeWidth, size.X);
+        return result;
+    }
+
+    internal unsafe static bool NoPaddingNoColorImageButton(nint handle, Vector2 size, string id = "")
+        => NoPaddingNoColorImageButton(handle, size, Vector2.Zero, Vector2.One, id);
+
+    internal unsafe static bool NoPaddingNoColorImageButton(nint handle, Vector2 size, Vector2 uv0, Vector2 uv1, string id = "")
+    {
+        ImGui.PushStyleColor(ImGuiCol.ButtonActive, 0);
+        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, 0);
+        ImGui.PushStyleColor(ImGuiCol.Button, 0);
+        var result = NoPaddingImageButton(handle, size, uv0, uv1, id);
+        ImGui.PopStyleColor(3);
+
+        return result;
+    }
+
+    internal static bool NoPaddingImageButton(nint handle, Vector2 size, Vector2 uv0, Vector2 uv1, string id = "")
+    {
+        var padding = ImGui.GetStyle().FramePadding;
+        ImGui.GetStyle().FramePadding = Vector2.Zero;
+
+        ImGui.PushID(id);
+        var result = ImGui.ImageButton(handle, size, uv0, uv1);
+        ImGui.PopID();
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
+        }
+
+        ImGui.GetStyle().FramePadding = padding;
+        return result;
+    }
+    #endregion
 }
 
 [StructLayout(LayoutKind.Explicit)]

@@ -19,4 +19,9 @@ public static class AngleExtensions
     {
         return new NumberHelper.Angle((float)degrees * (MathF.PI / 180f));
     }
+
+    public static Angle RadiansNEW(this float radians) => new(radians);
+    public static Angle DegreesNEW(this float degrees) => new(degrees * Angle.DegToRad);
+    public static Angle DegreesNEW(this int degrees) => new(degrees * Angle.DegToRad);
+
 }

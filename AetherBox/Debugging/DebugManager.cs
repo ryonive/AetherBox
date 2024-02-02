@@ -109,7 +109,7 @@ public static class DebugManager
         {
             return;
         }
-        if (global::AetherBox.AetherBox.P == null)
+        if (AetherBox.P == null)
         {
             Svc.Log.Info("null");
             return;
@@ -119,7 +119,7 @@ public static class DebugManager
             SetupDebugHelpers = true;
             try
             {
-                foreach (FeatureProvider tp in global::AetherBox.AetherBox.P.FeatureProviders)
+                foreach (FeatureProvider tp in AetherBox.P.FeatureProviders)
                 {
                     if (tp.Disposed)
                     {
@@ -143,7 +143,7 @@ public static class DebugManager
                 Svc.Log.Error(ex3, "");
                 SetupDebugHelpers = false;
                 DebugHelpers.Clear();
-                global::AetherBox.AetherBox.P.DebugWindow.IsOpen = false;
+                AetherBox.P.DebugWindow.IsOpen = false;
                 return;
             }
         }
@@ -175,7 +175,7 @@ public static class DebugManager
         ImGui.TableSetupColumn("##DebugManagerSelectionColumn", ImGuiTableColumnFlags.WidthFixed, 200f * ImGuiHelpers.GlobalScale);
         ImGui.TableSetupColumn("##DebugManagerContentsColumn", ImGuiTableColumnFlags.WidthStretch);
         ImGui.TableNextColumn();
-        using (ImRaii.Child("###" + global::AetherBox.AetherBox.Name + "DebugPages", new Vector2(SidebarSize, -1f) * ImGui.GetIO().FontGlobalScale, border: true))
+        using (ImRaii.Child("###" + AetherBox.Name + "DebugPages", new Vector2(SidebarSize, -1f) * ImGui.GetIO().FontGlobalScale, border: true))
         {
             List<string> list;
             list = DebugPages.Keys.ToList();
@@ -190,7 +190,7 @@ public static class DebugManager
             }
         }
         ImGui.TableNextColumn();
-        using (ImRaii.Child("###" + global::AetherBox.AetherBox.Name + "DebugPagesView", new Vector2(-1f, -1f), border: true, ImGuiWindowFlags.HorizontalScrollbar))
+        using (ImRaii.Child("###" + AetherBox.Name + "DebugPagesView", new Vector2(-1f, -1f), border: true, ImGuiWindowFlags.HorizontalScrollbar))
         {
             if (string.IsNullOrEmpty(global::AetherBox.AetherBox.Config.Debugging.SelectedPage) || !DebugPages.ContainsKey(global::AetherBox.AetherBox.Config.Debugging.SelectedPage))
             {

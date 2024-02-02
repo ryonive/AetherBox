@@ -21,6 +21,7 @@ using Dalamud.Interface.Utility.Table;
 using Dalamud.Plugin.Services;
 using EasyCombat.UI.Helpers;
 using ECommons;
+using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -51,6 +52,9 @@ public class AutoFollow : Feature
 
         [FeatureConfigOption("Mount & Fly (Experimental)", "", 6, null)]
         public bool MountAndFly = true;
+
+        [FeatureConfigOption("Auto Jump (Highly Experimental)", "", 7, null)]
+        public bool AutoJump = true;
     }
 
 
@@ -76,6 +80,7 @@ public class AutoFollow : Feature
         {
             ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
             ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
+
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
             if (ImGui.Checkbox("Function Only in Duty", ref Config.OnlyInDuty))
@@ -83,39 +88,49 @@ public class AutoFollow : Feature
                 hasChanged = true;
             }
             ImGuiHelper.HelpMarker("When enabled, Auto Follow will only work while you're in a duty.");
+
+            ImGui.TableNextColumn();
+            if (ImGui.Checkbox("Change master on chat message", ref Config.changeMasterOnChat))
+            {
+                hasChanged = true;
+            }
+            ImGuiHelper.HelpMarker("If a party chat message contains \"autofollow\"\nthe current master will be switched to them.");
+
+            ImGui.TableNextRow();
             ImGui.TableNextColumn();
             if (ImGui.Checkbox("Mount & Fly", ref Config.MountAndFly))
             {
                 hasChanged = true;
             }
-            ImGuiHelper.HelpMarker("Lets Auto Follow use mount");
+            ImGuiHelper.HelpMarker("Let Auto Follow use mount");
+
+            ImGui.TableNextColumn();
+            // Define your chatTypeOptions array with the chat type names
+            string[] chatTypeOptions = Constants.NormalChatTypes.Select(chatType => chatType.ToString()).ToArray();
+            int selectedChatTypeIndex = Array.IndexOf(chatTypeOptions, Config.SelectedChatType.ToString());
+            ImGui.PushItemWidth(150f);
+            if (ImGui.Combo("Select Chat Type", ref selectedChatTypeIndex, chatTypeOptions, chatTypeOptions.Length))
+            {
+                // User has selected a chat type
+                if (selectedChatTypeIndex >= 0 && selectedChatTypeIndex < Constants.NormalChatTypes.Length)
+                {
+                    Config.SelectedChatType = Constants.NormalChatTypes[selectedChatTypeIndex];
+                    hasChanged = true;
+                }
+            }
+            ImGuiHelper.HelpMarker("Select the channel that should be listend to for the \"autofollow\" command!\nNOTE: \"CrossParty\" functions the same as regular party chat!");
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            if (ImGui.Checkbox("Auto Jump", ref Config.AutoJump))
+            {
+                hasChanged = true;
+            }
+            ImGuiHelper.HelpMarker("Attempts to jump whenever the master target jumps.");
+
             ImGui.EndTable();
         }
         ImGuiHelper.SeperatorWithSpacing();
-
-        if (ImGui.Checkbox("Change master on chat message", ref Config.changeMasterOnChat))
-        {
-            hasChanged = true;
-        }
-        ImGuiHelper.HelpMarker("If a party chat message contains \"autofollow\"\nthe current master will be switched to them.");
-
-        // Define your chatTypeOptions array with the chat type names
-        string[] chatTypeOptions = Constants.NormalChatTypes.Select(chatType => chatType.ToString()).ToArray();
-        int selectedChatTypeIndex = Array.IndexOf(chatTypeOptions, Config.SelectedChatType.ToString());
-        ImGui.PushItemWidth(150f);
-        if (ImGui.Combo("Select Chat Type", ref selectedChatTypeIndex, chatTypeOptions, chatTypeOptions.Length))
-        {
-            // User has selected a chat type
-            if (selectedChatTypeIndex >= 0 && selectedChatTypeIndex < Constants.NormalChatTypes.Length)
-            {
-                Config.SelectedChatType = Constants.NormalChatTypes[selectedChatTypeIndex];
-                hasChanged = true;
-            }
-        }
-        ImGuiHelper.HelpMarker("Select the channel that should be listend to for the \"autofollow\" command!\nNOTE: \"CrossParty\" functions the same as regular party chat!");
-        ImGuiHelper.SeperatorWithSpacing();
-
-
 
         ImGui.PushItemWidth(150);
         if (ImGui.SliderInt("Distance to Keep (yalms)", ref Config.distanceToKeep, 0, 30))
@@ -165,7 +180,16 @@ public class AutoFollow : Feature
         {
             Jump();
         }
-
+        ImGui.SameLine();
+        if (ImGui.Button("CD 10"))
+        {
+            Chat.Instance.SendMessage("/countdown 10");
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("CD cancel"))
+        {
+            Chat.Instance.SendMessage("/countdown");
+        }
 
     };
 
@@ -215,7 +239,7 @@ public class AutoFollow : Feature
         }
         Svc.Framework.Update += Follow;
         Svc.Log.Debug("Follow enabled");
-        Svc.Chat.Print($"{XivChatType.Notice}Auto Follow Module enabled");
+        Svc.Chat.Print($"{XivChatType.Echo}Auto Follow Module enabled");
         Svc.Chat.ChatMessage += OnChatMessage;
         Svc.Log.Debug("OnChatMessage enabled");
         base.Enable();
@@ -264,7 +288,9 @@ public class AutoFollow : Feature
             Svc.Log.Debug($"{ex}");
         }
     }
- 
+
+
+
     private unsafe void Follow(IFramework framework)
     {
         master = Svc.Objects.FirstOrDefault((Dalamud.Game.ClientState.Objects.Types.GameObject x) => x.ObjectId == masterObjectID);
@@ -289,6 +315,8 @@ public class AutoFollow : Feature
             movement.Enabled = false;
             return;
         }
+
+
         if (Svc.Condition[ConditionFlag.InFlight])
         {
             TaskManager.Abort();
@@ -322,6 +350,18 @@ public class AutoFollow : Feature
             movement.Enabled = false;
             return;
         }
+
+        // Check if the master target is jumping
+        if (master != null && Config.AutoJump)
+        {
+            if (master.Position.Y > Svc.ClientState.LocalPlayer?.Position.Y + 0.5 && IsMoving() && Vector3.Distance(Svc.ClientState.LocalPlayer.Position, master.Position) <= (float)Config.distanceToKeep)
+            {
+                Jump();
+                return;
+            }
+
+        }
+
         movement.Enabled = true;
         movement.DesiredPosition = master.Position;
     }

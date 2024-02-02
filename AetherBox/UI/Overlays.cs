@@ -10,20 +10,18 @@ namespace AetherBox.UI
         private Feature Feature { get; set; }
 
         public Overlays(Feature t)
-            : base("###Overlay" + t.Name, ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysUseWindowPadding, forceMainWindow: true)
+            : base($"###Overlay{t.Name}", ImGuiWindowFlags.NoDecoration | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.AlwaysUseWindowPadding, forceMainWindow: true)
         {
-            base.Position = new Vector2(0f, 0f);
             Feature = t;
-            base.IsOpen = true;
-            base.ShowCloseButton = false;
-            base.RespectCloseHotkey = false;
-            base.DisableWindowSounds = true;
-            base.SizeConstraints = new WindowSizeConstraints
-            {
-                MaximumSize = new Vector2(0f, 0f)
-            };
-            global::AetherBox.AetherBox.P.Ws.AddWindow(this);
+            IsOpen = true;
+            ShowCloseButton = false;
+            RespectCloseHotkey = false;
+            DisableWindowSounds = true;
+            SizeConstraints = new WindowSizeConstraints { MaximumSize = new Vector2(0f, 0f) };
+            AetherBox.P?.Ws?.AddWindow(this);
+            Position = Vector2.Zero;
         }
+
 
         public override void Draw()
         {

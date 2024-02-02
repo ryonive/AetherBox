@@ -28,33 +28,37 @@
     <!-- Exclude from Build -->
     <ItemGroup>
         <Compile Remove="AetherBox - old.cs" />
+        <Compile Remove="Data\ActionID.cs" />
+        <Compile Remove="Data\IconSet.cs" />
+        <Compile Remove="Debugging\DebugManager.cs" />
         <Compile Remove="Features\Actions\ISLock&amp;Move.cs" />
         <Compile Remove="Features\Other\NoKill.cs" />
         <Compile Remove="GlobalSuppressions.cs" />
+        <Compile Remove="Helpers\ActionType.cs" />
+        <Compile Remove="Helpers\AIBehaviour.cs" />
         <Compile Remove="Helpers\Faloop\.Jurisdiction.cs" />
-        <Compile Remove="UI\ConfigWindow.cs" />
-        <Compile Remove="UI\MainWindowConfigWindowTab.cs" />
-        <Compile Remove="UI\OldMainWindow.cs" />
-        <Compile Remove="UI\PluginInfoUI.cs" />
-        <Compile Remove="UI\PluginSettingsUI.cs" />
+        <Compile Remove="UI\DebugWindow.cs" />
     </ItemGroup>
 
     <!-- Include in Solution explorer -->
     <ItemGroup>
+        <None Include="Data\ActionID.cs" />
+        <None Include="Data\IconSet.cs" />
+        <None Include="Debugging\DebugManager.cs" />
         <None Include="Features\Other\NoKill.cs" />
-        <None Include="UI\ConfigWindow.cs" />
+        <None Include="Helpers\ActionType.cs" />
     </ItemGroup>
 
     <!-- Debug build config -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
         <OutputPath>$(DalamudDevPlugins)</OutputPath>
-        <NoWarn>1701;1702;S125;IDE1006;S3010</NoWarn>
+        <NoWarn>1701;1702;S125;IDE1006;S3010;S1144</NoWarn>
         <DebugType>full</DebugType>
     </PropertyGroup>
 
     <!-- Release build config -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-        <NoWarn>1701;1702;S125;IDE1006;S3010</NoWarn>
+        <NoWarn>1701;1702;S125;IDE1006;S3010;S1144</NoWarn>
     </PropertyGroup>
 
     <!-- Important file -->
@@ -82,10 +86,7 @@
             <CopyToOutputDirectory>Never</CopyToOutputDirectory>
             <Visible>false</Visible>
         </None>
-        <None Include="UI\MainWindowConfigWindowTab.cs" />
-        <None Include="UI\OldMainWindow.cs" />
-        <None Include="UI\PluginInfoUI.cs" />
-        <None Include="UI\PluginSettingsUI.cs" />
+        <None Include="UI\DebugWindow.cs" />
     </ItemGroup>
 
     <!-- Other References -->
