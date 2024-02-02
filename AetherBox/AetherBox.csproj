@@ -27,7 +27,7 @@
     </PropertyGroup>
 
     <!-- Exclude from Build -->
-    <ItemGroup>
+    <ItemGroup>                                                    
         <Compile Remove="AetherBox - old.cs" />
         <Compile Remove="Data\ActionID.cs" />
         <Compile Remove="Data\IconSet.cs" />
