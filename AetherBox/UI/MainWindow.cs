@@ -29,6 +29,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using FFXIVClientStructs.Interop.Attributes;
 using ImGuiNET;
 using Lumina.Excel;
+using Dalamud.Plugin;
 
 namespace AetherBox.UI;
 
@@ -46,9 +47,7 @@ public class MainWindow : Window
     public OpenCatagory OpenCatagory { get; private set; }
     public string InfoMarker { get; private set; } = "More information can be found\nby either hovering the mouse over the featurename or checkbox";
     public MainWindow(IDalamudTextureWrap bannerImage, IDalamudTextureWrap iconImage)
-        : base($"{AetherBox.Name} {AetherBox.P.GetType().Assembly.GetName().Version}###{AetherBox.Name}",
-               ImGuiWindowFlags.AlwaysUseWindowPadding,
-               false)
+        : base($"{AetherBox.Name} {AetherBox.P.GetType().Assembly.GetName().Version}###{AetherBox.Name}", ImGuiWindowFlags.AlwaysUseWindowPadding, false)
     {
         // Set initial size and size condition
         SizeCondition = ImGuiCond.FirstUseEver;

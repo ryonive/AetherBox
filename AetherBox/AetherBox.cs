@@ -6,13 +6,17 @@ using AetherBox.IPC;
 using AetherBox.UI;
 using Dalamud.Game.ClientState.Conditions;
 using Dalamud.Game.Command;
+using Dalamud.Game.Text;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.Windowing;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Plugin.Services;
+using EasyCombat.UI.Helpers;
 using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
+using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Kernel;
 
 namespace AetherBox;
@@ -104,6 +108,16 @@ public class AetherBox : IDalamudPlugin
         provider.LoadFeatures();
         FeatureProviders?.Add(provider);
         #endregion
+
+        try
+        {
+            if (Svc.PluginInterface.Reason == PluginLoadReason.Reload)
+            {
+                Svc.Chat.Print($"Reloaded {AetherBox.Name}", AetherBox.Name, 45);
+                MainWindow.IsOpen = !MainWindow.IsOpen;
+            }
+        }
+        catch (Exception ex) { ex.Log(); }
     }
     #endregion
 
@@ -281,4 +295,5 @@ public class AetherBox : IDalamudPlugin
     {
         Svc.Log.Debug($"Condition chage: {flag}={value}");
     }
+
 }

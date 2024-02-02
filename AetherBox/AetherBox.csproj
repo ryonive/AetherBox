@@ -52,13 +52,13 @@
 
     <!-- Debug build config -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-        <NoWarn>1701;1702;S125;IDE1006;S3010;S1144</NoWarn>
+        <NoWarn>1701;1702;S125;IDE1006;S3010;S1144;S1066</NoWarn>
         <DebugType>full</DebugType>
     </PropertyGroup>
 
     <!-- Release build config -->
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-        <NoWarn>1701;1702;S125;IDE1006;S3010;S1144</NoWarn>
+        <NoWarn>1701;1702;S125;IDE1006;S3010;S1144;S1066</NoWarn>
     </PropertyGroup>
 
     <!-- Important file -->
