@@ -1,9 +1,6 @@
-﻿using System.Numerics;
-using AetherBox.Helpers;
-using Dalamud.Interface.Internal;
+﻿using AetherBox.Helpers;
 using Dalamud.Utility;
 using ImGuiNET;
-using static System.Net.WebRequestMethods;
 
 namespace AetherBox.UI;
 internal static class QuickLinks
@@ -23,8 +20,8 @@ internal static class QuickLinks
         // Calculate the width for each column based on the available width and the number of columns
         var columnWidth = tableWidth / numColumns;
 
-        // Begin a new ImGui table with specified flags (borders, fixed sizing, reorderable)
-        ImGui.BeginTable(AetherBox.Name, numColumns, ImGuiTableFlags.Borders | ImGuiTableFlags.SizingFixedFit | ImGuiTableFlags.Reorderable);
+        // Begin a new ImGui table with specified flags (borders, fixed sizing)
+        ImGui.BeginTable(AetherBox.Name, numColumns, ImGuiTableFlags.Borders | ImGuiTableFlags.SizingFixedFit);
 
         // Set up columns within the table based on the calculated column width
         for (int columnIndex = 0; columnIndex < numColumns; columnIndex++)
@@ -45,7 +42,8 @@ internal static class QuickLinks
             if (IconSet.GetTexture(link.ImageUrl, out var icon))
             {
                 // Display the image in a new column with specified width and height
-                ImGuiHelper.ImageInNewColumn(icon, tableWidth, tableWidth / numColumns, icon.Height);
+               // ImGuiHelper.ImageInNewColumn(icon, tableWidth, tableWidth / numColumns, icon.Height);
+                ImGuiHelper.ImageInNewColumn(icon, tableWidth, tableWidth / numColumns, 100);
                 if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
                 {
                     Util.OpenLink(link.Url); // Open the link when the image is clicked

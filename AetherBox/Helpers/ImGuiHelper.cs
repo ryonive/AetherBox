@@ -13,6 +13,7 @@ using ECommons.DalamudServices;
 using ECommons.Reflection;
 using EasyCombat.UI.Helpers;
 using Dalamud.Interface.Internal;
+using static FFXIVClientStructs.FFXIV.Client.UI.Misc.GroupPoseModule;
 
 namespace AetherBox.Helpers;
 
@@ -570,6 +571,7 @@ public static unsafe partial class ImGuiHelper
     #endregion
 
     #region Images
+
     /// <summary>
     /// texture is the image.   Image will scale if the maxWidth(image width?) is lower then wholewidth(threshold for when to scale)
     /// </summary>
@@ -578,12 +580,11 @@ public static unsafe partial class ImGuiHelper
     /// <param name="maxWidth"></param>
     /// <param name="id"></param>
     /// <returns></returns>
-    internal static bool TextureButton(IDalamudTextureWrap texture, float wholeWidth, float maxWidth, string id = "")
+    internal static bool TextureButton(IDalamudTextureWrap texture, float wholeWidth, float maxWidth, float maxHeight, string id = "")
     {
         if (texture == null) return false;
 
         var size = new Vector2(texture.Width, texture.Height) * MathF.Min(1, MathF.Min(maxWidth, wholeWidth) / texture.Width);
-
         var result = false;
         DrawItemMiddle(() =>
         {
@@ -592,26 +593,29 @@ public static unsafe partial class ImGuiHelper
         return result;
     }
 
-    internal static void ImageInNewColumn(IDalamudTextureWrap texture, float columnWidth, float maxWidth, float maxHeight)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="texture"></param>
+    /// <param name="columnWidth"></param>
+    /// <param name="maxWidth"></param>
+    /// <param name="maxHeight"></param>
+    internal static void ImageInNewColumn(IDalamudTextureWrap? texture, float columnWidth, float maxWidth, float maxHeight)
     {
         if (texture == null) return;
 
         float aspectRatio = (float)texture.Width / texture.Height;
         float width = Math.Min(columnWidth, maxWidth); // Adjust the maxWidth as needed
 
-
         ImGui.TableNextColumn();
         ImGui.Spacing();
-        if (texture != null)
-        {
-            // Calculate the height while maintaining aspect ratio
-            float height = Math.Min(width / aspectRatio, maxHeight); // Adjust the maxHeight as needed
-            NoPaddingImageButton(texture.ImGuiHandle, new Vector2(width, height), new Vector2(0, 0), new Vector2(1, 1));
-            // NoPaddingNoColorImageButton(texture.ImGuiHandle, new Vector2(width, height));
-        }
+
+        // Calculate the height while maintaining aspect ratio
+        float height = Math.Min(width / aspectRatio, maxHeight); // Adjust the maxHeight as needed
+        NoPaddingNoColorImageButton(texture.ImGuiHandle, new Vector2(width, height));
+
         ImGui.Spacing();
     }
-
 
     internal unsafe static bool NoPaddingNoColorImageButton(nint handle, Vector2 size, string id = "")
         => NoPaddingNoColorImageButton(handle, size, Vector2.Zero, Vector2.One, id);
@@ -1023,7 +1027,7 @@ public static unsafe partial class ImGuiHelper
     /// </summary>
     /// <param name="id">Unique ImGui ID</param>
     /// <param name="values">List of actions for each column</param>
-    public static void EzTableColumns(string id, System.Action[] values)
+    public static void EzTableColumns(string id, Action[] values)
     {
         if (values.Length == 1)
         {
@@ -1033,7 +1037,7 @@ public static unsafe partial class ImGuiHelper
         {
             if (ImGui.BeginTable(id, values.Length, ImGuiTableFlags.SizingStretchSame))
             {
-                foreach (System.Action action in values)
+                foreach (Action action in values)
                 {
                     ImGui.TableNextColumn();
                     GenericHelpers.Safe(action);
@@ -1042,6 +1046,7 @@ public static unsafe partial class ImGuiHelper
             }
         }
     }
+
     internal static void TableNextRowWithMaxHeight(float maxRowHeight)
     {
         ImGui.TableNextRow();

@@ -235,7 +235,7 @@ public class MainWindow : Window
                             DrawCommands(AetherBox.P.Features.Where((BaseFeature x) => x.FeatureType == FeatureType.Commands && (!x.isDebug || global::AetherBox.AetherBox.Config.ShowDebugFeatures)).ToArray());
                             break;
                         case OpenCatagory.Debug:
-                            DrawDebug(AetherBox.P.Features.Where((BaseFeature x) => (x.isDebug)).ToArray());
+                            DrawDebugFeatures(AetherBox.P.Features.Where((BaseFeature x) => (x.isDebug)).ToArray());
                             break;
                         case OpenCatagory.QuickLinks:
                             QuickLinks.DrawQuickLinks();
@@ -292,70 +292,7 @@ public class MainWindow : Window
 
     }
 
-    private void DrawBanner()
-    {
-        try
-        {
-            // Calculate the available width for the header and constrain the image to that width while maintaining aspect ratio
-            var availableWidth = ImGui.GetContentRegionAvail().X;
-            if (BannerImage != null)
-            {
-                var aspectRatio = (float)BannerImage.Width / BannerImage.Height;
-                var imageWidth = availableWidth;
-                var imageHeight = imageWidth / aspectRatio;
-
-                // Ensure the image is not taller than a certain threshold, e.g., 100 pixels
-                var maxHeight = 100.0f * Scale;
-                if (imageHeight > maxHeight)
-                {
-                    imageHeight = maxHeight;
-                    imageWidth = imageHeight * aspectRatio;
-                }
-
-                // Center the image in the available space
-                var spaceBeforeImage = (availableWidth - imageWidth) * 0.5f;
-                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + spaceBeforeImage);
-
-                // Draw the image
-                ImGui.Image(this.BannerImage.ImGuiHandle, new Vector2(imageWidth, imageHeight));
-            }
-            else
-            {
-                Svc.Log.Error("Icon Image is Null!");
-            }
-        }
-        catch (Exception ex)
-        {
-            Svc.Log.Error($"{ex}, Error at DrawHeader");
-        }
-
-    }
-
-    // Method: Is called when selecting the 'QuickLinks' catagory in the plugin
-    private static void DrawQuickLinks() 
-    {
-        // Float variable: Simply gets the available width in pixels
-        var width = ImGui.GetWindowWidth(); 
-
-        // String variable: We use this so we dont have to write the whole URL
-        var urlpath3 = "https://img.finalfantasyxiv.com/t/db506ff2f29218fefd9edfac5cd51912edca64bf.png?1704960236";
-
-        // Method: Grabs a texture (image) from a path 'urlpath3', and 'TextureButton' just maked the image a clickable button
-        if (IconSet.GetTexture(urlpath3, out var icon) && ImGuiHelper.TextureButton(icon, width, width))
-        {
-            var patchNotes = "https://eu.finalfantasyxiv.com/lodestone/topics/detail/8e7360878c6a7c3209614b36a801a783f74ff21d";
-            // Method: Opens whatever URL is provided (in this case 'patchNotes' is a string variable that holds the link to the patch notes)
-            Util.OpenLink($"{patchNotes}");
-        }
-
-        // Method: Displays a tooltip if the mouse is hovering over.
-        ImGuiHelper.Tooltip($"Patch 6.55 Notes");
-        
-        // Method: Displays a line (Yup that's it)
-        ImGui.Separator();
-    }
-
-    private static void DrawDebug(BaseFeature[] features)
+    private static void DrawDebugFeatures(BaseFeature[] features)
     {
         try
         {
@@ -493,7 +430,7 @@ public class MainWindow : Window
         ImGuiHelper.SeperatorWithSpacing();
     }
 
-    private void ToggleFeature(BaseFeature feature, bool enabled)
+    private static void ToggleFeature(BaseFeature feature, bool enabled)
     {
         try
         {
@@ -511,7 +448,10 @@ public class MainWindow : Window
                 AetherBox.Config.EnabledFeatures.RemoveAll(x => x == feature.GetType().Name);
             }
 
-            AetherBox.Config.Save();
+            if (AetherBox.Config != null)
+            {
+                AetherBox.Config.Save();
+            }
         }
         catch (Exception ex)
         {
