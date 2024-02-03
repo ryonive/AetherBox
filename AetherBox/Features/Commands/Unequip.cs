@@ -41,9 +41,9 @@ public class Unequip : CommandFeature
 
 	public override List<string> Parameters => new List<string> { "[<head/body/arms/legs/feet/earring/necklace/bracelet/Lring/Rring>]", "[<destination>]" };
 
-	public override bool isDebug => true;
+	public override bool isDebug => false;
 
-	public override FeatureType FeatureType => FeatureType.Disabled;
+	public override FeatureType FeatureType => FeatureType.Commands;
 
 	protected unsafe override void OnCommand(List<string> args)
 	{

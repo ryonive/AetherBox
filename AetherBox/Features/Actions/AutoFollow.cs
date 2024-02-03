@@ -1,3 +1,5 @@
+// Add a command for Auto Follow Distance (Example: /afd 10) would set the distance to keep to 10yalms
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -171,25 +173,46 @@ public class AutoFollow : Feature
             SetMaster();
         }
         ImGui.SameLine();
+
         if (ImGui.Button("Clear"))
         {
             ClearMaster();
         }
+
+
+        Vector3 targetPos;
+        targetPos = ((Svc.Targets.Target != null) ? Svc.Targets.Target.Position : Svc.Targets.PreviousTarget.Position);
+        var str = ((Svc.Targets.Target != null) ? "Target" : "Last Target");
         ImGui.SameLine();
-        if (ImGui.Button("Jump"))
+        if (ImGui.Button($"Set to " + str))
         {
-            Jump();
+            try
+            {
+                var lastMaster = Svc.Targets?.PreviousTarget;
+                var lastMasterObjectID = Svc.Targets?.Target?.ObjectId;
+                var master = Svc.Targets?.Target;
+                var masterObjectID = Svc.Targets?.Target?.ObjectId;
+                if (master == null || lastMaster == null)
+                {
+                    PrintModuleMessage($"Master is null!");
+                }
+                else if (master)
+                {
+                    master = Svc.Targets?.Target;
+                    masterObjectID = Svc.Targets?.Target?.ObjectId;
+                    PrintModuleMessage($"Master is set to {master?.Name}");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Svc.Log.Debug($"{ex}");
+            }
         }
-        ImGui.SameLine();
-        if (ImGui.Button("CD 10"))
-        {
-            Chat.Instance.SendMessage("/countdown 10");
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("CD cancel"))
-        {
-            Chat.Instance.SendMessage("/countdown");
-        }
+        ImGui.Text($"{str} Position: {targetPos:f3}");
+
+
+
 
     };
 

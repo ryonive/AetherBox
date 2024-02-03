@@ -30,6 +30,7 @@ using FFXIVClientStructs.Interop.Attributes;
 using ImGuiNET;
 using Lumina.Excel;
 using Dalamud.Plugin;
+using ECommons.Automation;
 
 namespace AetherBox.UI;
 

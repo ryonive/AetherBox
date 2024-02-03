@@ -117,6 +117,7 @@ public class PositionDebug : DebugHelper
         }
         ImGui.Text($"IsMoving: {AgentMap.Instance()->IsPlayerMoving == 1}");
         ImGui.Separator();
+
         if (Svc.Targets.Target != null || Svc.Targets.PreviousTarget != null)
         {
             Vector3 targetPos;
@@ -131,11 +132,13 @@ public class PositionDebug : DebugHelper
             ImGui.Text($"Distance to {str}: {Vector3.Distance(Svc.ClientState.LocalPlayer.Position, targetPos)}");
             try
             {
-                ImGui.Text($"IsFlying: {((Structs.Character*)Svc.Targets.Target.Address)->IsFlying}");
+                if (Svc.Targets.Target != null)
+                {
+                    ImGui.Text($"IsFlying: {((Structs.Character*)Svc.Targets.Target.Address)->IsFlying}");
+                }
             }
-            catch
-            {
-            }
+            catch (Exception ex)
+            { Svc.Log.Warning($"{ex}"); }
             ImGui.Separator();
         }
         Svc.GameGui.ScreenToWorld(ImGui.GetIO().MousePos, out var pos);
@@ -247,6 +250,14 @@ public class PositionDebug : DebugHelper
         SafeMemory.Write(((delegate* unmanaged[Stdcall]<byte, nint>)Svc.SigScanner.ScanText("E8 ?? ?? ?? ?? 48 ?? ?? 74 ?? 83 ?? ?? 75 ?? 0F ?? ?? ?? 66"))(1) + 8, speed);
     }
 
+    /// <summary>
+    /// Sets the position of an object to the current mouse position on the game screen.
+    /// </summary>
+    /// <remarks>
+    /// This method calculates the world position based on the current mouse cursor position
+    /// and moves an object to that location. It is intended for use in games or applications
+    /// where you want to interact with in-game objects by positioning them at the mouse cursor.
+    /// </remarks>
     public static void SetPosToMouse()
     {
         if (!(Svc.ClientState.LocalPlayer == null))
@@ -261,6 +272,8 @@ public class PositionDebug : DebugHelper
             }
         }
     }
+
+
 
     public static void SetPos(Vector3 pos)
     {

@@ -474,7 +474,7 @@ public abstract class BaseFeature
         return AgentMap.Instance()->IsPlayerMoving == 1;
     }
 
-    public unsafe bool Jump()
+    public static unsafe bool Jump()
     {
         return FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->UseAction(ActionType.GeneralAction, 2);
     }
