@@ -1,35 +1,23 @@
 // Add a command for Auto Follow Distance (Example: /afd 10) would set the distance to keep to 10yalms
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using AetherBox.Features;
-using AetherBox.Features.Actions;
+using AetherBox.Features.Debugging;
 using AetherBox.FeaturesSetup;
 using AetherBox.Helpers;
 using Dalamud.Game.ClientState.Conditions;
-using Dalamud.Game.ClientState.Objects.Enums;
-using Dalamud.Game.ClientState.Objects.Types;
 using Dalamud.Game.Command;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
-using Dalamud.Interface.Components;
-using Dalamud.Interface.Utility;
-using Dalamud.Interface.Utility.Raii;
-using Dalamud.Interface.Utility.Table;
 using Dalamud.Plugin.Services;
 using EasyCombat.UI.Helpers;
 using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
-using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Game.Character;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using ImGuiNET;
+using Lumina.Excel.GeneratedSheets;
 
 namespace AetherBox.Features.Actions;
 
@@ -53,10 +41,13 @@ public class AutoFollow : Feature
         public XivChatType SelectedChatType;
 
         [FeatureConfigOption("Mount & Fly (Experimental)", "", 6, null)]
-        public bool MountAndFly = true;
+        public bool MountAndFly;
 
-        [FeatureConfigOption("Auto Jump (Highly Experimental)", "", 7, null)]
-        public bool AutoJump = true;
+        [FeatureConfigOption("Abort if moving (Experimental)", "", 7, null)]
+        public bool AbortIfMoving ;
+
+        [FeatureConfigOption("Auto Jump (Highly Experimental)", "", 8, null)]
+        public bool AutoJump;
     }
 
 
@@ -123,6 +114,13 @@ public class AutoFollow : Feature
             ImGuiHelper.HelpMarker("Select the channel that should be listend to for the \"autofollow\" command!\nNOTE: \"CrossParty\" functions the same as regular party chat!");
 
             ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            if (ImGui.Checkbox("Abort if Moving", ref Config.AbortIfMoving))
+            {
+                hasChanged = true;
+            }
+            ImGuiHelper.HelpMarker("Abort mounting if character is moving");
+
             ImGui.TableNextColumn();
             if (ImGui.Checkbox("Auto Jump", ref Config.AutoJump))
             {
