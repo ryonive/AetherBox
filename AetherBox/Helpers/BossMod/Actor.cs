@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace AetherBox.Helpers
+namespace AetherBox.Helpers.BossMod
 {
     // objkind << 8 + objsubkind
     public enum ActorType : ushort

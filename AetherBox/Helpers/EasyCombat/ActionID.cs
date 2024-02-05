@@ -1,4 +1,4 @@
-namespace AetherBox.Helpers;
+namespace AetherBox.Helpers.EasyCombat;
 
 /// <summary>
 /// The ID the action.
@@ -1754,20 +1754,20 @@ public enum ActionID : uint
     /// </summary>
     Detonator = 16766,
 
-	/// <summary>
-	/// 
-	/// </summary>
-	RookOverdrive = 7415,
+    /// <summary>
+    /// 
+    /// </summary>
+    RookOverdrive = 7415,
 
-	/// <summary>
-	/// 
-	/// </summary>
-	Flamethrower = 7418,
+    /// <summary>
+    /// 
+    /// </summary>
+    Flamethrower = 7418,
 
-	/// <summary>
-	/// 
-	/// </summary>
-	QueenOverdrive = 16502,
+    /// <summary>
+    /// 
+    /// </summary>
+    QueenOverdrive = 16502,
 
     /// <summary>
     ///

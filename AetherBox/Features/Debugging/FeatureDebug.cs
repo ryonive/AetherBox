@@ -1,8 +1,10 @@
 using System.Reflection;
 using AetherBox.Debugging;
+using AetherBox.FeaturesSetup;
 using AetherBox.Helpers;
 using EasyCombat.UI.Helpers;
 using ECommons.Automation;
+using ECommons.DalamudServices;
 using ImGuiNET;
 
 namespace AetherBox.Features.Debugging;
@@ -15,40 +17,74 @@ public class FeatureDebug : DebugHelper
 
     public override void Draw()
     {
-        ImGuiHelper.TextCentered(AetherColor.CyanBright, Name ?? "");
+        ImGuiHelper.TextCentered(AetherColor.DarkType, $"{BaseFeature.AetherBoxPayload}\n {Name}" ?? "");
         ImGuiHelper.SeperatorWithSpacing();
         if (ImGui.Button("Load Features"))
         {
             provider.LoadFeatures();
             AetherBox.P.FeatureProviders.Add(provider);
         }
-        if (!ImGui.Button("Unload Features"))
+        ImGui.SameLine();
+
+        if (ImGui.Button($"Unload Features"))
         {
-            return;
+            foreach (BaseFeature item in AetherBox.P.Features.Where((BaseFeature x) => x?.Enabled ?? false))
+            {
+                item.Disable();
+                Svc.Log.Debug($"{item.Name} was disabled!");
+            }
+            AetherBox.P.FeatureProviders.Clear();
+            provider.UnloadFeatures();
         }
-        foreach (BaseFeature item in AetherBox.P.Features.Where((BaseFeature x) => x?.Enabled ?? false))
+        ImGuiHelper.SeperatorWithSpacing();
+
+        var enabledFeatures = AetherBox.P.Features
+    .Where(feature => feature.Enabled)
+    .OrderBy(feature => feature.FeatureType)
+    .ThenBy(feature => feature.Name);
+
+        var disabledFeatures = AetherBox.P.Features
+    .Where(feature => !feature.Enabled)
+    .OrderBy(feature => feature.FeatureType)
+    .ThenBy(feature => feature.Name);
+
+        ImGuiHelper.TextUnderlined(AetherColor.Green, $"Enabled Features");
+        ImGui.Spacing();
+        ImGui.Spacing();
+        foreach (BaseFeature item in enabledFeatures)
         {
-            item.Disable();
+            string status = item.Enabled ? "Enabled" : "Disabled";
+            string featureName = item.Name;
+            FeatureType featureType = item.FeatureType;
+            string featureTypeName = Enum.GetName(typeof(FeatureType), featureType);
+
+            ImGui.Indent();
+            ImGui.TextColored(AetherColor.GreenBright, $"{featureName} - [{featureTypeName}]" ?? "NULL");
+            ImGuiHelper.Tooltip($"[{status}] \n{featureName}");
+            ImGui.Unindent();
         }
-        AetherBox.P.FeatureProviders.Clear();
-        provider.UnloadFeatures();
 
         ImGuiHelper.SeperatorWithSpacing();
 
-        if (ImGui.Button("Jump"))
+        ImGuiHelper.TextUnderlined(AetherColor.RedBright, $"Enabled Features");
+        ImGui.Spacing();
+        ImGui.Spacing();
+        foreach (BaseFeature item in disabledFeatures)
         {
-            BaseFeature.Jump();
+            string status = item.Enabled ? "Enabled" : "Disabled";
+            string featureName = item.Name;
+            FeatureType featureType = item.FeatureType;
+            string featureTypeName = Enum.GetName(typeof(FeatureType), featureType);
+
+            ImGui.Indent();
+            ImGui.TextColored(AetherColor.DalamudRed, $"{featureName} - [{featureTypeName}]" ?? "NULL");
+            ImGuiHelper.Tooltip($"[{status}] \n{featureName}");
+            ImGui.Unindent();
         }
-        ImGui.SameLine();
-        if (ImGui.Button("CD 10"))
-        {
-            Chat.Instance.SendMessage("/countdown 10");
-        }
-        ImGui.SameLine();
-        if (ImGui.Button("CD cancel"))
-        {
-            Chat.Instance.SendMessage("/countdown");
-        }
+
+
+
+
         ImGuiHelper.SeperatorWithSpacing();
     }
 }

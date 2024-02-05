@@ -2,6 +2,7 @@
 
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Windows.Forms;
 using AetherBox.Features.Debugging;
 using AetherBox.FeaturesSetup;
 using AetherBox.Helpers;
@@ -10,14 +11,17 @@ using Dalamud.Game.Command;
 using Dalamud.Game.Text;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface.Utility;
 using Dalamud.Plugin.Services;
 using EasyCombat.UI.Helpers;
 using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
+using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace AetherBox.Features.Actions;
 
@@ -69,21 +73,26 @@ public class AutoFollow : Feature
 
     protected override DrawConfigDelegate DrawConfigTree => delegate (ref bool hasChanged)
     {
-        if (ImGui.BeginTable("AutoFollow header options", 2, ImGuiTableFlags.SizingStretchProp))
+        float tableWidth = ImGui.GetContentRegionAvail().X -10;
+        float rowHeight = 30.0f; // Adjust this value as needed for the height of each row
+        Vector2 tableSize = new Vector2(tableWidth, rowHeight * 2); // 2 rows
+        if (ImGui.BeginTable("AutoFollow header options", 2, ImGuiTableFlags.SizingStretchProp, tableSize))
         {
-            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
-            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthFixed, ImGui.GetWindowWidth() / 2f);
+            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch, ImGui.GetContentRegionAvail().X - 10);
+            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch, ImGui.GetContentRegionAvail().X - 10);
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            if (ImGui.Checkbox("Function Only in Duty", ref Config.OnlyInDuty))
+
+            if (ImGui.Checkbox("Duty Only", ref Config.OnlyInDuty))
             {
                 hasChanged = true;
             }
             ImGuiHelper.HelpMarker("When enabled, Auto Follow will only work while you're in a duty.");
 
             ImGui.TableNextColumn();
-            if (ImGui.Checkbox("Change master on chat message", ref Config.changeMasterOnChat))
+
+            if (ImGui.Checkbox("Change master on chat", ref Config.changeMasterOnChat))
             {
                 hasChanged = true;
             }
@@ -91,6 +100,7 @@ public class AutoFollow : Feature
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
+
             if (ImGui.Checkbox("Mount & Fly", ref Config.MountAndFly))
             {
                 hasChanged = true;
@@ -101,8 +111,9 @@ public class AutoFollow : Feature
             // Define your chatTypeOptions array with the chat type names
             string[] chatTypeOptions = Constants.NormalChatTypes.Select(chatType => chatType.ToString()).ToArray();
             int selectedChatTypeIndex = Array.IndexOf(chatTypeOptions, Config.SelectedChatType.ToString());
-            ImGui.PushItemWidth(150f);
-            if (ImGui.Combo("Select Chat Type", ref selectedChatTypeIndex, chatTypeOptions, chatTypeOptions.Length))
+           // ImGui.PushItemWidth(120);
+            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X /2 -15);
+            if (ImGui.Combo("Chat Type", ref selectedChatTypeIndex, chatTypeOptions, chatTypeOptions.Length))
             {
                 // User has selected a chat type
                 if (selectedChatTypeIndex >= 0 && selectedChatTypeIndex < Constants.NormalChatTypes.Length)
@@ -125,6 +136,14 @@ public class AutoFollow : Feature
             if (ImGui.Checkbox("Auto Jump", ref Config.AutoJump))
             {
                 hasChanged = true;
+                if (Config.AutoJump)
+                {
+                    Notify.Success($"\"Config.AutoJump\" enabled!");
+                }
+                else
+                {
+                    Notify.Warning($"\"Config.AutoJump\" disabled!");
+                }
             }
             ImGuiHelper.HelpMarker("Attempts to jump whenever the master target jumps.");
 
@@ -132,18 +151,38 @@ public class AutoFollow : Feature
         }
         ImGuiHelper.SeperatorWithSpacing();
 
-        ImGui.PushItemWidth(150);
-        if (ImGui.SliderInt("Distance to Keep (yalms)", ref Config.distanceToKeep, 0, 30))
+        if (ImGui.BeginTable("AutoFollow Slider options", 2, ImGuiTableFlags.SizingStretchProp, tableSize))
         {
-            hasChanged = true;
-        }
-        ImGui.SameLine();
-        ImGui.PushItemWidth(150);
-        if (ImGui.SliderInt("Disable if Further Than (yalms)", ref Config.disableIfFurtherThan, 0, 300))
-        {
-            hasChanged = true;
+            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch, ImGui.GetContentRegionAvail().X - 10);
+            ImGui.TableSetupColumn("", ImGuiTableColumnFlags.WidthStretch, ImGui.GetContentRegionAvail().X - 10);
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGuiHelper.TextCentered("Distance to keep (yalms)");
+            ImGuiHelper.HelpMarker("Distance threshold for auto follow to start following.\n(NOTE: starts following when distance to master target is greater then the value.)");
+
+            ImGui.TableNextColumn();
+            ImGuiHelper.TextCentered("Disable if further than (yalms)");
+            ImGuiHelper.HelpMarker("Distance threshold for auto follow to stop following.\n(NOTE: Stops following until master target is in range again.)");
+
+
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X -20);
+            if (ImGui.SliderInt("", ref Config.distanceToKeep, 0, 30))
+            {
+                hasChanged = true;
+            }
+            ImGui.TableNextColumn();
+            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X -20);
+            if (ImGui.SliderInt("", ref Config.disableIfFurtherThan, 0, 50))
+            {
+                hasChanged = true;
+            }
+            ImGui.EndTable();
         }
         ImGuiHelper.SeperatorWithSpacing();
+
         ImGui.Spacing();
         ImGui.TextColored(AetherColor.BrightGhostType, $"Current Master: {((master != null) ? master.Name : ((SeString)"null"))}");
         if (Svc.ClientState.LocalPlayer == null)
@@ -170,12 +209,14 @@ public class AutoFollow : Feature
         {
             SetMaster();
         }
+        ImGuiHelper.HelpMarker("Sets Master target to your current target");
         ImGui.SameLine();
 
         if (ImGui.Button("Clear"))
         {
             ClearMaster();
         }
+        ImGuiHelper.HelpMarker("Clears the current Master target");
 
 
         Vector3 targetPos;
@@ -259,10 +300,8 @@ public class AutoFollow : Feature
             registeredCommands.Add(Command);
         }
         Svc.Framework.Update += Follow;
-        Svc.Log.Debug("Follow enabled");
-        Svc.Chat.Print($"{XivChatType.Echo}Auto Follow Module enabled");
         Svc.Chat.ChatMessage += OnChatMessage;
-        Svc.Log.Debug("OnChatMessage enabled");
+        Svc.Log.Information($"[{Name}] subscribed to event: [Follow] - [OnChatMessage]'");
         base.Enable();
     }
 
@@ -275,9 +314,8 @@ public class AutoFollow : Feature
         }
         registeredCommands.Clear();
         Svc.Framework.Update -= Follow;
-        Svc.Log.Debug("Follow disable");
         Svc.Chat.ChatMessage -= OnChatMessage;
-        Svc.Log.Debug("OnChatMessage disable");
+        Svc.Log.Information($"[{Name}] unsubscribed from event: [Follow] - [OnChatMessage]'");
         base.Disable();
     }
 
@@ -309,8 +347,6 @@ public class AutoFollow : Feature
             Svc.Log.Debug($"{ex}");
         }
     }
-
-
 
     private unsafe void Follow(IFramework framework)
     {
@@ -344,10 +380,10 @@ public class AutoFollow : Feature
         }
         if (master.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.Player)
         {
-            if (((FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)master.Address)->IsMounted() && CanMount())
+            if (Config.MountAndFly && ((FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)master.Address)->IsMounted() && CanMount())
             {
                 movement.Enabled = false;
-                ActionManager.Instance()->UseAction(ActionType.GeneralAction, 9u, 3758096384uL, 0u, 0u, 0u, null);
+                TaskManager.Enqueue(() => ActionManager.Instance()->UseAction(ActionType.GeneralAction, 9u, 3758096384uL, 0u, 0u, 0u, null));
                 return;
             }
             if (Config.MountAndFly && ((Structs.Character*)master.Address)->IsFlying != 0 && !Svc.Condition[ConditionFlag.InFlight] && Svc.Condition[ConditionFlag.Mounted])
@@ -377,7 +413,7 @@ public class AutoFollow : Feature
         {
             if (master.Position.Y > Svc.ClientState.LocalPlayer?.Position.Y + 0.5 && IsMoving() && Vector3.Distance(Svc.ClientState.LocalPlayer.Position, master.Position) <= (float)Config.distanceToKeep)
             {
-                Jump();
+                TestClass.GeneralActionJump();
                 return;
             }
 
@@ -387,8 +423,28 @@ public class AutoFollow : Feature
         movement.DesiredPosition = master.Position;
     }
 
-    private static bool CanMount()
+    /// <summary>
+    /// Determines whether the character or entity can be mounted.
+    /// </summary>
+    /// <remarks>
+    /// <br>This method returns true if all of the following conditions are met:</br>
+    /// <br>1. There is a local player (Svc.ClientState.LocalPlayer is not null).</br>
+    /// <br>2. The character is not already mounted (ConditionFlag.Mounted is false).</br>
+    /// <br>3. The character is not in the process of mounting (ConditionFlag.Mounting is false).</br>
+    /// <br>4. The character is not in combat (ConditionFlag.InCombat is false).</br>
+    /// <br>5. The current territory allows mounting, as indicated by TerritoryType configuration (TerritoryType.Mount is true).</br>
+    ///
+    /// <br>If all these conditions are met, the method returns true, indicating that mounting is allowed. Otherwise, it returns false, indicating that mounting is not allowed at that moment.</br>
+    /// </remarks>
+    /// <returns>True if the character can be mounted under the specified conditions; otherwise, false.</returns>
+    private bool CanMount()
     {
+        if (Svc.ClientState.LocalPlayer is null) return false;
+        if (Svc.Condition[ConditionFlag.Mounted]) return false;
+        if (Svc.Condition[ConditionFlag.Mounting]) return false;
+        if (Svc.Condition[ConditionFlag.InCombat]) return false;
+        if (!Svc.Data.GetExcelSheet<TerritoryType>().First(x => x.RowId == Svc.ClientState.TerritoryType).Mount) return false;
+        if (Config.AbortIfMoving && IsMoving()) return false;
         if (!Svc.Condition[ConditionFlag.Mounted] && !Svc.Condition[ConditionFlag.Mounting] && !Svc.Condition[ConditionFlag.InCombat])
         {
             return !Svc.Condition[ConditionFlag.Casting];

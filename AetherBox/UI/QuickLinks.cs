@@ -1,4 +1,5 @@
 ﻿using AetherBox.Helpers;
+using AetherBox.Helpers.EasyCombat;
 using Dalamud.Utility;
 using ImGuiNET;
 

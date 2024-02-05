@@ -16,7 +16,6 @@ public class FeatureProvider : IDisposable
 
     public List<BaseFeature> Features { get; } = new List<BaseFeature>();
 
-
     public Assembly Assembly { get; init; }
 
     public FeatureProvider(Assembly assembly)
@@ -48,10 +47,11 @@ public class FeatureProvider : IDisposable
                     }
                 }
                 Features.Add(feature);
+                Svc.Log.Information($"loaded feature {t.Name}!");
             }
             catch (Exception exception)
             {
-                PluginLog.Error(exception, "Feature not loaded: " + t.Name);
+                Svc.Log.Error(exception, "Feature not loaded: " + t.Name);
             }
         }
     }
@@ -68,7 +68,7 @@ public class FeatureProvider : IDisposable
                 }
                 catch (Exception exception)
                 {
-                    PluginLog.Error(exception, "Cannot disable " + t.Name);
+                    Svc.Log.Error(exception, "Cannot disable " + t.Name);
                 }
             }
         }

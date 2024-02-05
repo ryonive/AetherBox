@@ -7,7 +7,7 @@ using Lumina.Excel.GeneratedSheets;
 using Svg;
 using System.Drawing.Imaging;
 
-namespace AetherBox.Helpers;
+namespace AetherBox.Helpers.EasyCombat;
 
 /// <summary>
 /// The class to find the icon.

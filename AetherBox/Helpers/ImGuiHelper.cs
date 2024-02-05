@@ -955,8 +955,6 @@ public static unsafe partial class ImGuiHelper
         ImGui.Separator();
         ImGui.Spacing();
     }
-
-
     #endregion
 
     #region Tabs
@@ -1047,7 +1045,7 @@ public static unsafe partial class ImGuiHelper
         }
     }
 
-    internal static void TableNextRowWithMaxHeight(float maxRowHeight)
+    public static void TableNextRowWithMaxHeight(float maxRowHeight)
     {
         ImGui.TableNextRow();
         float currentRowHeight = ImGui.GetContentRegionAvail().Y;
@@ -1056,6 +1054,124 @@ public static unsafe partial class ImGuiHelper
             ImGui.SetCursorPosY(ImGui.GetCursorPosY() + currentRowHeight - maxRowHeight);
         }
     }
+
+    public static void TableSetupHeaders(params string[] headers)
+    {
+        foreach (string header in headers)
+        {
+            ImGui.TableSetupColumn(header);
+        }
+        ImGui.TableHeadersRow();
+    }
+
+    public static void TableSetupHeaders(params (string header, ImGuiTableColumnFlags flags, float initialWidth)[] headers)
+    {
+        foreach (var (header, flags, initialWidth) in headers)
+        {
+            ImGui.TableSetupColumn(header, flags, initialWidth);
+        }
+        ImGui.TableHeadersRow();
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="description"></param>
+    /// <param name="value"></param>
+    public static void AddTableRow(string description, string value)
+    {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn(); ImGui.Text(description);
+        ImGui.TableNextColumn(); ImGui.Text(value);
+    }
+
+    public static void AddTableRow(string description, string value, string description2, string value2)
+    {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn(); ImGui.Text(description);
+        ImGui.TableNextColumn(); ImGui.Text(value);
+        ImGui.TableNextColumn(); ImGui.Text(description2);
+        ImGui.TableNextColumn(); ImGui.Text(value2);
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="description"></param>
+    /// <param name="value"></param>
+    public static void AddTableRow(string description, bool value)
+    {
+        Vector4 color = value ? EColor.GreenBright : EColor.RedBright; // Green for true, red for false
+        string valueText = value.ToString();
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn(); ImGui.Text(description);
+        ImGui.TableNextColumn(); ImGui.TextColored(color, valueText);
+    }
+
+    public static void AddTableRow(string description, byte value)
+    {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn(); ImGui.Text(description);
+        ImGui.TableNextColumn(); ImGui.Text(value.ToString());
+    }
+
+    /// <summary>
+    /// Adds a table row with two columns. The text in the first column will be white, and the text in the second column will be the specified value.
+    /// </summary>
+    /// <param name="description">The text to display in the first column.</param>
+    /// <param name="value">The value to display in the second column.</param>
+#pragma warning disable S4144 // Methods should not have identical implementations
+    public static void AddTableRowByte(string description, byte value)
+    {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn(); ImGui.Text(description);
+        ImGui.TableNextColumn(); ImGui.Text(value.ToString());
+    }
+
+    /// <summary>
+    /// The text in both collums wil be colored
+    /// </summary>
+    /// <param name="description"></param>
+    /// <param name="value"></param>
+    /// <param name="textColor"></param>
+    public static void AddTableRow(string description, string value, Vector4 textColor)
+    {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();        ImGui.TextColored(textColor, description);
+        ImGui.TableNextColumn();        ImGui.TextColored(textColor, value);
+    }
+
+    /// <summary>
+    /// First Colum text will be white and text in the second colum will be whatever color is picked
+    /// </summary>
+    /// <param name="description"></param>
+    /// <param name="value"></param>
+    /// <param name="textColor"></param>
+    public static void AddTableRowColorLast(string description, string value, Vector4 textColor)
+    {
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();        ImGui.Text(description);
+        ImGui.TableNextColumn();        ImGui.TextColored(textColor, value);
+    }
+
+    /// <summary>
+    ///
+    /// </summary>
+    /// <param name="text"></param>
+    /// <param name="value"></param>
+    public static void AddBooleanTableRow(string text, bool value)
+    {
+        Vector4 color = value ? EColor.GreenBright : EColor.RedBright; // Green for true, red for false
+        string valueText = value.ToString();
+
+        ImGui.TableNextRow();
+        ImGui.TableNextColumn();
+        ImGui.Text(text);
+        ImGui.TableNextColumn();
+        ImGui.TextColored(color, valueText);
+    }
+
     #endregion
 
     #region Text

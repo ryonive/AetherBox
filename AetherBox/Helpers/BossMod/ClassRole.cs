@@ -1,4 +1,4 @@
-﻿namespace AetherBox.Helpers
+﻿namespace AetherBox.Helpers.BossMod
 {
     public enum Class : byte
     {
@@ -83,7 +83,8 @@
 
         public static Role GetRole(this Class cls)
         {
-            return cls.GetClassCategory() switch {
+            return cls.GetClassCategory() switch
+            {
                 ClassCategory.Tank => Role.Tank,
                 ClassCategory.Healer => Role.Healer,
                 ClassCategory.Melee => Role.Melee,

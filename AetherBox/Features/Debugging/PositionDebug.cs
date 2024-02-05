@@ -15,12 +15,6 @@ namespace AetherBox.Features.Debugging;
 
 public class PositionDebug : DebugHelper
 {
-    // private float playerPositionX;
-
-    // private float playerPositionY;
-
-    // private float playerPositionZ;
-
     private bool noclip;
 
     private float displacementFactor = 0.1f;
@@ -59,8 +53,7 @@ public class PositionDebug : DebugHelper
             float playerPositionY;
             float playerPositionZ;
 
-            Vector3 curPos;
-            curPos = Svc.ClientState.LocalPlayer.Position;
+            Vector3 curPos = Svc.ClientState.LocalPlayer.Position;
             playerPositionX = curPos.X;
             playerPositionY = curPos.Y;
             playerPositionZ = curPos.Z;
@@ -96,8 +89,8 @@ public class PositionDebug : DebugHelper
             ImGui.InputFloat("Displacement Factor", ref displacementFactor);
             ImGui.Separator();
         }
-        Structs.CameraEx* camera;
-        camera = (Structs.CameraEx*)CameraManager.Instance()->GetActiveCamera();
+        Structs.CameraEx* camera = (Structs.CameraEx*)CameraManager.Instance()->GetActiveCamera();
+
         ImGui.Text($"Camera H: {camera->DirH:f3}");
         ImGui.Text($"Camera V: {camera->DirV:f3}");
         ImGui.Separator();
@@ -120,10 +113,9 @@ public class PositionDebug : DebugHelper
 
         if (Svc.Targets.Target != null || Svc.Targets.PreviousTarget != null)
         {
-            Vector3 targetPos;
-            targetPos = ((Svc.Targets.Target != null) ? Svc.Targets.Target.Position : Svc.Targets.PreviousTarget.Position);
-            string str;
-            str = ((Svc.Targets.Target != null) ? "Target" : "Last Target");
+            Vector3 targetPos = ((Svc.Targets.Target != null) ? Svc.Targets.Target.Position : Svc.Targets.PreviousTarget.Position);
+
+            string str = ((Svc.Targets.Target != null) ? "Target" : "Last Target");
             ImGui.Text($"{str} Position: {targetPos:f3}");
             if (ImGui.Button("TP to " + str))
             {
@@ -144,10 +136,9 @@ public class PositionDebug : DebugHelper
         Svc.GameGui.ScreenToWorld(ImGui.GetIO().MousePos, out var pos);
         ImGui.Text($"Mouse Position: {pos:f3}");
         ImGui.Separator();
-        ushort territoryID;
-        territoryID = Svc.ClientState.TerritoryType;
-        TerritoryType map;
-        map = Svc.Data.GetExcelSheet<TerritoryType>().GetRow(territoryID);
+        ushort territoryID = Svc.ClientState.TerritoryType;
+
+        TerritoryType map = Svc.Data.GetExcelSheet<TerritoryType>().GetRow(territoryID);
         ImGui.Text($"Territory ID: {territoryID}");
         ImGui.Text($"Territory Name: {map.PlaceName.Value?.Name}");
         if (Svc.ClientState.LocalPlayer != null)
@@ -162,20 +153,16 @@ public class PositionDebug : DebugHelper
         {
             return;
         }
-        Structs.CameraEx* camera;
-        camera = (Structs.CameraEx*)CameraManager.Instance()->GetActiveCamera();
-        double xDisp;
-        xDisp = 0.0 - Math.Sin(camera->DirH);
-        double zDisp;
-        zDisp = 0.0 - Math.Cos(camera->DirH);
-        double yDisp;
-        yDisp = Math.Sin(camera->DirV);
+        Structs.CameraEx* camera = (Structs.CameraEx*)CameraManager.Instance()->GetActiveCamera();
+
+        double xDisp = 0.0 - Math.Sin(camera->DirH);
+        double zDisp = 0.0 - Math.Cos(camera->DirH);
+        double yDisp = Math.Sin(camera->DirV);
+
         if (Svc.ClientState.LocalPlayer != null)
         {
-            Vector3 curPos;
-            curPos = Svc.ClientState.LocalPlayer.Position;
-            Vector3 newPos;
-            newPos = Vector3.Multiply(displacementFactor, new Vector3((float)xDisp, (float)yDisp, (float)zDisp));
+            Vector3 curPos = Svc.ClientState.LocalPlayer.Position;
+            Vector3 newPos = Vector3.Multiply(displacementFactor, new Vector3((float)xDisp, (float)yDisp, (float)zDisp));
             if (ImGui.GetIO().KeyAlt)
             {
                 SetPos(curPos + newPos);
@@ -185,18 +172,14 @@ public class PositionDebug : DebugHelper
 
     private static void DrawPositionModButtons(string coord)
     {
-        float[] buttonValues;
-        buttonValues = new float[4] { 1f, 3f, 5f, 10f };
-        float[] array;
-        array = buttonValues;
+        float[] buttonValues = new float[4] { 1f, 3f, 5f, 10f };
+        float[] array= buttonValues;
         foreach (float value in array)
         {
-            float v;
-            v = value;
+            float v = value;
             if (ImGui.Button($"+{value}###{coord}+{value}"))
             {
-                Vector3 offset2;
-                offset2 = Vector3.Zero;
+                Vector3 offset2 = Vector3.Zero;
                 switch (coord)
                 {
                     case "x":
@@ -214,8 +197,7 @@ public class PositionDebug : DebugHelper
             if (ImGui.IsItemClicked(ImGuiMouseButton.Right))
             {
                 v = 0f - v;
-                Vector3 offset;
-                offset = Vector3.Zero;
+                Vector3 offset = Vector3.Zero;
                 switch (coord)
                 {
                     case "x":
@@ -262,8 +244,7 @@ public class PositionDebug : DebugHelper
     {
         if (!(Svc.ClientState.LocalPlayer == null))
         {
-            Vector2 mousePos;
-            mousePos = ImGui.GetIO().MousePos;
+            Vector2 mousePos = ImGui.GetIO().MousePos;
             Svc.GameGui.ScreenToWorld(mousePos, out var pos);
             Svc.Log.Info($"Moving from {pos.X}, {pos.Z}, {pos.Y}");
             if (pos != Vector3.Zero)
@@ -272,8 +253,6 @@ public class PositionDebug : DebugHelper
             }
         }
     }
-
-
 
     public static void SetPos(Vector3 pos)
     {
@@ -287,4 +266,5 @@ public class PositionDebug : DebugHelper
             ((delegate* unmanaged[Stdcall]<long, float, float, float, long>)SetPosFunPtr)(Svc.ClientState.LocalPlayer.Address, x, z, y);
         }
     }
+
 }

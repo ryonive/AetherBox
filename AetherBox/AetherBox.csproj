@@ -37,6 +37,7 @@
         <Compile Remove="GlobalSuppressions.cs" />
         <Compile Remove="Helpers\ActionType.cs" />
         <Compile Remove="Helpers\AIBehaviour.cs" />
+        <Compile Remove="Helpers\Automaton.Helpers.AtkResNodeHelper.cs" />
         <Compile Remove="Helpers\Faloop\.Jurisdiction.cs" />
         <Compile Remove="UI\DebugWindow.cs" />
     </ItemGroup>
@@ -47,7 +48,6 @@
         <None Include="Data\IconSet.cs" />
         <None Include="Debugging\DebugManager.cs" />
         <None Include="Features\Other\NoKill.cs" />
-        <None Include="Helpers\ActionType.cs" />
     </ItemGroup>
 
     <!-- Debug build config -->
@@ -77,6 +77,8 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <Visible>false</Visible>
         </None>
+        <None Include="Helpers\Automaton.Helpers.AtkResNodeHelper.cs" />
+        <None Include="Helpers\EasyCombat\EffectHeader.cs" />
     </ItemGroup>
 
     <!-- Important file -->
@@ -131,6 +133,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Folder Include="Features\Experiments\" />
         <Folder Include="Sounds">
             <Visible>false</Visible>
         </Folder>

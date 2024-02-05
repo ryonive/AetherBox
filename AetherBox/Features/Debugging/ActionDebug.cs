@@ -28,23 +28,25 @@ public class ActionDebug : DebugHelper
         ImGui.Text(Name ?? "");
         ImGui.Separator();
         ImGui.Text($"Anim lock: {AnimationLock:f3}");
+
         ActionManager.Instance()->UseActionLocation(actionType, actionID, 3758096384uL, null);
-        List<ActionType> actionTypes;
-        actionTypes = ((ActionType[])Enum.GetValues(typeof(ActionType))).ToList();
-        ActionType prevType;
-        prevType = actionTypes[0];
-        int selectedTypeIndex;
-        selectedTypeIndex = 0;
-        using (ImRaii.Combo("Action Type", prevType.ToString()))
+
+        List<ActionType> actionTypes = Enum.GetValues(typeof(ActionType)).Cast<ActionType>().ToList();
+
+        int selectedTypeIndex = 0;
+        string selectedTypeName = actionTypes[selectedTypeIndex].ToString();
+
+        using (ImRaii.Combo("Action Type", selectedTypeName))
         {
             for (int i = 0; i < actionTypes.Count; i++)
             {
                 if (ImGui.Selectable(actionTypes[i].ToString(), selectedTypeIndex == i))
                 {
                     selectedTypeIndex = i;
-                    _ = actionTypes[selectedTypeIndex];
+                    selectedTypeName = actionTypes[selectedTypeIndex].ToString();
                 }
             }
         }
     }
+
 }

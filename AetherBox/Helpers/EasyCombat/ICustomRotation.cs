@@ -6,7 +6,7 @@ using ECommons.ExcelServices;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using Lumina.Excel.GeneratedSheets;
 
-namespace AetherBox.Helpers;
+namespace AetherBox.Helpers.EasyCombat;
 
 /// <summary>
 /// The custom rotation.

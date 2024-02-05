@@ -82,7 +82,7 @@ public class AetherBox : IDalamudPlugin
         Svc.Commands.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
             HelpMessage = "This command is used to toggle various UI elements:\n" +
-                            "/atb                         → alias for '/Aetherbox' \n" +
+                            "/atb                         → alias for '/AetherBox' \n" +
                           "/atb menu or m    → Toggles the main menu UI.\n",
             ShowInHelp = true,
         });

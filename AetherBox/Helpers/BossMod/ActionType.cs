@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AetherBox.Helpers;
+namespace AetherBox.Helpers.BossMod;
 // matches FFXIVClientStructs.FFXIV.Client.Game.ActionType
 public enum ActionType : byte
 {

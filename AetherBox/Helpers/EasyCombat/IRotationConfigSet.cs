@@ -1,6 +1,6 @@
 ﻿using ECommons.ExcelServices;
 
-namespace AetherBox.Helpers;
+namespace AetherBox.Helpers.EasyCombat;
 
 /// <summary>
 /// The config set about this config..

@@ -1,4 +1,4 @@
-﻿namespace AetherBox.Helpers;
+﻿namespace AetherBox.Helpers.EasyCombat;
 
 /// <summary>
 /// The type of the combat

@@ -53,8 +53,53 @@ public static class Structs
     [StructLayout(LayoutKind.Explicit, Size = 176)]
     public struct PlayerMoveControllerFly
     {
+        [FieldOffset(16)]
+        public float unk10;
+
+        [FieldOffset(20)]
+        public float unk14;
+
+        [FieldOffset(24)]
+        public float unk18;
+
+        [FieldOffset(64)]
+        public float unk40;
+
+        [FieldOffset(68)]
+        public float unk44;
+
+        [FieldOffset(72)]
+        public uint unk48;
+
+        [FieldOffset(76)]
+        public uint unk4C;
+
+        [FieldOffset(80)]
+        public uint unk50;
+
+        [FieldOffset(88)]
+        public float unk58;
+
+        [FieldOffset(92)]
+        public float unk5C;
+
         [FieldOffset(102)]
         public byte IsFlying;
+
+        [FieldOffset(136)]
+        public uint unk88;
+
+        [FieldOffset(140)]
+        public uint unk8C;
+
+        [FieldOffset(144)]
+        public uint unk90;
+
+        [FieldOffset(148)]
+        public float unk94;
+
+        [FieldOffset(152)]
+        public float unk98;
 
         [FieldOffset(156)]
         public float AngularAscent;

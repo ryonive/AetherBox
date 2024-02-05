@@ -39,19 +39,19 @@ public abstract class BaseFeature
 
     protected delegate void DrawConfigDelegate(ref bool hasChanged);
 
-    protected AetherBox? P;
+    protected global::AetherBox.AetherBox P;
 
-    protected DalamudPluginInterface? Pi;
+    protected DalamudPluginInterface Pi;
 
-    protected Configuration? config;
+    protected Configuration config;
 
-    protected TaskManager? TaskManager;
+    protected TaskManager TaskManager;
 
     private uint? jobID = Svc.ClientState.LocalPlayer?.ClassJob.Id;
 
-    public static readonly SeString PandoraPayload = new SeString(new UIForegroundPayload(32)).Append($"{SeIconChar.BoxedLetterP.ToIconString()}{SeIconChar.BoxedLetterA.ToIconString()}{SeIconChar.BoxedLetterN.ToIconString()}{SeIconChar.BoxedLetterD.ToIconString()}{SeIconChar.BoxedLetterO.ToIconString()}{SeIconChar.BoxedLetterR.ToIconString()}{SeIconChar.BoxedLetterA.ToIconString()} ").Append(new UIForegroundPayload(0));
+    public static readonly SeString AetherBoxPayload = new SeString(new UIForegroundPayload(32)).Append($"{SeIconChar.BoxedLetterA.ToIconString()}{SeIconChar.BoxedLetterE.ToIconString()}{SeIconChar.BoxedLetterT.ToIconString()}{SeIconChar.BoxedLetterH.ToIconString()}{SeIconChar.BoxedLetterE.ToIconString()}{SeIconChar.BoxedLetterR.ToIconString()}{SeIconChar.BoxedLetterB.ToIconString()}{SeIconChar.BoxedLetterO.ToIconString()}{SeIconChar.BoxedLetterX.ToIconString()} ").Append(new UIForegroundPayload(0));
 
-    public FeatureProvider? Provider { get; private set; }
+    public FeatureProvider Provider { get; private set; }
 
     public virtual bool Enabled { get; protected set; }
 
@@ -87,19 +87,19 @@ public abstract class BaseFeature
 
     public string LocalizedName => Name;
 
-    protected virtual DrawConfigDelegate? DrawConfigTree => null;
+    protected virtual DrawConfigDelegate DrawConfigTree => null;
 
     internal unsafe static bool IsTargetLocked => ((byte*)TargetSystem.Instance())[309] == 1;
 
-    internal static bool GenericThrottle => EzThrottler.Throttle("AutomatonGenericThrottle", 200);
+    internal static bool GenericThrottle => EzThrottler.Throttle("AetherBoxGenericThrottleGenericThrottle", 200);
 
-    public event OnJobChangeDelegate? OnJobChanged;
+    public event OnJobChangeDelegate OnJobChanged;
 
     public virtual void Draw()
     {
     }
 
-    public void InterfaceSetup(AetherBox plugin, DalamudPluginInterface pluginInterface, Configuration config, FeatureProvider fp)
+    public void InterfaceSetup(global::AetherBox.AetherBox plugin, DalamudPluginInterface pluginInterface, Configuration config, FeatureProvider fp)
     {
         P = plugin;
         Pi = pluginInterface;
@@ -150,17 +150,16 @@ public abstract class BaseFeature
         try
         {
             string configFile;
-            configFile = Path.Combine(AetherBox.pi.GetPluginConfigDirectory(), key + ".json");
+            configFile = Path.Combine(global::AetherBox.AetherBox.pi.GetPluginConfigDirectory(), key + ".json");
             if (!File.Exists(configFile))
             {
                 return null;
             }
             return JsonConvert.DeserializeObject<T>(File.ReadAllText(configFile));
-
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            Svc.Log.Error(exception, "Failed to load config for feature " + Name);
+            Svc.Log.Error(ex, "Failed to load config for feature " + Name);
             return null;
         }
     }
@@ -174,17 +173,15 @@ public abstract class BaseFeature
     {
         try
         {
-            if (AetherBox.pi == null) return;
-
             string path;
-            path = Path.Combine(AetherBox.pi.GetPluginConfigDirectory(), key + ".json");
+            path = Path.Combine(global::AetherBox.AetherBox.pi.GetPluginConfigDirectory(), key + ".json");
             string jsonString;
             jsonString = JsonConvert.SerializeObject(config, Formatting.Indented);
             File.WriteAllText(path, jsonString);
         }
-        catch (Exception exception)
+        catch (Exception ex)
         {
-            Svc.Log.Error(exception, "Feature failed to write config " + Name);
+            Svc.Log.Error(ex, "Feature failed to write config " + Name);
         }
     }
 
@@ -208,9 +205,9 @@ public abstract class BaseFeature
             {
                 if (attr.ConditionalDisplay)
                 {
-                    MethodInfo? conditionalMethod;
+                    MethodInfo conditionalMethod;
                     conditionalMethod = configObj.GetType().GetMethod("ShouldShow" + f2.Name, BindingFlags.Instance | BindingFlags.Public);
-                    if (conditionalMethod != null && !(bool)(conditionalMethod.Invoke(configObj, []) ?? ((object)true)))
+                    if (conditionalMethod != null && !(bool)(conditionalMethod.Invoke(configObj, Array.Empty<object>()) ?? ((object)true)))
                     {
                         continue;
                     }
@@ -229,7 +226,6 @@ public abstract class BaseFeature
                         $"{attr.Name}##{f2.Name}_{GetType().Name}_{configOptionIndex++}",
                         v
                     };
-
                     if ((bool)attr.Editor.Invoke(null, arr))
                     {
                         configChanged = true;
@@ -330,7 +326,7 @@ public abstract class BaseFeature
                 {
                     ImGui.Text("Invalid Auto Field Type: " + f2.Name);
                 }
-                if (attr.HelpText != null)
+                if (!attr.HelpText.IsNullOrEmpty())
                 {
                     ImGuiComponents.HelpMarker(attr.HelpText);
                 }
@@ -366,7 +362,7 @@ public abstract class BaseFeature
                 }
                 else
                 {
-                    DrawConfigTree?.Invoke(ref hasChanged);
+                    DrawConfigTree(ref hasChanged);
                 }
                 ImGui.EndGroup();
                 ImGui.TreePop();
@@ -374,8 +370,8 @@ public abstract class BaseFeature
         }
         else
         {
-            ImGui.PushStyleColor(ImGuiCol.HeaderHovered, AetherColor.GhostType);
-            ImGui.PushStyleColor(ImGuiCol.HeaderActive, AetherColor.BrightGhostType);
+            ImGui.PushStyleColor(ImGuiCol.HeaderHovered, 0u);
+            ImGui.PushStyleColor(ImGuiCol.HeaderActive, 0u);
             ImGui.TreeNodeEx(LocalizedName, ImGuiTreeNodeFlags.NoTreePushOnOpen | ImGuiTreeNodeFlags.Leaf);
             ImGui.PopStyleColor();
             ImGui.PopStyleColor();
@@ -474,18 +470,12 @@ public abstract class BaseFeature
         return AgentMap.Instance()->IsPlayerMoving == 1;
     }
 
-    public static unsafe bool Jump()
-    {
-        return FFXIVClientStructs.FFXIV.Client.Game.ActionManager.Instance()->UseAction(ActionType.GeneralAction, 2);
-    }
-
     public void PrintModuleMessage(string msg)
     {
         XivChatEntry message;
         message = new XivChatEntry
         {
-            Type = XivChatType.Echo,
-            Message = new SeStringBuilder().AddUiForeground("[" + AetherBox.Name + "] ", 45).AddUiForeground("[" + Name + "] ", 62).AddText(msg)
+            Message = new SeStringBuilder().AddUiForeground("[" + global::AetherBox.AetherBox.Name + "] ", 45).AddUiForeground("[" + Name + "] ", 62).AddText(msg)
                 .Build()
         };
         Svc.Chat.Print(message);
@@ -496,7 +486,6 @@ public abstract class BaseFeature
         XivChatEntry message;
         message = new XivChatEntry
         {
-            Type = XivChatType.Echo,
             Message = new SeStringBuilder().AddUiForeground("[" + global::AetherBox.AetherBox.Name + "] ", 45).AddUiForeground("[" + Name + "] ", 62).Append(msg)
                 .Build()
         };
@@ -613,12 +602,12 @@ public abstract class BaseFeature
 
     internal static void RethrottleGeneric(int num)
     {
-        EzThrottler.Throttle("AutomatonGenericThrottle", num, rethrottle: true);
+        EzThrottler.Throttle("AetherBoxGenericThrottle", num, rethrottle: true);
     }
 
     internal static void RethrottleGeneric()
     {
-        EzThrottler.Throttle("AutomatonGenericThrottle", 200, rethrottle: true);
+        EzThrottler.Throttle("AetherBoxGenericThrottle", 200, rethrottle: true);
     }
 
     internal unsafe static bool IsLoading()

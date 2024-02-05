@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
-using AetherBox.Features;
-using AetherBox.Features.Other;
 using AetherBox.FeaturesSetup;
 using AetherBox.Helpers;
 using Dalamud.Game.ClientState.Conditions;
@@ -16,9 +14,7 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using ImGuiNET;
-
-namespace AetherBox.Features.Other;
-
+namespace AetherBox.Features.Disabled;
 public class BlueMagePresets : Feature
 {
     public class Configs : FeatureConfig
@@ -41,7 +37,7 @@ public class BlueMagePresets : Feature
             Actions = new uint[24];
         }
 
-        public static Loadout? FromPreset(string preset)
+        public static Loadout FromPreset(string preset)
         {
             try
             {
@@ -62,7 +58,7 @@ public class BlueMagePresets : Feature
 
         public int ActionCount(uint id)
         {
-            return Actions.Count((uint x) => x == id);
+            return Actions.Count((x) => x == id);
         }
 
         public unsafe bool ActionUnlocked(uint id)
@@ -155,7 +151,7 @@ public class BlueMagePresets : Feature
 
     public override string Description => "There's a good reason the game only gives us 5 spell loadouts to save. Those reasons are as follows:";
 
-    public override FeatureType FeatureType => FeatureType.Other;
+    public override FeatureType FeatureType => FeatureType.Disabled;
 
     public Configs Config { get; private set; }
 

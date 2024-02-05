@@ -97,6 +97,3 @@ public abstract class CommandFeature : Feature
         return new Regex("[\\\"].+?[\\\"]|[^ ]+");
     }
 }
-
-
-

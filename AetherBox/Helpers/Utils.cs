@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState.Objects.Types;
+﻿using AetherBox.Helpers.BossMod;
+using Dalamud.Game.ClientState.Objects.Types;
 using System;
 using System.Collections.Generic;
 using System.Globalization;

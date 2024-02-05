@@ -1,7 +1,7 @@
 ﻿using ECommons.ExcelServices;
 using Lumina.Excel.GeneratedSheets;
 
-namespace AetherBox.Helpers;
+namespace AetherBox.Helpers.EasyCombat;
 
 /// <summary>
 /// The role of jobs.

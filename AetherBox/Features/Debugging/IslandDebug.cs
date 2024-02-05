@@ -200,9 +200,9 @@ public class IslandDebug : DebugHelper
     private unsafe void SynthesizeEvent(ulong eventKind, Span<AtkValue> args)
     {
         byte* intPtr = stackalloc byte[12];
-        // IL initblk instruction
         Unsafe.InitBlock(intPtr, 0, 12);
-        int* eventData = (int*)intPtr;
+        int* eventData;
+        eventData = (int*)intPtr;
         Agent->AgentInterface.ReceiveEvent(eventData, args.GetPointer(0), (uint)args.Length, eventKind);
     }
 }
