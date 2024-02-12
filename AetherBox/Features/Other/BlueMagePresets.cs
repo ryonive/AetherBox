@@ -155,7 +155,7 @@ public class BlueMagePresets : Feature
 
     public override string Description => "There's a good reason the game only gives us 5 spell loadouts to save. Those reasons are as follows:";
 
-    public override FeatureType FeatureType => FeatureType.Other;
+    public override FeatureType FeatureType => FeatureType.Disabled;
 
     public Configs Config { get; private set; }
 

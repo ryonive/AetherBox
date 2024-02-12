@@ -18,90 +18,90 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 namespace AetherBox.Features.Experiments;
 public class AutoMonsterToss : Feature
 {
-	public override string Name => "Auto Monster Toss";
+    public override string Name => "Auto Monster Toss";
 
-	public override string Description => "Auto play the Monster Toss minigame in the Gold Saucer";
+    public override string Description => "Auto play the Monster Toss minigame in the Gold Saucer";
 
-	public override FeatureType FeatureType => FeatureType.Other;
+    public override FeatureType FeatureType => FeatureType.Other;
 
-	public bool Initialized { get; set; }
+    public bool Initialized { get; set; }
 
-	private VirtualKey ConflictKey { get; set; } = VirtualKey.SHIFT;
+    private VirtualKey ConflictKey { get; set; } = VirtualKey.SHIFT;
 
 
-	public override void Enable()
-	{
-		base.Enable();
-		Svc.AddonLifeCycle.RegisterListener(AddonEvent.PostDraw, "BasketBall", OnAddonSetup);
-		Svc.AddonLifeCycle.RegisterListener(AddonEvent.PreFinalize, "BasketBall", OnAddonSetup);
-		Svc.Framework.Update += OnUpdate;
-		Initialized = true;
-	}
+    public override void Enable()
+    {
+        base.Enable();
+        Svc.AddonLifeCycle.RegisterListener(AddonEvent.PostDraw, "BasketBall", OnAddonSetup);
+        Svc.AddonLifeCycle.RegisterListener(AddonEvent.PreFinalize, "BasketBall", OnAddonSetup);
+        Svc.Framework.Update += OnUpdate;
+        Initialized = true;
+    }
 
-	public override void Disable()
-	{
-		base.Disable();
-		Svc.Framework.Update -= OnUpdate;
-		Svc.AddonLifeCycle.UnregisterListener(OnAddonSetup);
-		Svc.AddonLifeCycle.UnregisterListener(OnAddonSetup);
-		TaskManager?.Abort();
-		Initialized = false;
-	}
+    public override void Disable()
+    {
+        base.Disable();
+        Svc.Framework.Update -= OnUpdate;
+        Svc.AddonLifeCycle.UnregisterListener(OnAddonSetup);
+        Svc.AddonLifeCycle.UnregisterListener(OnAddonSetup);
+        TaskManager?.Abort();
+        Initialized = false;
+    }
 
-	private void OnUpdate(IFramework framework)
-	{
-		if (TaskManager.IsBusy && Svc.KeyState[ConflictKey])
-		{
-			TaskManager.Abort();
-			Svc.PluginInterface.UiBuilder.AddNotification("ConflictKey used on AutoMonsterToss", "AetherBox", NotificationType.Success);
-		}
-	}
+    private void OnUpdate(IFramework framework)
+    {
+        if (TaskManager.IsBusy && Svc.KeyState[ConflictKey])
+        {
+            TaskManager.Abort();
+            Svc.PluginInterface.UiBuilder.AddNotification("ConflictKey used on AutoMonsterToss", "AetherBox", NotificationType.Success);
+        }
+    }
 
-	private unsafe void OnAddonSetup(AddonEvent type, AddonArgs args)
-	{
-		switch (type)
-		{
-		case AddonEvent.PostDraw:
-		{
-			if (!GenericHelpers.TryGetAddonByName<AtkUnitBase>("BasketBall", out var addon) || !GenericHelpers.IsAddonReady(addon))
-			{
-				break;
-			}
-			if (GenericHelpers.TryGetAddonByName<AddonSelectString>("SelectString", out var addonSelectString) && GenericHelpers.IsAddonReady(&addonSelectString->AtkUnitBase))
-			{
-				Click.TrySendClick("select_string1");
-				break;
-			}
-			AtkComponentButton* button;
-			button = addon->GetButtonNodeById(10u);
-			if (button != null && button->IsEnabled)
-			{
-				addon->GetNodeById(12u)->ChildNode->PrevSiblingNode->PrevSiblingNode->SetWidth(450);
-				Callback.Fire(addon, true, 11, 1, 0);
-			}
-			break;
-		}
-		case AddonEvent.PreFinalize:
-			TaskManager.Enqueue((Func<bool?>)StartAnotherRound, (string)null);
-			break;
-		}
-	}
+    private unsafe void OnAddonSetup(AddonEvent type, AddonArgs args)
+    {
+        switch (type)
+        {
+            case AddonEvent.PostDraw:
+            {
+                if (!GenericHelpers.TryGetAddonByName<AtkUnitBase>("BasketBall", out var addon) || !GenericHelpers.IsAddonReady(addon))
+                {
+                    break;
+                }
+                if (GenericHelpers.TryGetAddonByName<AddonSelectString>("SelectString", out var addonSelectString) && GenericHelpers.IsAddonReady(&addonSelectString->AtkUnitBase))
+                {
+                    Click.TrySendClick("select_string1");
+                    break;
+                }
 
-	private unsafe static bool? StartAnotherRound()
-	{
-		if (GenericHelpers.IsOccupied())
-		{
-			return false;
-		}
-		Dalamud.Game.ClientState.Objects.Types.GameObject machineTarget;
-		machineTarget = Svc.Targets.PreviousTarget;
-		FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* machine;
-		machine = ((machineTarget.DataId == 2004804) ? ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)machineTarget.Address) : ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)null));
-		if (machine != null)
-		{
-			TargetSystem.Instance()->InteractWithObject(machine);
-			return true;
-		}
-		return false;
-	}
+                AtkComponentButton* button = addon->GetButtonNodeById(10u);
+                if (button != null && button->IsEnabled)
+                {
+                    addon->GetNodeById(12u)->ChildNode->PrevSiblingNode->PrevSiblingNode->SetWidth(450);
+                    Callback.Fire(addon, true, 11, 1, 0);
+                }
+                break;
+            }
+            case AddonEvent.PreFinalize:
+                TaskManager.Enqueue((Func<bool?>)StartAnotherRound, (string)null);
+                break;
+        }
+    }
+
+    private unsafe static bool? StartAnotherRound()
+    {
+        if (GenericHelpers.IsOccupied())
+        {
+            return false;
+        }
+        Dalamud.Game.ClientState.Objects.Types.GameObject machineTarget;
+        machineTarget = Svc.Targets.PreviousTarget;
+        FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* machine;
+        machine = ((machineTarget.DataId == 2004804) ? ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)machineTarget.Address) : ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)null));
+        if (machine != null)
+        {
+            TargetSystem.Instance()->InteractWithObject(machine);
+            return true;
+        }
+        return false;
+    }
 }

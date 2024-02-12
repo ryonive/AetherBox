@@ -64,7 +64,7 @@ public class AutoLeve : Feature
 
 	public override string Description => "Hand in leves on repeat";
 
-	public override FeatureType FeatureType => FeatureType.Other;
+	public override FeatureType FeatureType => FeatureType.Disabled;
 
 	protected override DrawConfigDelegate DrawConfigTree => delegate
 	{

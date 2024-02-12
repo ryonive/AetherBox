@@ -43,7 +43,7 @@ public class Unequip : CommandFeature
 
 	public override bool isDebug => false;
 
-	public override FeatureType FeatureType => FeatureType.Commands;
+	public override FeatureType FeatureType => FeatureType.Disabled;
 
 	protected unsafe override void OnCommand(List<string> args)
 	{

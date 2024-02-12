@@ -18,25 +18,36 @@ using AetherBox.Helpers.EasyCombat;
 using ECommons.Automation;
 using Dalamud.Game.ClientState.Objects.Types;
 using Lumina.Excel.GeneratedSheets2;
+using Dalamud.Game.ClientState.Objects.SubKinds;
+using static AetherBox.Helpers.BossMod.ActorCastEvent;
+using ECommons;
+using ECommons.DalamudServices.Legacy;
 
 namespace AetherBox.Features.Actions;
-
+#pragma warning disable S1104 // Fields should not have public accessibility
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable S4487 // Unread "private" fields should be removed
 public class AutoBusyOnTeleport : Feature
 {
     public class Configs : FeatureConfig
     {
         [FeatureConfigOption("Auto Busy on TP", "", 3, null)]
+
         public bool AutoBusy;
 
         [FeatureConfigOption("Remove after TP", "", 3, null)]
         public bool AutoBusyOff;
 
+        [FeatureConfigOption("Auto trade request", "", 3, null)]
+        public bool  AutoTeleportInterupt;
     }
+
     private bool busyOn = false;
 
-    private Dalamud.Game.ClientState.Objects.Types.GameObject? player;
+    private GameObject? player;
 
     private uint? playerObjectID;
+    private Dalamud.Game.ClientState.Objects.Types.GameObject? master;
 
     public override string Name => "Auto Busy On Teleport";
 
@@ -54,7 +65,8 @@ public class AutoBusyOnTeleport : Feature
     internal bool InPvP => GameMain.IsInPvPArea() || GameMain.IsInPvPInstance();
     public bool IsInSanctuary => GameMain.IsInSanctuary();
     internal float CombatTimeRaw { get; set; }
-
+    private uint? lastTradeTargetId = null;
+    private string tradeTargetName = "";
 
     protected unsafe override DrawConfigDelegate DrawConfigTree => delegate (ref bool hasChanged)
     {
@@ -83,7 +95,53 @@ public class AutoBusyOnTeleport : Feature
             }
             ImGuiHelper.HelpMarker("Set online status back to online after teleporting.");
 
+            ImGui.TableNextRow();
+            ImGui.TableNextColumn();
+/*
+            if (ImGui.Checkbox("Auto trade request", ref Config.AutoTeleportInterupt))
+            {
+                hasChanged = true;
+            }
+            ImGuiHelper.HelpMarker("You know what this does\n(Range is 5y)");
+
+            ImGui.TableNextColumn();
+            if (Config.AutoTeleportInterupt)
+            {
+                ImGui.Text("Trade Target:");
+                ImGui.SameLine();
+                ImGui.InputText("##TradeTarget", ref tradeTargetName, 50);
+            }
+            else
+            {
+                ImGui.Text(tradeTargetName);
+            }
+*/
             ImGui.EndTable();
+/*
+            try
+            {
+                Dalamud.Game.ClientState.Objects.Types.GameObject lastMaster;
+                Dalamud.Game.ClientState.Objects.Types.GameObject target;
+                string str;
+
+                lastMaster = Svc.Targets.PreviousTarget;
+                var masterObjectID = Svc.Targets?.Target?.ObjectId;
+                if (master == null || lastMaster == null)
+                {
+                    PrintModuleMessage($"Master is null!");
+                }
+                else if (master)
+                {
+                    master = Svc.Targets?.Target;
+                    masterObjectID = Svc.Targets?.Target?.ObjectId;
+                    PrintModuleMessage($"Master is set to {master?.Name}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Svc.Log.Debug($"{ex}");
+            }
+*/
         }
         ImGuiHelper.SeperatorWithSpacing();
 
@@ -98,25 +156,25 @@ public class AutoBusyOnTeleport : Feature
             if (Svc.ClientState.LocalPlayer != null)
             {
                 ImGuiHelper.AddTableRow("BusyOn: ", Config.AutoBusy.ToString());
-                ImGuiHelper.AddTableRow("IsBusy: ", Svc.ClientState.LocalPlayer.Struct()->Character.CharacterData.OnlineStatus.ToString());
+                var isBusy = Player.Object.OnlineStatus.Id == 12;
+                ImGuiHelper.AddTableRow("IsBusy: ", isBusy);
 
                 ImGui.TableNextColumn();
 
                 ImGuiHelper.AddBooleanTableRow("IsCasting Teleport: ", CharacterFunctions.IsCasting(Svc.ClientState.LocalPlayer, (uint)ActionID.Teleport));
-                ImGuiHelper.AddTableRow("RemainCastTime: ", WeaponRemain.ToString($"{WeaponRemain}s"));
+                ImGui.TableNextColumn();
+                //ImGui.Text($"{lastTradeTargetId.ToString()}");
             }
             ImGui.EndTable();
         }
         ImGuiHelper.SeperatorWithSpacing();
     };
 
-
     public override void Enable()
     {
         Config = LoadConfig<Configs>() ?? new Configs();
         Svc.Framework.Update += CheckForTeleport;
         Svc.Condition.ConditionChange += CheckForChange;
-        Svc.Log.Information($"[{Name}] subscribed to event: [CheckForTeleport]'");
         base.Enable();
     }
 
@@ -125,62 +183,67 @@ public class AutoBusyOnTeleport : Feature
         SaveConfig(Config);
         Svc.Framework.Update -= CheckForTeleport;
         Svc.Condition.ConditionChange -= CheckForChange;
-        Svc.Log.Information($"[{Name}] unsubscribed from event: [CheckForTeleport]'");
         base.Disable();
     }
 
     private unsafe void CheckForTeleport(IFramework framework)
     {
         var localPlayer = Player.Object;
-        var instance = ActionManager.Instance();
-        var castTotal = localPlayer.TotalCastTime;
-        var weaponTotal = instance->GetRecastTime(ActionType.Action, 11);
-        if (castTotal > 0) castTotal += 0.1f;
-        if (localPlayer.IsCasting) weaponTotal = Math.Max(castTotal, weaponTotal);
-        WeaponElapsed = instance->GetRecastTimeElapsed(ActionType.Action, 11);
-        WeaponRemain = WeaponElapsed == 0 ? localPlayer.TotalCastTime - localPlayer.CurrentCastTime : Math.Max(weaponTotal - WeaponElapsed, localPlayer.TotalCastTime - localPlayer.CurrentCastTime);
-
-        //Casting time.
-        if (WeaponElapsed < 0.3) CastingTotal = castTotal;
-        if (weaponTotal > 0 && WeaponElapsed > 0.2) WeaponTotal = weaponTotal;
-
-        if (Svc.ClientState.LocalPlayer == null || Svc.ClientState.LocalPlayer.Struct()->Character.InCombat)
+        if (localPlayer == null || localPlayer.Struct()->Character.InCombat)  // if localplayer is null or enganged in combat we return
         {
-
             return;
         }
 
-        if (Config.AutoBusy && CharacterFunctions.IsCasting(Svc.ClientState.LocalPlayer, (uint)ActionID.Teleport) && !busyOn)
+        if (Config.AutoTeleportInterupt)
         {
-            TaskManager.Enqueue(() =>
+            if (!string.IsNullOrEmpty(tradeTargetName) && tradeTargetName != Svc.Targets.Target?.Name.ToString())
             {
-                Chat.Instance.SendMessage("/busy on");
-                busyOn = true;
-            });
-        }
-        else if (Config.AutoBusyOff && !CharacterFunctions.IsCasting(Svc.ClientState.LocalPlayer, (uint)ActionID.Teleport) && busyOn)
-        {
-            TaskManager.Enqueue(() =>
-            {
-                Chat.Instance.SendMessage("/busy off");
-                busyOn = false;
-            });
+                Svc.Targets.Target = GameObjectHelper.Players.FirstOrDefault(chara =>
+                    chara is BattleChara battleChara &&
+                    battleChara.IsCasting &&
+                    battleChara.CastActionId == (uint)ActionID.Teleport &&
+                    chara.DistanceToPlayerCenter() < 5 &&
+                    chara.Name.ToString() == tradeTargetName &&
+                    chara.ObjectId != lastTradeTargetId &&
+                    !Svc.ClientState.LocalPlayer);
+
+                if (Svc.Targets.Target != null)
+                {
+                    Chat.Instance.SendMessage("/e /trade");
+                    PrintModuleMessage(tradeTargetName + " is trying to teleport. Let's stop that!");
+                    lastTradeTargetId = Svc.Targets.Target.ObjectId; // Update the last trade target's object ID
+                }
+            }
         }
     }
 
     private unsafe void CheckForChange(ConditionFlag flag, bool value)
     {
-        if (flag == ConditionFlag.BetweenAreas)
+        var isBusy = Player.Object.OnlineStatus.Id == 12;
+        if (Config.AutoBusy)
         {
-            if (busyOn) 
+            if (Config.AutoBusy && Svc.ClientState.LocalPlayer.IsCasting((uint)ActionID.Teleport) && !isBusy)
             {
-                TaskManager.Enqueue(() =>
-                {
-                    Chat.Instance.SendMessage("/busy off");
-                    busyOn = false;
-                });
+                Chat.Instance.SendMessage("/busy on");
+                busyOn = false;
+            }
+        }
+
+        if (Config.AutoBusyOff)
+        {
+            // Check if you are not casting teleport and were previously in the "busy" state
+            if (flag == ConditionFlag.Casting && !Player.Object.IsCasting((uint)ActionID.Teleport) && isBusy)
+            {
+                Chat.Instance.SendMessage("/busy off");
+                busyOn = false;
+            }
+
+            // Check if you are between areas and already in the "busy" state
+            if (flag == ConditionFlag.BetweenAreas && isBusy)
+            {
+                Chat.Instance.SendMessage("/busy off");
+                busyOn = false;
             }
         }
     }
-
 }

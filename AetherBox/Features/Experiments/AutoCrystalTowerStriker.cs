@@ -22,7 +22,7 @@ public class AutoCrystalTowerStriker : Feature
 
 	public override string Description => "Auto play the Crystal Tower Striker minigame in the Gold Saucer";
 
-	public override FeatureType FeatureType => FeatureType.Other;
+	public override FeatureType FeatureType => FeatureType.Disabled;
 
 	public bool Initialized { get; set; }
 

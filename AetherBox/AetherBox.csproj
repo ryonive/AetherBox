@@ -6,7 +6,7 @@
     <!-- General properties -->
     <PropertyGroup>
         <Authors>Kirbo</Authors>
-        <Version>1.0.0.8</Version>
+        <Version>1.0.0.9</Version>
     </PropertyGroup>
 
     <!-- General properties -->
@@ -29,7 +29,6 @@
     <!-- Exclude from Build -->
     <ItemGroup>                                                    
         <Compile Remove="AetherBox - old.cs" />
-        <Compile Remove="Data\ActionID.cs" />
         <Compile Remove="Data\IconSet.cs" />
         <Compile Remove="Debugging\DebugManager.cs" />
         <Compile Remove="Features\Actions\ISLock&amp;Move.cs" />
@@ -44,7 +43,7 @@
 
     <!-- Include in Solution explorer -->
     <ItemGroup>
-        <None Include="Data\ActionID.cs" />
+        <None Include="..\.editorconfig" Link=".editorconfig" />
         <None Include="Data\IconSet.cs" />
         <None Include="Debugging\DebugManager.cs" />
         <None Include="Features\Other\NoKill.cs" />

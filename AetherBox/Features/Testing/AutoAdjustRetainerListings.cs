@@ -1,13 +1,6 @@
-﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using System.Text.RegularExpressions.Generated;
 using AetherBox.FeaturesSetup;
-using AetherBox.Features;
-using AetherBox.Features.Testing;
-using AetherBox.Generated;
 using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.Keys;
@@ -31,7 +24,7 @@ public class AutoAdjustRetainerListings : Feature
         [FeatureConfigOption("Price Reduction", IntMin = 0, IntMax = 600, EditorSize = 300)]
         public int PriceReduction = 1;
 
-        [FeatureConfigOption("Price Reduction", IntMin = 0, IntMax = 600, EditorSize = 300)]
+        [FeatureConfigOption("Lowest Acceptable Price", IntMin = 0, IntMax = 600, EditorSize = 300)]
         public int LowestAcceptablePrice = 100;
 
         [FeatureConfigOption("Separate NQ And HQ")]
@@ -61,7 +54,7 @@ public class AutoAdjustRetainerListings : Feature
 
     public override FeatureType FeatureType => FeatureType.UI;
 
-    public override bool isDebug => true;
+    public override bool isDebug => false;
 
     public bool Initialized { get; set; }
 
@@ -99,6 +92,7 @@ public class AutoAdjustRetainerListings : Feature
         if (TaskManager.IsBusy && Svc.KeyState[ConflictKey])
         {
             TaskManager.Abort();
+            Chat.Instance.SendMessage("/e ConflictKey used on AutoAdjustRetainerListings <se.6>");
             Svc.PluginInterface.UiBuilder.AddNotification("ConflictKey used on AutoAdjustRetainerListings", "AetherBox", NotificationType.Success);
         }
     }
@@ -110,13 +104,13 @@ public class AutoAdjustRetainerListings : Feature
             case AddonEvent.PostSetup:
                 if (!TaskManager.IsBusy)
                 {
-                    TaskManager.Enqueue((Func<bool?>)ClickComparePrice, (string)null);
+                    TaskManager.Enqueue((Func<bool?>)ClickComparePrice, null);
                     TaskManager.AbortOnTimeout = false;
                     TaskManager.DelayNext(500);
-                    TaskManager.Enqueue((Func<bool?>)GetLowestPrice, (string)null);
+                    TaskManager.Enqueue((Func<bool?>)GetLowestPrice, null);
                     TaskManager.AbortOnTimeout = true;
                     TaskManager.DelayNext(100);
-                    TaskManager.Enqueue((Func<bool?>)FillLowestPrice, (string)null);
+                    TaskManager.Enqueue((Func<bool?>)FillLowestPrice, null);
                 }
                 break;
             case AddonEvent.PreFinalize:
@@ -130,8 +124,7 @@ public class AutoAdjustRetainerListings : Feature
 
     private unsafe void OnRetainerSellList(AddonEvent type, AddonArgs args)
     {
-        RetainerManager.Retainer* activeRetainer;
-        activeRetainer = RetainerManager.Instance()->GetActiveRetainer();
+        RetainerManager.Retainer* activeRetainer = RetainerManager.Instance()->GetActiveRetainer();
         if (CurrentRetainer != null && CurrentRetainer == activeRetainer)
         {
             return;
@@ -152,15 +145,15 @@ public class AutoAdjustRetainerListings : Feature
     {
         TaskManager.Enqueue(() => ClickSellingItem(index));
         TaskManager.DelayNext(100);
-        TaskManager.Enqueue((Func<bool?>)ClickAdjustPrice, (string)null);
+        TaskManager.Enqueue((Func<bool?>)ClickAdjustPrice, null);
         TaskManager.DelayNext(100);
-        TaskManager.Enqueue((Func<bool?>)ClickComparePrice, (string)null);
+        TaskManager.Enqueue((Func<bool?>)ClickComparePrice, null);
         TaskManager.DelayNext(500);
         TaskManager.AbortOnTimeout = false;
-        TaskManager.Enqueue((Func<bool?>)GetLowestPrice, (string)null);
+        TaskManager.Enqueue((Func<bool?>)GetLowestPrice, null);
         TaskManager.AbortOnTimeout = true;
         TaskManager.DelayNext(100);
-        TaskManager.Enqueue((Func<bool?>)FillLowestPrice, (string)null);
+        TaskManager.Enqueue((Func<bool?>)FillLowestPrice, null);
         TaskManager.DelayNext(800);
     }
 
@@ -217,8 +210,7 @@ public class AutoAdjustRetainerListings : Feature
         if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("ItemSearchResult", out var addon) && GenericHelpers.IsAddonReady(addon))
         {
             CurrentItemSearchItemID = AgentItemSearch.Instance()->ResultItemID;
-            string searchResult;
-            searchResult = addon->GetTextNodeById(29u)->NodeText.ExtractText();
+            string searchResult = addon->GetTextNodeById(29u)->NodeText.ExtractText();
             if (string.IsNullOrEmpty(searchResult))
             {
                 return false;
@@ -231,20 +223,17 @@ public class AutoAdjustRetainerListings : Feature
             }
             if (Config.SeparateNQAndHQ && IsCurrentItemHQ)
             {
-                bool foundHQItem;
-                foundHQItem = false;
+                bool foundHQItem = false;
                 for (int i = 1; i <= 12; i++)
                 {
                     if (foundHQItem)
                     {
                         break;
                     }
-                    AtkResNode** listing;
-                    listing = addon->UldManager.NodeList[5]->GetAsAtkComponentNode()->Component->UldManager.NodeList[i]->GetAsAtkComponentNode()->Component->UldManager.NodeList;
+                    AtkResNode**  listing = addon->UldManager.NodeList[5]->GetAsAtkComponentNode()->Component->UldManager.NodeList[i]->GetAsAtkComponentNode()->Component->UldManager.NodeList;
                     if (listing[13]->GetAsAtkImageNode()->AtkResNode.IsVisible)
                     {
-                        string priceText2;
-                        priceText2 = listing[10]->GetAsAtkTextNode()->NodeText.ExtractText();
+                        string priceText2 = listing[10]->GetAsAtkTextNode()->NodeText.ExtractText();
                         if (int.TryParse(AutoRetainerPriceAdjustRegex().Replace(priceText2, ""), out CurrentMarketLowestPrice))
                         {
                             foundHQItem = true;
@@ -253,8 +242,7 @@ public class AutoAdjustRetainerListings : Feature
                 }
                 if (!foundHQItem)
                 {
-                    string priceText;
-                    priceText = addon->UldManager.NodeList[5]->GetAsAtkComponentNode()->Component->UldManager.NodeList[1]->GetAsAtkComponentNode()->Component->UldManager.NodeList[10]->GetAsAtkTextNode()->NodeText.ExtractText();
+                    string priceText = addon->UldManager.NodeList[5]->GetAsAtkComponentNode()->Component->UldManager.NodeList[1]->GetAsAtkComponentNode()->Component->UldManager.NodeList[10]->GetAsAtkTextNode()->NodeText.ExtractText();
                     if (!int.TryParse(AutoRetainerPriceAdjustRegex().Replace(priceText, ""), out CurrentMarketLowestPrice))
                     {
                         return false;
@@ -263,8 +251,7 @@ public class AutoAdjustRetainerListings : Feature
             }
             else
             {
-                string priceText3;
-                priceText3 = addon->UldManager.NodeList[5]->GetAsAtkComponentNode()->Component->UldManager.NodeList[1]->GetAsAtkComponentNode()->Component->UldManager.NodeList[10]->GetAsAtkTextNode()->NodeText.ExtractText();
+                string priceText3 = addon->UldManager.NodeList[5]->GetAsAtkComponentNode()->Component->UldManager.NodeList[1]->GetAsAtkComponentNode()->Component->UldManager.NodeList[10]->GetAsAtkTextNode()->NodeText.ExtractText();
                 if (!int.TryParse(AutoRetainerPriceAdjustRegex().Replace(priceText3, ""), out CurrentMarketLowestPrice))
                 {
                     return false;
@@ -280,14 +267,11 @@ public class AutoAdjustRetainerListings : Feature
     {
         if (GenericHelpers.TryGetAddonByName<AddonRetainerSell>("RetainerSell", out var addon) && GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
         {
-            AtkUnitBase* ui;
-            ui = &addon->AtkUnitBase;
-            AtkComponentNumericInput* priceComponent;
-            priceComponent = addon->AskingPrice;
+            AtkUnitBase* ui = &addon->AtkUnitBase;
+            AtkComponentNumericInput* priceComponent = addon->AskingPrice;
             if (CurrentMarketLowestPrice - Config.PriceReduction < Config.LowestAcceptablePrice)
             {
-                SeString message;
-                message = GetSeString("Item is listed lower than minimum price, skipping", SeString.CreateItemLink(CurrentItemSearchItemID, IsCurrentItemHQ ? ItemPayload.ItemKind.Hq : ItemPayload.ItemKind.Normal), CurrentMarketLowestPrice, CurrentItemPrice, Config.LowestAcceptablePrice);
+                SeString message = GetSeString("Item is listed lower than minimum price, skipping", SeString.CreateItemLink(CurrentItemSearchItemID, IsCurrentItemHQ ? ItemPayload.ItemKind.Hq : ItemPayload.ItemKind.Normal), CurrentMarketLowestPrice, CurrentItemPrice, Config.LowestAcceptablePrice); ;
                 Svc.Chat.Print(message);
                 Callback.Fire((AtkUnitBase*)addon, true, 1);
                 ui->Close(fireCallback: true);
@@ -295,8 +279,7 @@ public class AutoAdjustRetainerListings : Feature
             }
             if (Config.MaxPriceReduction != 0 && CurrentItemPrice - CurrentMarketLowestPrice > Config.LowestAcceptablePrice)
             {
-                SeString message2;
-                message2 = GetSeString("Item has exceeded maximum acceptable reduction, skipping", SeString.CreateItemLink(CurrentItemSearchItemID, IsCurrentItemHQ ? ItemPayload.ItemKind.Hq : ItemPayload.ItemKind.Normal), CurrentMarketLowestPrice, CurrentItemPrice, Config.MaxPriceReduction);
+                SeString message2 = GetSeString("Item has exceeded maximum acceptable reduction, skipping", SeString.CreateItemLink(CurrentItemSearchItemID, IsCurrentItemHQ ? ItemPayload.ItemKind.Hq : ItemPayload.ItemKind.Normal), CurrentMarketLowestPrice, CurrentItemPrice, Config.MaxPriceReduction);
                 Svc.Chat.Print(message2);
                 Callback.Fire((AtkUnitBase*)addon, true, 1);
                 ui->Close(fireCallback: true);
@@ -312,12 +295,11 @@ public class AutoAdjustRetainerListings : Feature
 
     public SeString GetSeString(string key, params object[] args)
     {
-        string format;
-        format = (resourceData.TryGetValue(key, out var resValue) ? resValue : fbResourceData.GetValueOrDefault(key));
-        SeStringBuilder ssb;
-        ssb = new SeStringBuilder();
-        int lastIndex;
-        lastIndex = 0;
+        string format = (resourceData.TryGetValue(key, out var resValue) ? resValue : fbResourceData.GetValueOrDefault(key));
+        SeStringBuilder ssb = new SeStringBuilder();
+
+        int lastIndex = 0;
+
         ssb.AddUiForeground("[AetherBox]", 34);
         int num;
         foreach (Match match in SeStringRegex().Matches(format))
@@ -337,8 +319,7 @@ public class AutoAdjustRetainerListings : Feature
                 }
             }
         }
-        string text;
-        text = format;
+        string text = format;
         num = lastIndex;
         ssb.AddUiForeground(text.Substring(num, text.Length - num), 2);
         return ssb.Build();

@@ -54,7 +54,6 @@ public class AutoFollow : Feature
         public bool AutoJump;
     }
 
-
     private readonly List<string> registeredCommands = new List<string>();
 
     private readonly OverrideMovement movement = new OverrideMovement();
@@ -111,8 +110,8 @@ public class AutoFollow : Feature
             // Define your chatTypeOptions array with the chat type names
             string[] chatTypeOptions = Constants.NormalChatTypes.Select(chatType => chatType.ToString()).ToArray();
             int selectedChatTypeIndex = Array.IndexOf(chatTypeOptions, Config.SelectedChatType.ToString());
-           // ImGui.PushItemWidth(120);
-            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X /2 -15);
+            // ImGui.PushItemWidth(120);
+            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X / 2 - 15);
             if (ImGui.Combo("Chat Type", ref selectedChatTypeIndex, chatTypeOptions, chatTypeOptions.Length))
             {
                 // User has selected a chat type
@@ -168,13 +167,13 @@ public class AutoFollow : Feature
 
             ImGui.TableNextRow();
             ImGui.TableNextColumn();
-            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X -20);
+            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - 20);
             if (ImGui.SliderInt("", ref Config.distanceToKeep, 0, 30))
             {
                 hasChanged = true;
             }
             ImGui.TableNextColumn();
-            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X -20);
+            ImGui.PushItemWidth(ImGui.GetContentRegionAvail().X - 20);
             if (ImGui.SliderInt("", ref Config.disableIfFurtherThan, 0, 50))
             {
                 hasChanged = true;
@@ -220,16 +219,35 @@ public class AutoFollow : Feature
 
 
         Vector3 targetPos;
-        targetPos = ((Svc.Targets.Target != null) ? Svc.Targets.Target.Position : Svc.Targets.PreviousTarget.Position);
-        var str = ((Svc.Targets.Target != null) ? "Target" : "Last Target");
+        Dalamud.Game.ClientState.Objects.Types.GameObject lastMaster;
+        Dalamud.Game.ClientState.Objects.Types.GameObject target;
+        string str;
+
+        lastMaster = Svc.Targets.PreviousTarget;
+        target = Svc.Targets.PreviousTarget;
+
+        if (Svc.Targets.Target != null)
+        {
+            targetPos = Svc.Targets.Target.Position;
+            str = "Target";
+        }
+        else if (lastMaster != null)
+        {
+            targetPos = lastMaster.Position;
+            str = "Last Target";
+        }
+        else
+        {
+            targetPos = Vector3.Zero; // Set to null or any other appropriate value
+            str = "null";
+        }
+
         ImGui.SameLine();
         if (ImGui.Button($"Set to " + str))
         {
             try
             {
-                var lastMaster = Svc.Targets?.PreviousTarget;
-                var lastMasterObjectID = Svc.Targets?.Target?.ObjectId;
-                var master = Svc.Targets?.Target;
+                lastMaster = Svc.Targets.PreviousTarget;
                 var masterObjectID = Svc.Targets?.Target?.ObjectId;
                 if (master == null || lastMaster == null)
                 {
@@ -241,7 +259,6 @@ public class AutoFollow : Feature
                     masterObjectID = Svc.Targets?.Target?.ObjectId;
                     PrintModuleMessage($"Master is set to {master?.Name}");
                 }
-
             }
             catch (Exception ex)
             {
@@ -249,10 +266,6 @@ public class AutoFollow : Feature
             }
         }
         ImGui.Text($"{str} Position: {targetPos:f3}");
-
-
-
-
     };
 
     public string Command { get; set; } = "/autofollow";
@@ -356,11 +369,18 @@ public class AutoFollow : Feature
             movement.Enabled = false;
             return;
         }
-        if (Config.disableIfFurtherThan > 0 && Vector3.Distance(Svc.ClientState.LocalPlayer.Position, master.Position) > (float)Config.disableIfFurtherThan)
+
+        if (Svc.ClientState.LocalPlayer != null)
         {
-            movement.Enabled = false;
-            return;
+            if (Config == null) {return;}
+
+            if (Config.disableIfFurtherThan > 0 && Vector3.Distance(Svc.ClientState.LocalPlayer.Position, master.Position) > (float)Config.disableIfFurtherThan)
+            {
+                movement.Enabled = false;
+                return;
+            }
         }
+
         if (Config.OnlyInDuty && GameMain.Instance()->CurrentContentFinderConditionId == 0)
         {
             movement.Enabled = false;
@@ -383,6 +403,7 @@ public class AutoFollow : Feature
             if (Config.MountAndFly && ((FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)master.Address)->IsMounted() && CanMount())
             {
                 movement.Enabled = false;
+                TaskManager.DelayNext(300);
                 TaskManager.Enqueue(() => ActionManager.Instance()->UseAction(ActionType.GeneralAction, 9u, 3758096384uL, 0u, 0u, 0u, null));
                 return;
             }
@@ -465,14 +486,6 @@ public class AutoFollow : Feature
         {
             return;
         }
-
-        //var partychat = XivChatType.Party;
-        //var FCchat = XivChatType.FreeCompany;
-
-        //if (type != FCchat)
-        //{
-        //    return;
-        //}
 
         PlayerPayload? player;
         player = sender?.Payloads.SingleOrDefault((Payload x) => x is PlayerPayload) as PlayerPayload;

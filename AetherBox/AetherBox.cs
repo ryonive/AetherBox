@@ -2,6 +2,7 @@ using System.Reflection;
 using AetherBox.Attributes;
 using AetherBox.Features;
 using AetherBox.FeaturesSetup;
+using AetherBox.Helpers;
 using AetherBox.IPC;
 using AetherBox.UI;
 using Dalamud.Game.ClientState.Conditions;
@@ -100,6 +101,7 @@ public class AetherBox : IDalamudPlugin
         //Svc.PluginInterface.UiBuilder.OpenConfigUi += ToggleDebugUI;
         #endregion
 
+        GameObjectHelper.Init();
         Common.Setup();
         PandorasBoxIPC.Init();
         Events.Init();
@@ -159,6 +161,7 @@ public class AetherBox : IDalamudPlugin
         MainWindow = null;
         // DebugWindow = null;
         Ws = null;
+        GameObjectHelper.Dispose();
         ECommonsMain.Dispose();
         FeatureProviders?.Clear();
         Common.Shutdown();
@@ -217,21 +220,6 @@ public class AetherBox : IDalamudPlugin
             Svc.Log.Warning($"{ex}, Error in ToggleMainUI");
         }
     }
-
-    /// <summary>
-    /// Opens the settings UI window via the 'settings' button in the Plugin Installer Menu
-    /// </summary>
-    /*public void ToggleDebugUI()
-    {
-        try
-        {
-            DebugWindow.IsOpen = !DebugWindow.IsOpen;
-        }
-        catch (Exception ex)
-        {
-            Svc.Log.Error($"{ex}, Error with 'DebugWindow'");
-        }
-    }*/
 
     /// <summary>
     /// Sends a test message , with /atb text

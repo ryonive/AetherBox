@@ -1,3 +1,5 @@
+// Could be improved if it checked how many tries a player has left and spend all daily entree's (and maybe make that a option for user to pick)
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -93,8 +95,9 @@ internal class AutoMiniCactpot : Feature
 	{
 		if (IsEzMiniCactpotInstalled())
 		{
-			TaskManager.Enqueue((Func<bool?>)WaitLotteryDailyAddon, (string)null);
-			TaskManager.Enqueue((Func<bool?>)ClickRecommendBlock, (string)null);
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
+            TaskManager.Enqueue((Func<bool?>)WaitLotteryDailyAddon, (string)null);
+            TaskManager.Enqueue((Func<bool?>)ClickRecommendBlock, (string)null);
 			TaskManager.Enqueue((Func<bool?>)ClickRecommendBlock, (string)null);
 			TaskManager.Enqueue((Func<bool?>)ClickRecommendBlock, (string)null);
 			TaskManager.Enqueue((Func<bool?>)WaitLotteryDailyAddon, (string)null);

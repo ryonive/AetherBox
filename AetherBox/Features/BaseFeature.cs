@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.DirectoryServices.ActiveDirectory;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using AetherBox;
+using AetherBox.Data;
 using AetherBox.Features;
 using AetherBox.FeaturesSetup;
 using AetherBox.Helpers;
@@ -30,6 +32,7 @@ using FFXIVClientStructs.FFXIV.Client.UI.Agent;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Newtonsoft.Json;
+using static Dalamud.Interface.Utility.Raii.ImRaii;
 
 namespace AetherBox.Features;
 
@@ -94,6 +97,8 @@ public abstract class BaseFeature
     internal static bool GenericThrottle => EzThrottler.Throttle("AetherBoxGenericThrottleGenericThrottle", 200);
 
     public event OnJobChangeDelegate OnJobChanged;
+
+    public static float RemainingRecastTime { get; }
 
     public virtual void Draw()
     {

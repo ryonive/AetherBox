@@ -6,6 +6,7 @@ using Dalamud.Logging;
 using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using Lumina.Excel;
 
 namespace AetherBox;
 
@@ -253,4 +254,13 @@ public static class Common
         HookList.Add(wh);
         return wh;
     }
+
+
+    // List that should hold AnimationLocktimes for actions
+    public static SortedList<uint, float> AnimationLockTime = new();
+
+    // to get Excel lists
+    public static Lumina.GameData? LuminaGameData = null;
+    public static T? LuminaRow<T>(uint row) where T : Lumina.Excel.ExcelRow => LuminaGameData?.GetExcelSheet<T>(Lumina.Data.Language.English)?.GetRow(row);
+    public static ExcelSheet<T> GetSheet<T>() where T : ExcelRow => Svc.Data.GetExcelSheet<T>();
 }
