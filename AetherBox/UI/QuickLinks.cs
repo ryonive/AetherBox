@@ -68,9 +68,9 @@ internal static class QuickLinks
     {
         new LinkInfo
         {
-            Url = "https://eu.finalfantasyxiv.com/lodestone/topics/detail/8e7360878c6a7c3209614b36a801a783f74ff21d",
-            ImageUrl = "https://img.finalfantasyxiv.com/t/1dcbf39c97285ba9a42012eecf2c031f0ffbceb1.png?1696927293",
-            Tooltip = "Patch 6.55 Notes"
+            Url = "https://eu.finalfantasyxiv.com/lodestone/topics/detail/5178db4decaeb4dc6cd7d6843b6ab0798abe2b00",
+            ImageUrl = "https://img.finalfantasyxiv.com/t/5178db4decaeb4dc6cd7d6843b6ab0798abe2b00.png?1707794191",
+            Tooltip = "Patch 6.57 Notes"
         },
         new LinkInfo
         {
