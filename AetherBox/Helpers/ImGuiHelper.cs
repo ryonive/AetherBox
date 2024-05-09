@@ -13,7 +13,8 @@ using ECommons.DalamudServices;
 using ECommons.Reflection;
 using EasyCombat.UI.Helpers;
 using Dalamud.Interface.Internal;
-using static FFXIVClientStructs.FFXIV.Client.UI.Misc.GroupPoseModule;
+using Lumina.Excel;
+using System.Collections;
 
 namespace AetherBox.Helpers;
 
@@ -456,6 +457,97 @@ public static unsafe partial class ImGuiHelper
         }
         return ret;
     }
+
+    public record ExcelSheetOptions<T> where T : ExcelRow
+    {
+        public Func<T, string> FormatRow { get; init; } = row => row.ToString();
+        public Func<T, string, bool> SearchPredicate { get; init; } = null;
+        public Func<T, bool, bool> DrawSelectable { get; init; } = null;
+        public IEnumerable<T> FilteredSheet { get; init; } = null;
+        public Vector2? Size { get; init; } = null;
+    }
+
+    public record ExcelSheetComboOptions<T> : ExcelSheetOptions<T> where T : ExcelRow
+    {
+        public Func<T, string> GetPreview { get; init; } = null;
+        public ImGuiComboFlags ComboFlags { get; init; } = ImGuiComboFlags.None;
+    }
+
+    public record ExcelSheetPopupOptions<T> : ExcelSheetOptions<T> where T : ExcelRow
+    {
+        public ImGuiPopupFlags PopupFlags { get; init; } = ImGuiPopupFlags.None;
+        public bool CloseOnSelection { get; init; } = false;
+        public Func<T, bool> IsRowSelected { get; init; } = _ => false;
+    }
+
+    private static string sheetSearchText;
+    private static ExcelRow[] filteredSearchSheet;
+    private static string prevSearchID;
+    private static Type prevSearchType;
+
+    private static void ExcelSheetSearchInput<T>(string id, IEnumerable<T> filteredSheet, Func<T, string, bool> searchPredicate) where T : ExcelRow
+    {
+        if (ImGui.IsWindowAppearing() && ImGui.IsWindowFocused() && !ImGui.IsAnyItemActive())
+        {
+            if (id != prevSearchID)
+            {
+                if (typeof(T) != prevSearchType)
+                {
+                    sheetSearchText = string.Empty;
+                    prevSearchType = typeof(T);
+                }
+
+                filteredSearchSheet = null;
+                prevSearchID = id;
+            }
+
+            ImGui.SetKeyboardFocusHere(0);
+        }
+
+        if (ImGui.InputTextWithHint("##ExcelSheetSearch", "Search", ref sheetSearchText, 128, ImGuiInputTextFlags.AutoSelectAll))
+            filteredSearchSheet = null;
+
+        filteredSearchSheet ??= filteredSheet.Where(s => searchPredicate(s, sheetSearchText)).Cast<ExcelRow>().ToArray();
+    }
+
+    public static bool ExcelSheetCombo<T>(string id, ref uint selectedRow, ExcelSheetComboOptions<T> options = null) where T : ExcelRow
+    {
+        options ??= new ExcelSheetComboOptions<T>();
+        var sheet = Svc.Data.GetExcelSheet<T>();
+        if (sheet == null) return false;
+
+        var getPreview = options.GetPreview ?? options.FormatRow;
+        if (!ImGui.BeginCombo(id, sheet.GetRow(selectedRow) is { } r ? getPreview(r) : selectedRow.ToString(), options.ComboFlags | ImGuiComboFlags.HeightLargest)) return false;
+
+        ExcelSheetSearchInput(id, options.FilteredSheet ?? sheet, options.SearchPredicate ?? ((row, s) => options.FormatRow(row).Contains(s, StringComparison.CurrentCultureIgnoreCase)));
+
+        ImGui.BeginChild("ExcelSheetSearchList", options.Size ?? new Vector2(0, 200 * ImGuiHelpers.GlobalScale), true);
+
+        var ret = false;
+        var drawSelectable = options.DrawSelectable ?? ((row, selected) => ImGui.Selectable(options.FormatRow(row), selected));
+        using (var clipper = new ListClipper(filteredSearchSheet.Length))
+        {
+            foreach (var i in clipper.Rows)
+            {
+                var row = (T)filteredSearchSheet[i];
+                using var _ = IDBlock.Begin(i);
+                if (!drawSelectable(row, selectedRow == row.RowId)) continue;
+                selectedRow = row.RowId;
+                ret = true;
+                break;
+            }
+        }
+
+        // ImGui issue #273849, children keep popups from closing automatically
+        if (ret)
+            ImGui.CloseCurrentPopup();
+
+        ImGui.EndChild();
+        ImGui.EndCombo();
+        return ret;
+    }
+
+
     #endregion
 
     #region Headers
@@ -1138,8 +1230,8 @@ public static unsafe partial class ImGuiHelper
     public static void AddTableRow(string description, string value, Vector4 textColor)
     {
         ImGui.TableNextRow();
-        ImGui.TableNextColumn();        ImGui.TextColored(textColor, description);
-        ImGui.TableNextColumn();        ImGui.TextColored(textColor, value);
+        ImGui.TableNextColumn(); ImGui.TextColored(textColor, description);
+        ImGui.TableNextColumn(); ImGui.TextColored(textColor, value);
     }
 
     /// <summary>
@@ -1151,8 +1243,8 @@ public static unsafe partial class ImGuiHelper
     public static void AddTableRowColorLast(string description, string value, Vector4 textColor)
     {
         ImGui.TableNextRow();
-        ImGui.TableNextColumn();        ImGui.Text(description);
-        ImGui.TableNextColumn();        ImGui.TextColored(textColor, value);
+        ImGui.TableNextColumn(); ImGui.Text(description);
+        ImGui.TableNextColumn(); ImGui.TextColored(textColor, value);
     }
 
     /// <summary>
@@ -1443,4 +1535,316 @@ public static partial class ImGuiHelper
     public static unsafe ImGuiWindowFlags GetCurrentWindowFlags() => GetCurrentWindow()->Flags;
     public static unsafe bool CurrentWindowHasCloseButton() => GetCurrentWindow()->HasCloseButton != 0;
 
+}
+
+
+public static partial class ImGuiHelper
+{
+    public unsafe class ListClipper : IEnumerable<(int, int)>, IDisposable
+    {
+        private ImGuiListClipperPtr clipper;
+        private readonly int rows;
+        private readonly int columns;
+        private readonly bool twoDimensional;
+        private readonly int itemRemainder;
+
+        public int FirstRow { get; private set; } = -1;
+        public int LastRow => CurrentRow;
+        public int CurrentRow { get; private set; }
+        public bool IsStepped => CurrentRow == DisplayStart;
+        public int DisplayStart => clipper.DisplayStart;
+        public int DisplayEnd => clipper.DisplayEnd;
+
+        public IEnumerable<int> Rows
+        {
+            get
+            {
+                while (clipper.Step()) // Supposedly this calls End()
+                {
+                    if (clipper.ItemsHeight > 0 && FirstRow < 0)
+                        FirstRow = (int)(ImGui.GetScrollY() / clipper.ItemsHeight);
+                    for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++)
+                    {
+                        CurrentRow = i;
+                        yield return twoDimensional ? i : i * columns;
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<int> Columns
+        {
+            get
+            {
+                var cols = (itemRemainder == 0 || rows != DisplayEnd || CurrentRow != DisplayEnd - 1) ? columns : itemRemainder;
+                for (int j = 0; j < cols; j++)
+                    yield return j;
+            }
+        }
+
+        public ListClipper(int items, int cols = 1, bool twoD = false, float itemHeight = 0)
+        {
+            twoDimensional = twoD;
+            columns = cols;
+            rows = twoDimensional ? items : (int)MathF.Ceiling((float)items / columns);
+            itemRemainder = !twoDimensional ? items % columns : 0;
+            clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+            clipper.Begin(rows, itemHeight);
+        }
+
+        public IEnumerator<(int, int)> GetEnumerator() => (from i in Rows from j in Columns select (i, j)).GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        public void Dispose()
+        {
+            clipper.Destroy(); // This also calls End() but I'm calling it anyway just in case
+            GC.SuppressFinalize(this);
+        }
+    }
+}
+
+public static partial class ImGuiHelper
+{
+    public sealed class IDBlock : IDisposable
+    {
+        private static readonly IDBlock instance = new();
+        private IDBlock() { }
+
+        public static IDBlock Begin(int id)
+        {
+            ImGui.PushID(id);
+            return instance;
+        }
+
+        public static IDBlock Begin(uint id) => Begin((int)id);
+
+        public static IDBlock Begin(nint id)
+        {
+            ImGui.PushID(id);
+            return instance;
+        }
+
+        public static IDBlock Begin(nuint id) => Begin((nint)id);
+
+        public static IDBlock Begin(string id)
+        {
+            ImGui.PushID(id);
+            return instance;
+        }
+
+        public static unsafe IDBlock Begin(void* ptr)
+        {
+            ImGuiNative.igPushID_Ptr(ptr);
+            return instance;
+        }
+
+        public void Dispose() => ImGui.PopID();
+    }
+
+    public sealed class StyleVarBlock : IDisposable
+    {
+        private static readonly StyleVarBlock instance = new();
+        private StyleVarBlock() { }
+
+        public static StyleVarBlock Begin(ImGuiStyleVar idx, float val, bool conditional = true)
+        {
+            if (!conditional) return null;
+            ImGui.PushStyleVar(idx, val);
+            return instance;
+        }
+
+        public static StyleVarBlock Begin(ImGuiStyleVar idx, Vector2 val, bool conditional = true)
+        {
+            if (!conditional) return null;
+            ImGui.PushStyleVar(idx, val);
+            return instance;
+        }
+
+        public void Dispose() => ImGui.PopStyleVar();
+    }
+
+    public sealed class StyleColorBlock : IDisposable
+    {
+        private static readonly StyleColorBlock instance = new();
+        private StyleColorBlock() { }
+
+        public static StyleColorBlock Begin(ImGuiCol idx, uint val, bool conditional = true)
+        {
+            if (!conditional) return null;
+            ImGui.PushStyleColor(idx, val);
+            return instance;
+        }
+
+        public static StyleColorBlock Begin(ImGuiCol idx, Vector4 val, bool conditional = true)
+        {
+            if (!conditional) return null;
+            ImGui.PushStyleColor(idx, val);
+            return instance;
+        }
+
+        public void Dispose() => ImGui.PopStyleColor();
+    }
+
+    public sealed class IndentBlock : IDisposable
+    {
+        private static readonly IndentBlock instance = new();
+        private IndentBlock() { }
+
+        public static IndentBlock Begin()
+        {
+            PushIndent();
+            return instance;
+        }
+
+        public static IndentBlock Begin(float indent)
+        {
+            if (indent == 0) return null;
+            PushIndent(indent);
+            return instance;
+        }
+
+        public void Dispose() => PopIndent();
+    }
+
+    public sealed class FontBlock : IDisposable
+    {
+        private static readonly FontBlock instance = new();
+        private FontBlock() { }
+
+        public static FontBlock Begin(ImFontPtr font)
+        {
+            ImGui.PushFont(font);
+            return instance;
+        }
+
+        public void Dispose() => ImGui.PopFont();
+    }
+
+    public sealed class GroupBlock : IDisposable
+    {
+        private static readonly GroupBlock instance = new();
+        private GroupBlock() { }
+
+        public static GroupBlock Begin()
+        {
+            ImGui.BeginGroup();
+            return instance;
+        }
+
+        public void Dispose() => ImGui.EndGroup();
+    }
+
+    public sealed class ClipRectBlock : IDisposable
+    {
+        private static readonly ClipRectBlock instance = new();
+        private ClipRectBlock() { }
+
+        public static ClipRectBlock Begin(Vector2 min, Vector2 max, bool overlap = true)
+        {
+            ImGui.PushClipRect(min, max, overlap);
+            return instance;
+        }
+
+        public void Dispose() => ImGui.PopClipRect();
+    }
+
+    public sealed class TooltipBlock : IDisposable
+    {
+        private static readonly TooltipBlock instance = new();
+        private TooltipBlock() { }
+
+        public static TooltipBlock Begin()
+        {
+            ImGui.BeginTooltip();
+            return instance;
+        }
+
+        public void Dispose() => ImGui.EndTooltip();
+    }
+
+    public sealed class DisabledBlock : IDisposable
+    {
+        private static readonly DisabledBlock instance = new();
+        private DisabledBlock() { }
+
+        public static DisabledBlock Begin(bool conditional = true)
+        {
+            ImGui.BeginDisabled(conditional);
+            return instance;
+        }
+
+        public void Dispose() => ImGui.EndDisabled();
+    }
+
+    public sealed class AllowKeyboardFocusBlock : IDisposable
+    {
+        private static readonly AllowKeyboardFocusBlock instance = new();
+        private AllowKeyboardFocusBlock() { }
+
+        public static AllowKeyboardFocusBlock Begin(bool allow = false)
+        {
+            ImGui.PushAllowKeyboardFocus(allow);
+            return instance;
+        }
+
+        public void Dispose() => ImGui.PopAllowKeyboardFocus();
+    }
+
+    public sealed class ButtonRepeatBlock : IDisposable
+    {
+        private static readonly ButtonRepeatBlock instance = new();
+        private ButtonRepeatBlock() { }
+
+        public static ButtonRepeatBlock Begin(bool repeat = true)
+        {
+            ImGui.PushButtonRepeat(repeat);
+            return instance;
+        }
+
+        public void Dispose() => ImGui.PopButtonRepeat();
+    }
+
+    public sealed class ItemWidthBlock : IDisposable
+    {
+        private static readonly ItemWidthBlock instance = new();
+        private ItemWidthBlock() { }
+
+        public static ItemWidthBlock Begin(float width)
+        {
+            ImGui.PushItemWidth(width);
+            return instance;
+        }
+
+        public void Dispose() => ImGui.PopItemWidth();
+    }
+
+    public sealed class TextWrapPosBlock : IDisposable
+    {
+        private static readonly TextWrapPosBlock instance = new();
+        private TextWrapPosBlock() { }
+
+        public static TextWrapPosBlock Begin()
+        {
+            ImGui.PushTextWrapPos();
+            return instance;
+        }
+
+        public static TextWrapPosBlock Begin(float posX)
+        {
+            ImGui.PushTextWrapPos(posX);
+            return instance;
+        }
+
+        public void Dispose() => ImGui.PopTextWrapPos();
+    }
+
+    private static readonly Stack<float> indentStack = new();
+    public static void PushIndent(float indent = 0f)
+    {
+        ImGui.Indent(indent);
+        indentStack.Push(indent);
+    }
+
+    public static void PopIndent() => ImGui.Unindent(indentStack.Pop());
 }
