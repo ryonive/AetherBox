@@ -69,9 +69,9 @@ public class AutoAdjustRetainerListings : Feature
     {
         base.Enable();
         Config = LoadConfig<Configs>() ?? new Configs();
-        Svc.AddonLifeCycle.RegisterListener(AddonEvent.PostSetup, "RetainerSellList", OnRetainerSellList);
-        Svc.AddonLifeCycle.RegisterListener(AddonEvent.PostSetup, "RetainerSell", OnRetainerSell);
-        Svc.AddonLifeCycle.RegisterListener(AddonEvent.PreFinalize, "RetainerSell", OnRetainerSell);
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "RetainerSellList", OnRetainerSellList);
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "RetainerSell", OnRetainerSell);
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PreFinalize, "RetainerSell", OnRetainerSell);
         Svc.Framework.Update += OnUpdate;
         Initialized = true;
     }
@@ -81,8 +81,8 @@ public class AutoAdjustRetainerListings : Feature
         base.Disable();
         SaveConfig(Config);
         Svc.Framework.Update -= OnUpdate;
-        Svc.AddonLifeCycle.UnregisterListener(OnRetainerSellList);
-        Svc.AddonLifeCycle.UnregisterListener(OnRetainerSell);
+        Svc.AddonLifecycle.UnregisterListener(OnRetainerSellList);
+        Svc.AddonLifecycle.UnregisterListener(OnRetainerSell);
         TaskManager?.Abort();
         Initialized = false;
     }
