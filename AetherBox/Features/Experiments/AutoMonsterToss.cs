@@ -32,8 +32,8 @@ public class AutoMonsterToss : Feature
     public override void Enable()
     {
         base.Enable();
-        Svc.AddonLifeCycle.RegisterListener(AddonEvent.PostDraw, "BasketBall", OnAddonSetup);
-        Svc.AddonLifeCycle.RegisterListener(AddonEvent.PreFinalize, "BasketBall", OnAddonSetup);
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostDraw, "BasketBall", OnAddonSetup);
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PreFinalize, "BasketBall", OnAddonSetup);
         Svc.Framework.Update += OnUpdate;
         Initialized = true;
     }
@@ -42,8 +42,8 @@ public class AutoMonsterToss : Feature
     {
         base.Disable();
         Svc.Framework.Update -= OnUpdate;
-        Svc.AddonLifeCycle.UnregisterListener(OnAddonSetup);
-        Svc.AddonLifeCycle.UnregisterListener(OnAddonSetup);
+        Svc.AddonLifecycle.UnregisterListener(OnAddonSetup);
+        Svc.AddonLifecycle.UnregisterListener(OnAddonSetup);
         TaskManager?.Abort();
         Initialized = false;
     }

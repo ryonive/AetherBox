@@ -181,7 +181,7 @@ public class AutoLeve : Feature
 						if (ImGui.Button("Start"))
 						{
 							IsOnProcessing = true;
-							Svc.AddonLifeCycle.RegisterListener(AddonEvent.PostDraw, "SelectYesno", AlwaysYes);
+							Svc.AddonLifecycle.RegisterListener(AddonEvent.PostDraw, "SelectYesno", AlwaysYes);
 							TaskManager.Enqueue((Func<bool?>)InteractWithMete, (string)null);
 						}
 					}
@@ -221,7 +221,7 @@ public class AutoLeve : Feature
 	private void EndProcessHandler()
 	{
 		TaskManager?.Abort();
-		Svc.AddonLifeCycle.UnregisterListener(AlwaysYes);
+		Svc.AddonLifecycle.UnregisterListener(AlwaysYes);
 		IsOnProcessing = false;
 	}
 

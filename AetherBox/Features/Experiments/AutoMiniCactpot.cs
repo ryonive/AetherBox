@@ -79,14 +79,14 @@ internal class AutoMiniCactpot : Feature
 	public override void Enable()
 	{
 		base.Enable();
-		Svc.AddonLifeCycle.RegisterListener(AddonEvent.PostSetup, "LotteryDaily", OnAddonSetup);
+		Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "LotteryDaily", OnAddonSetup);
 		Initialized = true;
 	}
 
 	public override void Disable()
 	{
 		base.Disable();
-		Svc.AddonLifeCycle.UnregisterListener(OnAddonSetup);
+		Svc.AddonLifecycle.UnregisterListener(OnAddonSetup);
 		TaskManager?.Abort();
 		Initialized = false;
 	}

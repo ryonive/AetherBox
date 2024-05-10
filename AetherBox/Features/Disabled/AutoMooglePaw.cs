@@ -32,7 +32,7 @@ public class AutoMooglePaw : Feature
     {
         base.Enable();
         Svc.Framework.Update += OnUpdate;
-        Svc.AddonLifeCycle.RegisterListener(AddonEvent.PostSetup, "UfoCatcher", OnAddonSetup);
+        Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "UfoCatcher", OnAddonSetup);
         Initialized = true;
     }
 
@@ -40,7 +40,7 @@ public class AutoMooglePaw : Feature
     {
         base.Disable();
         Svc.Framework.Update -= OnUpdate;
-        Svc.AddonLifeCycle.UnregisterListener(OnAddonSetup);
+        Svc.AddonLifecycle.UnregisterListener(OnAddonSetup);
         TaskManager?.Abort();
         Initialized = false;
     }

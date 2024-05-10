@@ -33,7 +33,7 @@ public class AutoCrystalTowerStriker : Feature
 	{
 		base.Enable();
 		Svc.Framework.Update += OnUpdate;
-		Svc.AddonLifeCycle.RegisterListener(AddonEvent.PostSetup, "Hummer", OnAddonSetup);
+		Svc.AddonLifecycle.RegisterListener(AddonEvent.PostSetup, "Hummer", OnAddonSetup);
 		Initialized = true;
 	}
 
@@ -41,7 +41,7 @@ public class AutoCrystalTowerStriker : Feature
 	{
 		base.Disable();
 		Svc.Framework.Update -= OnUpdate;
-		Svc.AddonLifeCycle.UnregisterListener(OnAddonSetup);
+		Svc.AddonLifecycle.UnregisterListener(OnAddonSetup);
 		TaskManager?.Abort();
 		Initialized = false;
 	}
