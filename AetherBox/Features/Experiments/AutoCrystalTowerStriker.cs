@@ -6,11 +6,11 @@ using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.ClientState.Objects.Types;
-using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
+using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -51,7 +51,7 @@ public class AutoCrystalTowerStriker : Feature
 		if (TaskManager.IsBusy && Svc.KeyState[ConflictKey])
 		{
 			TaskManager.Abort();
-			Svc.PluginInterface.UiBuilder.AddNotification("ConflictKey used on AutoCrystalTowerStriker", "AetherBox", NotificationType.Success);
+            Notify.Success("ConflictKey used on AutoCrystalTowerStriker");
 		}
 	}
 
@@ -82,7 +82,7 @@ public class AutoCrystalTowerStriker : Feature
 			}
 			addon->IsVisible = false;
 			Callback.Fire(addon, true, 11, 3, 0);
-			TaskManager.DelayNext(5000);
+			TaskManager.InsertDelay(5000);
 			TaskManager.Enqueue((Func<bool?>)StartAnotherRound, (string)null);
 			return true;
 		}
@@ -95,7 +95,7 @@ public class AutoCrystalTowerStriker : Feature
 		{
 			return false;
 		}
-		Dalamud.Game.ClientState.Objects.Types.GameObject machineTarget;
+		Dalamud.Game.ClientState.Objects.Types.IGameObject machineTarget;
 		machineTarget = Svc.Targets.PreviousTarget;
 		FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* machine;
 		machine = ((machineTarget.DataId == 2005035) ? ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)machineTarget.Address) : ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)null));

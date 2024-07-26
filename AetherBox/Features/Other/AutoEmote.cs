@@ -10,6 +10,7 @@ using AetherBox.Helpers;
 using Dalamud.Game.Text.SeStringHandling;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using Dalamud.Game.ClientState.Conditions;
+using static FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureHotbarModule;
 
 namespace AetherBox.Features.Other;
 public class AutoEmote : Feature
@@ -26,7 +27,7 @@ public class AutoEmote : Feature
 
     public override FeatureType FeatureType => FeatureType.Disabled;
 
-    private Dalamud.Game.ClientState.Objects.Types.GameObject? mouseOverTarget;
+    private Dalamud.Game.ClientState.Objects.Types.IGameObject? mouseOverTarget;
     private uint? emoteObjectID;
 
     public Configs? Config { get; private set; }
@@ -38,8 +39,8 @@ public class AutoEmote : Feature
             hasChanged = true;
         }
         Vector3 targetPos;
-        Dalamud.Game.ClientState.Objects.Types.GameObject lastMaster;
-        Dalamud.Game.ClientState.Objects.Types.GameObject target;
+        Dalamud.Game.ClientState.Objects.Types.IGameObject lastMaster;
+        Dalamud.Game.ClientState.Objects.Types.IGameObject target;
         string str;
 
         lastMaster = Svc.Targets.PreviousTarget;
@@ -96,7 +97,7 @@ public class AutoEmote : Feature
         try
         {
             mouseOverTarget = Svc.Targets?.Target;
-            emoteObjectID = Svc.Targets?.Target?.ObjectId;
+            emoteObjectID = Svc.Targets?.Target?.EntityId;
             PrintModuleMessage($"Emote target is set to {mouseOverTarget?.Name}");
         }
         catch (Exception ex)
@@ -137,7 +138,7 @@ public class AutoEmote : Feature
                 {
                     Chat.Instance.SendMessage("/dote");
                     didEmote = true;
-                    TaskManager.DelayNext(new Random().Next(7500, 7500));
+                    TaskManager.InsertDelay(new Random().Next(7500, 7500));
                     didEmote = false;
                 }
             });

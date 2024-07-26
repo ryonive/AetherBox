@@ -60,12 +60,12 @@ public class AutoRefocus : Feature
 	{
 		if (objectID == 3758096384u)
 		{
-			objectID = (uint)(((int?)Svc.Targets.Target?.ObjectId) ?? (-536870912));
-			FocusTarget = Svc.Targets.Target?.ObjectId;
+			objectID = (uint)(((int?)Svc.Targets.Target?.EntityId) ?? (-536870912));
+			FocusTarget = Svc.Targets.Target?.EntityId;
 		}
 		else
 		{
-			FocusTarget = Svc.Targets.Target.ObjectId;
+			FocusTarget = Svc.Targets.Target.EntityId;
 		}
 		setFocusTargetByObjectIDHook.Original(targetSystem, objectID);
 	}

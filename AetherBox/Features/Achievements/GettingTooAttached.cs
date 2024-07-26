@@ -64,13 +64,13 @@ public class GettingTooAttached : Feature
 
     public unsafe override void Draw()
     {
-        if (!GenericHelpers.TryGetAddonByName<AtkUnitBase>("MateriaAttach", out var addon) || addon->UldManager.NodeListCount <= 1 || !addon->UldManager.NodeList[1]->IsVisible)
+        if (!Helpers.GenericHelpers.TryGetAddonByName<AtkUnitBase>("MateriaAttach", out var addon) || addon->UldManager.NodeListCount <= 1 || !addon->UldManager.NodeList[1]->IsVisible())
         {
             return;
         }
         AtkResNode* node;
         node = addon->UldManager.NodeList[1];
-        if (!node->IsVisible)
+        if (!node->IsVisible())
         {
             return;
         }
@@ -79,7 +79,7 @@ public class GettingTooAttached : Feature
         ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(addon->X, (float)addon->Y - height));
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(7f, 7f));
         ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(10f, 10f));
-        ImGui.Begin($"###LoopMelding{node->NodeID}", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoNavFocus);
+        ImGui.Begin($"###LoopMelding{node->NodeId}", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoNavFocus);
         if (ImGui.Button((!active) ? "Getting Too Attached###StartLooping" : "Looping. Click to abort.###AbortLoop"))
         {
             if (!active)
@@ -155,9 +155,9 @@ public class GettingTooAttached : Feature
 
     private unsafe bool? SelectItem()
     {
-        if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("MateriaAttach", out var addon) && !IsBusy() && !AreDialogsOpen())
+        if (ECommons.GenericHelpers.TryGetAddonByName<AtkUnitBase>("MateriaAttach", out var addon) && !IsBusy() && !AreDialogsOpen())
         {
-            if (addon->UldManager.NodeList[16]->IsVisible)
+            if (addon->UldManager.NodeList[16]->IsVisible())
             {
                 CancelLoop();
                 PrintModuleMessage("Unable to continue. No gear in inventory");
@@ -180,9 +180,9 @@ public class GettingTooAttached : Feature
 
     public unsafe bool? SelectMateria()
     {
-        if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("MateriaAttach", out var addon) && !AreDialogsOpen())
+        if (Helpers.GenericHelpers.TryGetAddonByName<AtkUnitBase>("MateriaAttach", out var addon) && !AreDialogsOpen())
         {
-            if (addon->UldManager.NodeList[6]->IsVisible)
+            if (addon->UldManager.NodeList[6]->IsVisible())
             {
                 CancelLoop();
                 PrintModuleMessage("Unable to continue. No materia to meld.");
@@ -196,7 +196,7 @@ public class GettingTooAttached : Feature
             }
             Callback.Fire(addon, false, 2, 0, 1, 0);
             AtkUnitBase* attachDialog;
-            return GenericHelpers.TryGetAddonByName<AtkUnitBase>("MateriaAttachDialog", out attachDialog) && attachDialog->IsVisible && Svc.Condition[ConditionFlag.MeldingMateria];
+            return Helpers.GenericHelpers.TryGetAddonByName<AtkUnitBase>("MateriaAttachDialog", out attachDialog) && attachDialog->IsVisible && Svc.Condition[ConditionFlag.MeldingMateria];
         }
         return false;
     }
@@ -213,8 +213,8 @@ public class GettingTooAttached : Feature
             PrintModuleMessage("Unable to continue. This gear is requires overmelding.");
             return;
         }
-        TaskManager.EnqueueImmediate(() => Svc.Condition[ConditionFlag.MeldingMateria]);
-        TaskManager.EnqueueImmediate(delegate
+        TaskManager.Enqueue(() => Svc.Condition[ConditionFlag.MeldingMateria]);
+        TaskManager.Enqueue(delegate
         {
             Callback.Fire(obj.Addon, true, 0, 0, 0);
         });
@@ -222,10 +222,10 @@ public class GettingTooAttached : Feature
 
     public unsafe bool ActivateContextMenu()
     {
-        if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("MateriaAttach", out var addon) && !Svc.Condition[ConditionFlag.MeldingMateria])
+        if (Helpers.GenericHelpers.TryGetAddonByName<AtkUnitBase>("MateriaAttach", out var addon) && !Svc.Condition[ConditionFlag.MeldingMateria])
         {
             Callback.Fire(addon, false, 4, 0, 1, 0);
-            if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("ContextMenu", out var contextMenu))
+            if (Helpers.GenericHelpers.TryGetAddonByName<AtkUnitBase>("ContextMenu", out var contextMenu))
             {
                 return contextMenu->IsVisible;
             }

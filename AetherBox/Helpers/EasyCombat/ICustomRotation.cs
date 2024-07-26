@@ -222,17 +222,17 @@ public interface IBaseAction : IAction
     /// Check for this action, but not for the rotation. It is some additional conditions for this action.
     /// Input data is the target for this action.
     /// </summary>
-    Func<BattleChara, bool, bool> ActionCheck { get; }
+    Func<IBattleChara, bool, bool> ActionCheck { get; }
 
     /// <summary>
     /// The way to choice the target.
     /// </summary>
-    Func<IEnumerable<BattleChara>, bool, BattleChara> ChoiceTarget { get; }
+    Func<IEnumerable<IBattleChara>, bool, IBattleChara> ChoiceTarget { get; }
 
     /// <summary>
     /// The way to choice the target.
     /// </summary>
-    Func<IEnumerable<BattleChara>, bool, BattleChara> ChoiceTargetPvP { get; }
+    Func<IEnumerable<IBattleChara>, bool, IBattleChara> ChoiceTargetPvP { get; }
 
     /// <summary>
     /// Is a GCD action.
@@ -247,7 +247,7 @@ public interface IBaseAction : IAction
     /// <summary>
     /// The filter for hostiles.
     /// </summary>
-    Func<IEnumerable<BattleChara>, IEnumerable<BattleChara>> FilterForHostiles { get; }
+    Func<IEnumerable<IBattleChara>, IEnumerable<IBattleChara>> FilterForHostiles { get; }
 
     /// <summary>
     /// Is this action a duty action.
@@ -351,7 +351,7 @@ public interface IBaseAction : IAction
     /// <summary>
     /// The target of this action.   NOTE: Should change name to ActionTarget.
     /// </summary>
-    BattleChara Target { get; }
+    IBattleChara Target { get; }
 
     /// <summary>
     /// Is this action's target type is target only one.
@@ -376,9 +376,9 @@ public interface IBaseAction : IAction
     /// <summary>
     /// The targets that this action affected on.
     /// </summary>
-    BattleChara[] AffectedTargets { get; }
+    IBattleChara[] AffectedTargets { get; }
 
-    internal bool FindTarget(bool mustUse, byte aoeCount, out BattleChara target, out BattleChara[] affectedTargets);
+    internal bool FindTarget(bool mustUse, byte aoeCount, out IBattleChara target, out IBattleChara[] affectedTargets);
     #endregion
 }
 

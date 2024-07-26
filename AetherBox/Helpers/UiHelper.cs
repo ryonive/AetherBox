@@ -209,7 +209,7 @@ public static class UiHelper
         if (textNode != null)
         {
             textNode->AtkResNode.Type = NodeType.Text;
-            textNode->AtkResNode.NodeID = id;
+            textNode->AtkResNode.NodeId = id;
             return true;
         }
         return false;
@@ -221,7 +221,7 @@ public static class UiHelper
         if (imageNode != null)
         {
             imageNode->AtkResNode.Type = NodeType.Image;
-            imageNode->AtkResNode.NodeID = id;
+            imageNode->AtkResNode.NodeId = id;
             imageNode->AtkResNode.NodeFlags = resNodeFlags;
             imageNode->AtkResNode.DrawFlags = resNodeDrawFlags;
             imageNode->WrapMode = wrapMode;

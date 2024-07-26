@@ -13,7 +13,7 @@ public static class ImageNode
         AtkImageNode* customNode;
         customNode = UISpace->Create<AtkImageNode>();
         customNode->AtkResNode.Type = NodeType.Image;
-        customNode->AtkResNode.NodeID = nodeId;
+        customNode->AtkResNode.NodeId = nodeId;
         customNode->AtkResNode.NodeFlags = NodeFlags.AnchorTop | NodeFlags.AnchorLeft | NodeFlags.Visible | NodeFlags.Enabled | NodeFlags.EmitsEvents;
         customNode->AtkResNode.DrawFlags = 0u;
         customNode->WrapMode = 1;

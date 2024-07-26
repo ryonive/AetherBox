@@ -21,27 +21,27 @@ internal static class GameObjectHelper
     internal unsafe static void UpdateGameObjects(IFramework framework)
     {
         Players = Svc.Objects.GetObjectInRadius(50);
-        BattlePlayers = Players.OfType<BattleChara>().Where(chara => chara.SubKind == 1);
+        BattlePlayers = Players.OfType<IBattleChara>().Where(chara => chara.SubKind == 1);
     }
 
-    public static IEnumerable<GameObject> Players { get; set; }
-    public static IEnumerable<BattleChara> BattlePlayers { get; set; }
+    public static IEnumerable<IGameObject> Players { get; set; }
+    public static IEnumerable<IBattleChara> BattlePlayers { get; set; }
 
-    public static void SetTarget(GameObject obj)
+    public static void SetTarget(IGameObject obj)
     {
         Svc.Targets.Target = obj;
     }
 
-    public static IEnumerable<T> GetObjectInRadius<T>(this IEnumerable<T> objects, float radius) where T : GameObject
+    public static IEnumerable<T> GetObjectInRadius<T>(this IEnumerable<T> objects, float radius) where T : IGameObject
         => objects.Where(o => o.DistanceToPlayer() <= radius);
 
-    public static float GetTargetDistance(GameObject target)
+    public static float GetTargetDistance(IGameObject target)
     {
         if ((object)target == null || (object)Svc.ClientState.LocalPlayer == null)
         {
             return 0f;
         }
-        if (target.ObjectId == Svc.ClientState.LocalPlayer.ObjectId)
+        if (target.TargetObjectId == Svc.ClientState.LocalPlayer.GameObjectId)
         {
             return 0f;
         }
@@ -58,7 +58,7 @@ internal static class GameObjectHelper
     /// </summary>
     /// <param name="obj"></param>
     /// <returns></returns>
-    public static float DistanceToPlayerCenter(this GameObject obj)
+    public static float DistanceToPlayerCenter(this IGameObject obj)
     {
         if (obj == null) return float.MaxValue;
         var player = Player.Object;
@@ -74,7 +74,7 @@ internal static class GameObjectHelper
     /// </summary>
     /// <param name="obj"></param>
     /// <returns></returns>
-    public static float DistanceToPlayer(this GameObject obj)
+    public static float DistanceToPlayer(this IGameObject obj)
     {
         if (obj == null) return float.MaxValue;
         var player = Player.Object;
@@ -85,7 +85,7 @@ internal static class GameObjectHelper
         return distance;
     }
 
-    public static float GetHeightDifference(GameObject target)
+    public static float GetHeightDifference(IGameObject target)
     {
         float dist;
         dist = Svc.ClientState.LocalPlayer.Position.Y - target.Position.Y;

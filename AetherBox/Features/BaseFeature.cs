@@ -23,6 +23,7 @@ using Dalamud.Plugin.Services;
 using EasyCombat.UI.Helpers;
 using ECommons;
 using ECommons.Automation;
+using ECommons.Automation.NeoTaskManager;
 using ECommons.DalamudServices;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -33,6 +34,7 @@ using FFXIVClientStructs.FFXIV.Component.GUI;
 using ImGuiNET;
 using Newtonsoft.Json;
 using static Dalamud.Interface.Utility.Raii.ImRaii;
+using GenericHelpers = ECommons.GenericHelpers;
 
 namespace AetherBox.Features;
 
@@ -44,7 +46,7 @@ public abstract class BaseFeature
 
     protected global::AetherBox.AetherBox P;
 
-    protected DalamudPluginInterface Pi;
+    protected IDalamudPluginInterface Pi;
 
     protected Configuration config;
 
@@ -104,7 +106,7 @@ public abstract class BaseFeature
     {
     }
 
-    public void InterfaceSetup(global::AetherBox.AetherBox plugin, DalamudPluginInterface pluginInterface, Configuration config, FeatureProvider fp)
+    public void InterfaceSetup(global::AetherBox.AetherBox plugin, IDalamudPluginInterface pluginInterface, Configuration config, FeatureProvider fp)
     {
         P = plugin;
         Pi = pluginInterface;
@@ -115,7 +117,7 @@ public abstract class BaseFeature
 
     public virtual void Setup()
     {
-        TaskManager.TimeoutSilently = true;
+        TaskManager.DefaultConfiguration.TimeoutSilently = true;
         Ready = true;
     }
 
@@ -425,7 +427,7 @@ public abstract class BaseFeature
         }
         try
         {
-            return addon->GetNodeById(10u)->IsVisible;
+            return addon->GetNodeById(10u)->IsVisible();
         }
         catch (Exception e)
         {
@@ -456,7 +458,7 @@ public abstract class BaseFeature
             inv = c->GetInventoryContainer(x);
             for (int i = 0; i < inv->Size; i++)
             {
-                if (inv->Items[i].ItemID == 0)
+                if (inv->Items[i].ItemId == 0)
                 {
                     slots++;
                 }
@@ -509,7 +511,7 @@ public abstract class BaseFeature
                 {
                     return null;
                 }
-                if (GenericHelpers.IsAddonReady(addon))
+                if (ECommons.GenericHelpers.IsAddonReady(addon))
                 {
                     string text;
                     text = MemoryHelper.ReadSeString(&addon->UldManager.NodeList[15]->GetAsAtkTextNode()->NodeText).ExtractText();
@@ -541,7 +543,7 @@ public abstract class BaseFeature
                 {
                     return null;
                 }
-                if (GenericHelpers.IsAddonReady(addon) && MemoryHelper.ReadSeString(&addon->UldManager.NodeList[15]->GetAsAtkTextNode()->NodeText).ExtractText().Replace(" ", "")
+                if (ECommons.GenericHelpers.IsAddonReady(addon) && MemoryHelper.ReadSeString(&addon->UldManager.NodeList[15]->GetAsAtkTextNode()->NodeText).ExtractText().Replace(" ", "")
                     .EqualsAny<string>(s.Select((string x) => x.Replace(" ", ""))))
                 {
                     Svc.Log.Verbose($"SelectYesno {s.Print()} addon {i}");
@@ -564,7 +566,7 @@ public abstract class BaseFeature
 
     internal unsafe static bool TrySelectSpecificEntry(IEnumerable<string> text, Func<bool> Throttler = null)
     {
-        if (GenericHelpers.TryGetAddonByName<AddonSelectString>("SelectString", out var addon) && GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
+        if (ECommons.GenericHelpers.TryGetAddonByName<AddonSelectString>("SelectString", out var addon) && ECommons.GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
         {
             string entry;
             entry = GetEntries(addon).FirstOrDefault((string x) => x.ContainsAny(text));
@@ -591,7 +593,7 @@ public abstract class BaseFeature
     {
         AtkTextNode* step1;
         step1 = (AtkTextNode*)addon->AtkUnitBase.UldManager.NodeList[2]->GetComponent()->UldManager.NodeList[index + 1]->GetComponent()->UldManager.NodeList[3];
-        return GenericHelpers.IsSelectItemEnabled(step1);
+        return ECommons.GenericHelpers.IsSelectItemEnabled(step1);
     }
 
     internal unsafe static List<string> GetEntries(AddonSelectString* addon)

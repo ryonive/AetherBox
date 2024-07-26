@@ -11,6 +11,7 @@ using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
+using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.UI;
@@ -53,7 +54,7 @@ public class AutoMonsterToss : Feature
         if (TaskManager.IsBusy && Svc.KeyState[ConflictKey])
         {
             TaskManager.Abort();
-            Svc.PluginInterface.UiBuilder.AddNotification("ConflictKey used on AutoMonsterToss", "AetherBox", NotificationType.Success);
+            Notify.Success("ConflictKey used on AutoMonsterToss");
         }
     }
 
@@ -93,7 +94,7 @@ public class AutoMonsterToss : Feature
         {
             return false;
         }
-        Dalamud.Game.ClientState.Objects.Types.GameObject machineTarget;
+        Dalamud.Game.ClientState.Objects.Types.IGameObject machineTarget;
         machineTarget = Svc.Targets.PreviousTarget;
         FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* machine;
         machine = ((machineTarget.DataId == 2004804) ? ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)machineTarget.Address) : ((FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)null));

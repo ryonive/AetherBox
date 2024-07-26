@@ -10,11 +10,11 @@
         "Utility",
         "Plugin"
     ],
-    "DalamudApiLevel": 9,
+    "DalamudApiLevel": 10,
     "AcceptsFeedback": false,
     "IconUrl": "https://raw.githubusercontent.com/BrakusTapus/AetherBox/main/images/icon.png",
     "ImageUrls": [
         "https://raw.githubusercontent.com/BrakusTapus/AetherBox/main/images/image1.png"
     ],
-    "Changelog": "I really need to make these changelogs easier"
+    "Changelog": ""
 }

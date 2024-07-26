@@ -148,7 +148,7 @@ public class AutoJoinPF : Feature
 
     private unsafe bool IsPrivatePF(AtkUnitBase* addon)
     {
-        return addon->UldManager.NodeList[111]->IsVisible;
+        return addon->UldManager.NodeList[111]->IsVisible();
     }
 
     private unsafe bool IsSelfParty(AtkUnitBase* addon)
@@ -168,7 +168,7 @@ public class AutoJoinPF : Feature
 
     internal unsafe void ConfirmYesNo(SetupAddonArgs obj)
     {
-        if (!Svc.Condition[ConditionFlag.Occupied39] && !(obj.AddonName != "SelectYesno") && GenericHelpers.TryGetAddonByName<AtkUnitBase>("LookingForGroupDetail", out var lfgAddon) && lfgAddon->IsVisible && CanJoinPartyType(GetPartyType(lfgAddon)) && obj.Addon->UldManager.NodeList[15]->IsVisible)
+        if (!Svc.Condition[ConditionFlag.Occupied39] && !(obj.AddonName != "SelectYesno") && GenericHelpers.TryGetAddonByName<AtkUnitBase>("LookingForGroupDetail", out var lfgAddon) && lfgAddon->IsVisible() && CanJoinPartyType(GetPartyType(lfgAddon)) && obj.Addon->UldManager.NodeList[15]->IsVisible())
         {
             new ClickSelectYesNo((nint)obj.Addon).Yes();
         }

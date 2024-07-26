@@ -3,42 +3,57 @@ using System.Runtime.InteropServices;
 using ClickLib.Bases;
 using ClickLib.Enums;
 using ClickLib.Structures;
+using ECommons.Automation.UIInput;
+using ECommons.DalamudServices;
 using FFXIVClientStructs.FFXIV.Component.GUI;
+using static ECommons.Automation.UIInput.ClickHelper;
 
 namespace AetherBox.Helpers;
 
-internal static class ClickHelper
+public static unsafe class ClickHelperExtensions
 {
-    private unsafe static ReceiveEventDelegate GetReceiveEvent(AtkEventListener* listener)
+    public static void ClickAddonButton(this AtkComponentButton target, AtkComponentBase* addon, uint which, ECommons.Automation.UIInput.EventType type = ECommons.Automation.UIInput.EventType.CHANGE, ECommons.Automation.UIInput.EventData? eventData = null)
+        => ClickHelper.ClickAddonComponent(addon, target.AtkComponentBase.OwnerNode, which, type, eventData);
+
+    public static void ClickRadioButton(this AtkComponentRadioButton target, AtkComponentBase* addon, uint which, ECommons.Automation.UIInput.EventType type = ECommons.Automation.UIInput.EventType.CHANGE)
+        => ClickHelper.ClickAddonComponent(addon, target.OwnerNode, which, type);
+
+    public static void ClickAddonButton(this AtkComponentButton target, AtkUnitBase* addon, AtkEvent* eventData)
     {
-        return Marshal.GetDelegateForFunctionPointer<ReceiveEventDelegate>(new IntPtr(listener->vfunc[2]));
+        ClickHelper.Listener.Invoke((nint)addon, eventData->Type, eventData->Param, eventData);
     }
 
-    private unsafe static void InvokeReceiveEvent(AtkEventListener* eventListener, EventType type, uint which, EventData eventData, InputData inputData)
+    public static void ClickAddonButton(this AtkCollisionNode target, AtkUnitBase* addon, AtkEvent* eventData)
     {
-        GetReceiveEvent(eventListener)(eventListener, type, which, eventData.Data, inputData.Data);
+        ClickHelper.Listener.Invoke((nint)addon, eventData->Type, eventData->Param, eventData);
     }
 
-    private unsafe static void ClickAddonComponent(AtkComponentBase* unitbase, AtkComponentNode* target, uint which, EventType type, EventData? eventData = null, InputData? inputData = null)
+    public static void ClickAddonButton(this AtkComponentButton target, AtkUnitBase* addon)
     {
-        if (eventData == null)
-        {
-            eventData = EventData.ForNormalTarget(target, unitbase);
-        }
-        if (inputData == null)
-        {
-            inputData = InputData.Empty();
-        }
-        InvokeReceiveEvent(&unitbase->AtkEventListener, type, which, eventData, inputData);
+        var btnRes = target.AtkComponentBase.OwnerNode->AtkResNode;
+        var evt = btnRes.AtkEventManager.Event;
+
+        addon->ReceiveEvent(evt->Type, (int)evt->Param, btnRes.AtkEventManager.Event);
     }
 
-    public unsafe static void ClickAddonButton(this AtkComponentButton target, AtkComponentBase* addon, uint which, EventType type = EventType.CHANGE)
+    public static void ClickAddonButton(this AtkCollisionNode target, AtkUnitBase* addon)
     {
-        ClickAddonComponent(addon, target.AtkComponentBase.OwnerNode, which, type);
+        var btnRes = target.AtkResNode;
+        var evt = btnRes.AtkEventManager.Event;
+
+        while (evt->Type != AtkEventType.MouseClick)
+            evt = evt->NextEvent;
+
+        addon->ReceiveEvent(evt->Type, (int)evt->Param, btnRes.AtkEventManager.Event);
     }
 
-    public unsafe static void ClickRadioButton(this AtkComponentRadioButton target, AtkComponentBase* addon, uint which, EventType type = EventType.CHANGE)
+
+    public static void ClickRadioButton(this AtkComponentRadioButton target, AtkUnitBase* addon)
     {
-        ClickAddonComponent(addon, target.AtkComponentBase.OwnerNode, which, type);
+        var btnRes = target.OwnerNode->AtkResNode;
+        var evt = btnRes.AtkEventManager.Event;
+
+        Svc.Log.Debug($"{evt->Type} {evt->Param}");
+        addon->ReceiveEvent(evt->Type, (int)evt->Param, btnRes.AtkEventManager.Event);
     }
 }

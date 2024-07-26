@@ -11,6 +11,7 @@ using System.Numerics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace AetherBox.Helpers.Extensions;
 
@@ -31,18 +32,18 @@ public static class ImGuiExtra
 
     const float INDENT_WIDTH = 180;
 
-    public static unsafe ImFontPtr GetFont(float size)
-    {
-        var style = new Dalamud.Interface.GameFonts.GameFontStyle(Dalamud.Interface.GameFonts.GameFontStyle.GetRecommendedFamilyAndSize(Dalamud.Interface.GameFonts.GameFontFamily.Axis, size));
-        var font = Svc.PluginInterface.UiBuilder.GetGameFontHandle(style).ImFont;
+    //public static unsafe ImFontPtr GetFontSize(float size)
+    //{
+    //    var style = new Dalamud.Interface.GameFonts.GameFontStyle(Dalamud.Interface.GameFonts.GameFontStyle.GetRecommendedFamilyAndSize(Dalamud.Interface.GameFonts.GameFontFamily.Axis, size));
+    //    var font = Svc.PluginInterface.UiBuilder.GetGameFontHandle(style).ImFont;
 
-        if ((nint)font.NativePtr == nint.Zero)
-        {
-            return ImGui.GetFont();
-        }
-        font.Scale = size / style.BaseSizePt;
-        return font;
-    }
+    //    if ((nint)font.NativePtr == nint.Zero)
+    //    {
+    //        return ImGui.GetFont();
+    //    }
+    //    font.Scale = size / style.BaseSizePt;
+    //    return font;
+    //}
 
     public static unsafe bool SelectableCombo(string popUp, string[] items, ref int index)
     {

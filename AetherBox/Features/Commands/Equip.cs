@@ -73,7 +73,7 @@ public class Equip : CommandFeature
         AgentId agentId;
         agentId = (flag ? AgentId.ArmouryBoard : AgentId.Inventory);
         uint addonId;
-        addonId = AgentModule.Instance()->GetAgentByInternalId(agentId)->GetAddonID();
+        addonId = AgentModule.Instance()->GetAgentByInternalId(agentId)->GetAddonId();
         AgentInventoryContext* ctx;
         ctx = AgentInventoryContext.Instance();
         ctx->OpenForItemSlot(pos.Value.Item1, pos.Value.Item2, addonId);
@@ -85,7 +85,7 @@ public class Equip : CommandFeature
         }
         for (int i = 0; i < contextMenu->AtkValuesCount; i++)
         {
-            if (ctx->EventIdSpan[i] == 25)
+            if (ctx->EventIds[i] == 25)
             {
                 Svc.Log.Debug($"Equipping item #{itemId} from {pos.Value.Item1} @ {pos.Value.Item2}, index {i}");
                 Callback.Fire(contextMenu, true, 0, i - 7, 0, 0, 0);
@@ -107,7 +107,7 @@ public class Equip : CommandFeature
             cont = InventoryManager.Instance()->GetInventoryContainer(inv);
             for (int i = 0; i < cont->Size; i++)
             {
-                if (cont->GetInventorySlot(i)->ItemID == itemId)
+                if (cont->GetInventorySlot(i)->ItemId == itemId)
                 {
                     return (inv, i);
                 }

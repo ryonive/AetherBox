@@ -44,7 +44,7 @@ public class ISLockAndMove : Feature
     {
         if ((Svc.Targets.Target != null) && Svc.Targets.Target.ObjectKind == ObjectKind.CardStand && IsMoving() && BaseFeature.IsTargetLocked && MJIManager.Instance()->IsPlayerInSanctuary != 0 && ActionManager.Instance()->GetActionStatus(ActionType.GeneralAction, 2u, 3758096384uL, checkRecastActive: true, checkCastingActive: true, null) == 0 && Vector3.Distance(Svc.Targets.Target.Position, Player.Object.Position) > 8f && !TaskManager.IsBusy)
         {
-            TaskManager.DelayNext(new Random().Next(300, 550));
+            TaskManager.InsertDelay(new Random().Next(300, 550));
             TaskManager.Enqueue(() => ActionManager.Instance()->UseAction(ActionType.GeneralAction, 2u, 3758096384uL, 0u, 0u, 0u, null));
         }
     }
@@ -55,15 +55,15 @@ public class ISLockAndMove : Feature
         {
             return;
         }
-        TaskManager.DelayNext(300);
+        TaskManager.InsertDelay(300);
         TaskManager.Enqueue(delegate
         {
-            List<GameObject> list;
-            list = Svc.Objects.Where((GameObject x) => x.ObjectKind == ObjectKind.CardStand && x.IsTargetable).ToList();
+            List<IGameObject> list;
+            list = Svc.Objects.Where((IGameObject x) => x.ObjectKind == ObjectKind.CardStand && x.IsTargetable).ToList();
             if (list.Count != 0)
             {
-                GameObject gameObject;
-                gameObject = list.OrderBy((GameObject x) => Vector3.Distance(x.Position, Player.Object.Position)).FirstOrDefault();
+                IGameObject gameObject;
+                gameObject = list.OrderBy((IGameObject x) => Vector3.Distance(x.Position, Player.Object.Position)).FirstOrDefault();
                 if (gameObject != null && gameObject.IsTargetable)
                 {
                     Svc.Targets.Target = gameObject;
@@ -75,7 +75,7 @@ public class ISLockAndMove : Feature
                         lockingOn = true;
                         Chat.Instance.SendMessage("/lockon on");
                     });
-                    TaskManager.DelayNext(new Random().Next(100, 250));
+                    TaskManager.InsertDelay(new Random().Next(100, 250));
                     TaskManager.Enqueue(delegate
                     {
                         if (BaseFeature.IsTargetLocked)

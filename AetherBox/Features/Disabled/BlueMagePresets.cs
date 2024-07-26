@@ -72,7 +72,7 @@ public class BlueMagePresets : Feature
 
         public bool CanApply()
         {
-            PlayerCharacter? localPlayer;
+            IPlayerCharacter? localPlayer;
             localPlayer = Svc.ClientState.LocalPlayer;
             if ((object)localPlayer == null || localPlayer.ClassJob.Id != 36)
             {

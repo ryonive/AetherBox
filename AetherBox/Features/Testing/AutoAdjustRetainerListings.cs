@@ -6,6 +6,7 @@ using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
+using Dalamud.Interface.ImGuiNotification;
 using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Plugin.Services;
 using ECommons;
@@ -93,7 +94,7 @@ public class AutoAdjustRetainerListings : Feature
         {
             TaskManager.Abort();
             Chat.Instance.SendMessage("/e ConflictKey used on AutoAdjustRetainerListings <se.6>");
-            Svc.PluginInterface.UiBuilder.AddNotification("ConflictKey used on AutoAdjustRetainerListings", "AetherBox", NotificationType.Success);
+            Svc.NotificationManager.AddNotification("ConflictKey used on AutoAdjustRetainerListings", "AetherBox", NotificationType.Success);
         }
     }
 
@@ -105,11 +106,11 @@ public class AutoAdjustRetainerListings : Feature
                 if (!TaskManager.IsBusy)
                 {
                     TaskManager.Enqueue((Func<bool?>)ClickComparePrice, null);
-                    TaskManager.AbortOnTimeout = false;
-                    TaskManager.DelayNext(500);
+                    TaskManager.DefaultConfiguration.AbortOnTimeout = false;
+                    TaskManager.InsertDelay(500);
                     TaskManager.Enqueue((Func<bool?>)GetLowestPrice, null);
-                    TaskManager.AbortOnTimeout = true;
-                    TaskManager.DelayNext(100);
+                    TaskManager.DefaultConfiguration.AbortOnTimeout = true;
+                    TaskManager.InsertDelay(100);
                     TaskManager.Enqueue((Func<bool?>)FillLowestPrice, null);
                 }
                 break;
@@ -144,17 +145,17 @@ public class AutoAdjustRetainerListings : Feature
     private void EnqueueSingleItem(int index)
     {
         TaskManager.Enqueue(() => ClickSellingItem(index));
-        TaskManager.DelayNext(100);
+        TaskManager.InsertDelay(100);
         TaskManager.Enqueue((Func<bool?>)ClickAdjustPrice, null);
-        TaskManager.DelayNext(100);
+        TaskManager.InsertDelay(100);
         TaskManager.Enqueue((Func<bool?>)ClickComparePrice, null);
-        TaskManager.DelayNext(500);
-        TaskManager.AbortOnTimeout = false;
+        TaskManager.InsertDelay(500);
+        TaskManager.DefaultConfiguration.AbortOnTimeout = false;
         TaskManager.Enqueue((Func<bool?>)GetLowestPrice, null);
-        TaskManager.AbortOnTimeout = true;
-        TaskManager.DelayNext(100);
+        TaskManager.DefaultConfiguration.AbortOnTimeout = true;
+        TaskManager.InsertDelay(100);
         TaskManager.Enqueue((Func<bool?>)FillLowestPrice, null);
-        TaskManager.DelayNext(800);
+        TaskManager.InsertDelay(800);
     }
 
     private unsafe static void GetSellListItems(out uint availableItems)
@@ -166,7 +167,7 @@ public class AutoAdjustRetainerListings : Feature
         }
         for (int i = 0; i < 20; i++)
         {
-            if (InventoryManager.Instance()->GetInventoryContainer(InventoryType.RetainerMarket)->GetInventorySlot(i)->ItemID != 0)
+            if (InventoryManager.Instance()->GetInventoryContainer(InventoryType.RetainerMarket)->GetInventorySlot(i)->ItemId != 0)
             {
                 availableItems++;
             }
@@ -209,7 +210,7 @@ public class AutoAdjustRetainerListings : Feature
     {
         if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("ItemSearchResult", out var addon) && GenericHelpers.IsAddonReady(addon))
         {
-            CurrentItemSearchItemID = AgentItemSearch.Instance()->ResultItemID;
+            CurrentItemSearchItemID = AgentItemSearch.Instance()->ResultItemId;
             string searchResult = addon->GetTextNodeById(29u)->NodeText.ExtractText();
             if (string.IsNullOrEmpty(searchResult))
             {
@@ -231,7 +232,7 @@ public class AutoAdjustRetainerListings : Feature
                         break;
                     }
                     AtkResNode**  listing = addon->UldManager.NodeList[5]->GetAsAtkComponentNode()->Component->UldManager.NodeList[i]->GetAsAtkComponentNode()->Component->UldManager.NodeList;
-                    if (listing[13]->GetAsAtkImageNode()->AtkResNode.IsVisible)
+                    if (listing[13]->GetAsAtkImageNode()->AtkResNode.IsVisible())
                     {
                         string priceText2 = listing[10]->GetAsAtkTextNode()->NodeText.ExtractText();
                         if (int.TryParse(AutoRetainerPriceAdjustRegex().Replace(priceText2, ""), out CurrentMarketLowestPrice))

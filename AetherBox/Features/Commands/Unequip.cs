@@ -53,7 +53,7 @@ public class Unequip : CommandFeature
 			c = InventoryManager.Instance()->GetInventoryContainer(InventoryType.EquippedItems);
 			for (int i = 0; i < c->Size; i++)
 			{
-				Svc.Log.Info($"{c->Items[i].ItemID} : {c->Items[i].Slot}");
+				Svc.Log.Info($"{c->Items[i].ItemId} : {c->Items[i].Slot}");
 			}
 			Svc.Data.GetExcelSheet<ItemUICategory>(Svc.ClientState.ClientLanguage).First((ItemUICategory x) => x.Name.RawString.Contains(args[0], StringComparison.CurrentCultureIgnoreCase));
 			_ = args[1] == "i";
@@ -82,7 +82,7 @@ public class Unequip : CommandFeature
 		{
 			for (int i = 0; i < c->Size; i++)
 			{
-				if (c->Items[i].ItemID == 0)
+				if (c->Items[i].ItemId == 0)
 				{
 					return c;
 				}

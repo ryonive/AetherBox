@@ -256,7 +256,7 @@ public static class DebugManager
         }
         while (node != null)
         {
-            if (!node->IsVisible)
+            if (!node->IsVisible())
             {
                 return false;
             }

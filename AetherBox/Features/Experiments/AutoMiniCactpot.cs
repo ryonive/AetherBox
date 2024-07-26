@@ -207,7 +207,7 @@ internal class AutoMiniCactpot : Feature
 				if (node.MultiplyBlue == 0 && node.MultiplyRed == 0 && node.MultiplyGreen == 100)
 				{
 					List<uint> blocks;
-					blocks = LineToBlocks[node.NodeID];
+					blocks = LineToBlocks[node.NodeId];
 					AtkResNodeHelper.ClickAddonCheckBox(ui, (AtkComponentCheckBox*)ui->GetComponentNodeById(blocks[0]), 5u);
 					AtkResNodeHelper.ClickAddonCheckBox(ui, (AtkComponentCheckBox*)ui->GetComponentNodeById(blocks[1]), 5u);
 					AtkResNodeHelper.ClickAddonCheckBox(ui, (AtkComponentCheckBox*)ui->GetComponentNodeById(blocks[2]), 5u);
@@ -222,7 +222,7 @@ internal class AutoMiniCactpot : Feature
 
 	internal static bool IsEzMiniCactpotInstalled()
 	{
-		return Svc.PluginInterface.InstalledPlugins.Any((InstalledPluginState plugin) => (object)plugin != null && plugin.Name == "ezMiniCactpot" && plugin.IsLoaded);
+		return Svc.PluginInterface.InstalledPlugins.Any((plugin) => (object)plugin != null && plugin.Name == "ezMiniCactpot" && plugin.IsLoaded);
 	}
 
 	private unsafe static bool? WaitLotteryDailyAddon()
@@ -231,7 +231,7 @@ internal class AutoMiniCactpot : Feature
 		{
 			AtkUnitBase* ui;
 			ui = &addon->AtkUnitBase;
-			return !ui->GetImageNodeById(4u)->AtkResNode.IsVisible && !ui->GetTextNodeById(3u)->AtkResNode.IsVisible && !ui->GetTextNodeById(2u)->AtkResNode.IsVisible;
+			return !ui->GetImageNodeById(4u)->AtkResNode.IsVisible()() && !ui->GetTextNodeById(3u)->AtkResNode.IsVisible()() && !ui->GetTextNodeById(2u)->AtkResNode.IsVisible()();
 		}
 		return false;
 	}

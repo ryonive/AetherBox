@@ -76,7 +76,7 @@ internal static class AtkResNodeHelper
 
     private unsafe static ReceiveEventDelegate GetReceiveEvent(AtkEventListener* listener)
     {
-        return Marshal.GetDelegateForFunctionPointer<ReceiveEventDelegate>(new IntPtr(listener->vfunc[2]));
+        return Marshal.GetDelegateForFunctionPointer<ReceiveEventDelegate>(new IntPtr(listener->VirtualTable->ReceiveEvent));
     }
 
     private unsafe static ReceiveEventDelegate GetReceiveEvent(AtkComponentBase* listener)

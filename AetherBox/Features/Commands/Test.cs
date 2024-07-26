@@ -22,7 +22,7 @@ public class Test : CommandFeature
 
     protected unsafe override void OnCommand(List<string> args)
     {
-        if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("RetainerList", out var addon))
+        if (Helpers.GenericHelpers.TryGetAddonByName<AtkUnitBase>("RetainerList", out var addon))
         {
             (*addon->GetButtonNodeById(45u)).ClickAddonButton((AtkComponentBase*)addon, 26u);
         }

@@ -4,6 +4,7 @@ using AetherBox.Helpers;
 using Dalamud.Hooking;
 using Dalamud.Logging;
 using ECommons.DalamudServices;
+using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using Lumina.Excel;
@@ -62,7 +63,7 @@ public static class Common
         }
         catch (Exception exception)
         {
-            PluginLog.Error(exception, "AddonSetupError");
+            PluginLog.Error("AddonSetupError" + exception);
         }
         void* retVal;
         retVal = AddonSetupHook.Original(addon);
@@ -75,7 +76,7 @@ public static class Common
         }
         catch (Exception exception2)
         {
-            PluginLog.Error(exception2, "AddonSetupError2");
+            PluginLog.Error("AddonSetupError2" + exception2);
         }
         return retVal;
     }
@@ -91,7 +92,7 @@ public static class Common
         }
         catch (Exception exception)
         {
-            PluginLog.Error(exception, "FinalizeAddonError");
+            PluginLog.Error("FinalizeAddonError" + exception);
         }
         FinalizeAddonHook?.Original(unitManager, atkUnitBase);
     }
@@ -181,24 +182,18 @@ public static class Common
         FinalizeAddonHook?.Dispose();
     }
 
-    public unsafe static AtkUnitBase* GetAddonByID(uint id)
-    {
-        AtkUnitList* unitManagers;
-        unitManagers = &AtkStage.GetSingleton()->RaptureAtkUnitManager->AtkUnitManager.DepthLayerOneList;
-        for (int i = 0; i < 18; i++)
-        {
-            AtkUnitList* unitManager;
-            unitManager = unitManagers + i;
-            foreach (int j in Enumerable.Range(0, Math.Min(unitManager->Count, unitManager->EntriesSpan.Length)))
-            {
-                AtkUnitBase* unitBase;
-                unitBase = unitManager->EntriesSpan[j].Value;
-                if (unitBase != null && unitBase->ID == id)
-                {
+    public unsafe static AtkUnitBase* GetAddonByID(uint id) {
+        var unitManagers = &AtkStage.Instance()->RaptureAtkUnitManager->AtkUnitManager.DepthLayerOneList;
+        for (var i = 0; i < UnitListCount; i++) {
+            var unitManager = &unitManagers[i];
+            foreach (var j in Enumerable.Range(0, Math.Min(unitManager->Count, unitManager->Entries.Length))) {
+                var unitBase = unitManager->Entries[j].Value;
+                if (unitBase != null && unitBase->Id == id) {
                     return unitBase;
                 }
             }
         }
+
         return null;
     }
 
@@ -213,7 +208,7 @@ public static class Common
         {
             AtkResNode* j;
             j = uldManager->NodeList[i];
-            if (j->NodeID == nodeId && (!type.HasValue || j->Type == type.Value))
+            if (j->NodeId == nodeId && (!type.HasValue || j->Type == type.Value))
             {
                 return (T*)j;
             }

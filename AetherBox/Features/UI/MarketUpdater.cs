@@ -46,13 +46,13 @@ public class MarketUpdater : Feature
 
     public unsafe override void Draw()
     {
-        if (!GenericHelpers.TryGetAddonByName<AtkUnitBase>("RetainerList", out var addon) || addon->UldManager.NodeListCount <= 1 || !addon->UldManager.NodeList[1]->IsVisible)
+        if (!GenericHelpers.TryGetAddonByName<AtkUnitBase>("RetainerList", out var addon) || addon->UldManager.NodeListCount <= 1 || !addon->UldManager.NodeList[1]->IsVisible())
         {
             return;
         }
         AtkResNode* node;
         node = addon->UldManager.NodeList[1];
-        if (!node->IsVisible)
+        if (!node->IsVisible())
         {
             return;
         }
@@ -61,7 +61,7 @@ public class MarketUpdater : Feature
         ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(addon->X, (float)addon->Y - height));
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(7f, 7f));
         ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(10f, 10f));
-        ImGui.Begin($"###{Name}{node->NodeID}", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoNavFocus);
+        ImGui.Begin($"###{Name}{node->NodeId}", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoNavFocus);
         if (ImGui.Button((!active) ? (Name + "###Start") : "Running. Click to abort.###Abort"))
         {
             if (!active)

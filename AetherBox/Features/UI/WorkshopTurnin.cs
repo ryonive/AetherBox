@@ -16,6 +16,7 @@ using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
 using ECommons.GameFunctions;
+using ECommons.Interop;
 using ECommons.Logging;
 using ECommons.Throttlers;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
@@ -123,13 +124,13 @@ public class WorkshopTurnin : Feature
 
     public unsafe override void Draw()
     {
-        if (!GenericHelpers.TryGetAddonByName<AtkUnitBase>("SubmarinePartsMenu", out var addon) || addon->UldManager.NodeListCount <= 1 || addon->UldManager.NodeListCount < 38 || !addon->UldManager.NodeList[1]->IsVisible)
+        if (!GenericHelpers.TryGetAddonByName<AtkUnitBase>("SubmarinePartsMenu", out var addon) || addon->UldManager.NodeListCount <= 1 || addon->UldManager.NodeListCount < 38 || !addon->UldManager.NodeList[1]->IsVisible())
         {
             return;
         }
         AtkResNode* node;
         node = addon->UldManager.NodeList[1];
-        if (!node->IsVisible)
+        if (!node->IsVisible())
         {
             return;
         }
@@ -138,7 +139,7 @@ public class WorkshopTurnin : Feature
         ImGuiHelpers.SetNextWindowPosRelativeMainViewport(new Vector2(addon->X, (float)addon->Y - height));
         ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(7f, 7f));
         ImGui.PushStyleVar(ImGuiStyleVar.WindowMinSize, new Vector2(10f, 10f));
-        ImGui.Begin($"###LoopButtons{node->NodeID}", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoNavFocus);
+        ImGui.Begin($"###LoopButtons{node->NodeId}", ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.AlwaysAutoResize | ImGuiWindowFlags.NoSavedSettings | ImGuiWindowFlags.AlwaysUseWindowPadding | ImGuiWindowFlags.NoNavFocus);
         if (active && !phaseActive)
         {
             ImGui.BeginDisabled();
@@ -248,19 +249,19 @@ public class WorkshopTurnin : Feature
                 }
                 for (uint i = ingredient.TurnedInSoFar; i < ingredient.TotalTimesToTurnIn; i++)
                 {
-                    TaskManager.EnqueueImmediate(() => ClickItem(requiredIngredients.IndexOf(ingredient), ingredient.AmountPerTurnIn), $"{"ClickItem"} {ingredient.Ingredient.Name}");
-                    TaskManager.DelayNextImmediate(300);
-                    TaskManager.EnqueueImmediate(() => ConfirmHQTrade(), 200, "ConfirmHQTrade");
-                    TaskManager.DelayNextImmediate(300);
-                    TaskManager.EnqueueImmediate(() => ConfirmContribution(), "ConfirmContribution");
+                    TaskManager.Enqueue(() => ClickItem(requiredIngredients.IndexOf(ingredient), ingredient.AmountPerTurnIn), $"{"ClickItem"} {ingredient.Ingredient.Name}");
+                    TaskManager.InsertDelay(300);
+                    //TaskManager.Enqueue(() => ConfirmHQTrade(), 200, "ConfirmHQTrade");
+                    TaskManager.InsertDelay(300);
+                    TaskManager.Enqueue(() => ConfirmContribution(), "ConfirmContribution");
                 }
             }
             bool hasMorePhases;
             hasMorePhases = addon->AtkValues[6].UInt != addon->AtkValues[7].UInt - 1;
-            TaskManager.EnqueueImmediate((!hasMorePhases) ? new Func<bool?>(CompleteConstruction) : new Func<bool?>(AdvancePhase));
-            TaskManager.EnqueueImmediate((Func<bool?>)WaitForCutscene, "WaitForCutscene");
-            TaskManager.EnqueueImmediate((Func<bool?>)PressEsc, "PressEsc");
-            TaskManager.EnqueueImmediate((Func<bool?>)ConfirmSkip, "ConfirmSkip");
+            TaskManager.Enqueue((!hasMorePhases) ? new Func<bool?>(CompleteConstruction) : new Func<bool?>(AdvancePhase));
+            TaskManager.Enqueue((Func<bool?>)WaitForCutscene, "WaitForCutscene");
+            TaskManager.Enqueue((Func<bool?>)PressEsc, "PressEsc");
+            TaskManager.Enqueue((Func<bool?>)ConfirmSkip, "ConfirmSkip");
             if (phaseActive)
             {
                 TaskManager.Enqueue(() => EndLoop("Finished TurnInPhase"));
@@ -315,7 +316,7 @@ public class WorkshopTurnin : Feature
     {
         foreach (PartIngredient i in requiredIngredients)
         {
-            if (PlayerState.Instance()->ClassJobLevelArray[i.RequiredJobToTurnIn.ExpArrayIndex] < i.RequiredLevelToTurnIn)
+            if (PlayerState.Instance()->ClassJobLevels[i.RequiredJobToTurnIn.ExpArrayIndex] < i.RequiredLevelToTurnIn)
             {
                 return false;
             }
@@ -421,7 +422,7 @@ public class WorkshopTurnin : Feature
         {
             AtkUnitBase* nowLoading;
             nowLoading = (AtkUnitBase*)nLoading;
-            if (!nowLoading->IsVisible && WindowsKeypress.SendKeypress(Keys.Escape))
+            if (!nowLoading->IsVisible && WindowsKeypress.SendKeypress(LimitedKeys.Escape))
             {
                 return true;
             }
@@ -456,9 +457,9 @@ public class WorkshopTurnin : Feature
         return false;
     }
 
-    internal static bool TryGetNearestFabricationPanel(out GameObject obj)
+    internal static bool TryGetNearestFabricationPanel(out IGameObject obj)
     {
-        return Svc.Objects.TryGetFirst((GameObject x) => x.Name.ToString().EqualsAny<string>(PanelName) && x.IsTargetable, out obj);
+        return Svc.Objects.TryGetFirst((IGameObject x) => x.Name.ToString().EqualsAny<string>(PanelName) && x.IsTargetable, out obj);
     }
 
     internal unsafe static bool? InteractWithFabricationPanel()

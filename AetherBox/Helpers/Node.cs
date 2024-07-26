@@ -11,7 +11,7 @@ public static class Node
         {
             AtkResNode* currentNode;
             currentNode = uldManager.NodeList[index];
-            if (currentNode->NodeID == nodeId)
+            if (currentNode->NodeId == nodeId)
             {
                 return (T*)currentNode;
             }
@@ -65,7 +65,7 @@ public static class Node
 
     public unsafe static void UnlinkNodeAtStart(AtkResNode* resNode, AtkUnitBase* parent)
     {
-        if (IsAddonReady(parent) && parent->RootNode->ChildNode->NodeID == resNode->NodeID)
+        if (IsAddonReady(parent) && parent->RootNode->ChildNode->NodeId == resNode->NodeId)
         {
             AtkResNode* rootNode;
             rootNode = parent->RootNode;

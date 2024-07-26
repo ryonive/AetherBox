@@ -167,7 +167,7 @@ public class NoKill : Feature, IDisposable
 		{
 			AtkUnitBase* addon;
 			addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("Dialogue");
-			if (addon->IsVisible)
+			if (addon->IsVisible())
 			{
 				WindowsKeypress.SendKeypress(Keys.NumPad0);
 			}

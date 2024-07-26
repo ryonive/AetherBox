@@ -221,7 +221,7 @@ public class OverrideMovement : IDisposable
 
     private unsafe (NumberHelper.Angle h, NumberHelper.Angle v)? DirectionToDestination(bool allowVertical)
     {
-        PlayerCharacter player;
+        IPlayerCharacter player;
         player = Svc.ClientState.LocalPlayer;
         if (player == null)
         {

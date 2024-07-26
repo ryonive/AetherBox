@@ -26,11 +26,12 @@ using ECommons.ImGuiMethods;
 using FFXIVClientStructs.Attributes;
 using FFXIVClientStructs.FFXIV.Client.System.String;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using FFXIVClientStructs.Interop.Attributes;
+using FFXIVClientStructs.Interop.Generated;
 using ImGuiNET;
 using Lumina.Excel;
 using Dalamud.Plugin;
 using ECommons.Automation;
+using Dalamud.Interface.Textures.TextureWraps;
 
 namespace AetherBox.UI;
 
@@ -674,7 +675,7 @@ public class MainWindow : Window
         }
         while (node != null)
         {
-            if (!node->IsVisible)
+            if (!(node->IsVisible()()))
             {
                 return false;
             }

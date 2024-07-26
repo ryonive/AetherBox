@@ -110,11 +110,11 @@ public class AutoLeve : Feature
 		LeveQuests.Clear();
 	}
 
-	private static float GetDistanceToNpc(int npcId, out Dalamud.Game.ClientState.Objects.Types.GameObject? o)
+	private static float GetDistanceToNpc(int npcId, out Dalamud.Game.ClientState.Objects.Types.IGameObject? o)
 	{
-		foreach (Dalamud.Game.ClientState.Objects.Types.GameObject obj in Svc.Objects)
+		foreach (Dalamud.Game.ClientState.Objects.Types.IGameObject obj in Svc.Objects)
 		{
-			if (obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.EventNpc && obj is Character c && Marshal.ReadInt32(obj.Address + 128) == npcId)
+			if (obj.ObjectKind == Dalamud.Game.ClientState.Objects.Enums.ObjectKind.EventNpc && obj is ICharacter c && Marshal.ReadInt32(obj.Address + 128) == npcId)
 			{
 				o = obj;
 				return Vector3.Distance(Svc.ClientState.LocalPlayer?.Position ?? Vector3.Zero, c.Position);
@@ -132,7 +132,7 @@ public class AutoLeve : Feature
 		}
 		foreach (KeyValuePair<uint, NpcLocation> item in npcLocations.Where((KeyValuePair<uint, NpcLocation> x) => x.Value.TerritoryType == Svc.ClientState.TerritoryType).ToDictionary((KeyValuePair<uint, NpcLocation> x) => x.Key, (KeyValuePair<uint, NpcLocation> x) => x.Value))
 		{
-			if (GetDistanceToNpc((int)item.Key, out Dalamud.Game.ClientState.Objects.Types.GameObject _) > 5f)
+			if (GetDistanceToNpc((int)item.Key, out Dalamud.Game.ClientState.Objects.Types.IGameObject _) > 5f)
 			{
 				return;
 			}
@@ -245,7 +245,7 @@ public class AutoLeve : Feature
 
 	private static void GetCurrentTargetDataID(out uint targetDataId)
 	{
-		Dalamud.Game.ClientState.Objects.Types.GameObject currentTarget;
+		Dalamud.Game.ClientState.Objects.Types.IGameObject currentTarget;
 		currentTarget = Svc.Targets.Target;
 		targetDataId = ((!(currentTarget == null)) ? currentTarget.DataId : 0u);
 	}
@@ -275,7 +275,7 @@ public class AutoLeve : Feature
 
 	private unsafe static bool FindObjectToInteractWith(uint dataId, out FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* foundObject)
 	{
-		foreach (Dalamud.Game.ClientState.Objects.Types.GameObject obj in Svc.Objects.Where((Dalamud.Game.ClientState.Objects.Types.GameObject o) => o.DataId == dataId))
+		foreach (Dalamud.Game.ClientState.Objects.Types.IGameObject obj in Svc.Objects.Where((Dalamud.Game.ClientState.Objects.Types.IGameObject o) => o.DataId == dataId))
 		{
 			if (obj.IsTargetable)
 			{
@@ -365,7 +365,7 @@ public class AutoLeve : Feature
 		if (FindObjectToInteractWith(LeveReceiverDataId, out var foundObject))
 		{
 			TargetSystem.Instance()->InteractWithObject(foundObject);
-			Span<LeveWork> levesSpan = QuestManager.Instance()->LeveQuestsSpan;
+			Span<LeveWork> levesSpan = QuestManager.Instance()->LeveQuests;
 			int qualifiedCount;
 			qualifiedCount = 0;
 			for (int i = 0; i < levesSpan.Length; i++)

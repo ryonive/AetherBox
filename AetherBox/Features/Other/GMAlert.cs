@@ -32,8 +32,8 @@ public class GMAlert : Feature
 		{
 			return;
 		}
-		foreach (PlayerCharacter player in from pc in Svc.Objects.OfType<PlayerCharacter>()
-			where pc.ObjectId != 234881024
+		foreach (IPlayerCharacter player in from pc in Svc.Objects.OfType<IPlayerCharacter>()
+			where pc.EntityId != 234881024
 			select pc)
 		{
 			byte onlineStatus;

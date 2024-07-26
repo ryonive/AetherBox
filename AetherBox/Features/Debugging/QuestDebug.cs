@@ -45,7 +45,7 @@ public class QuestDebug : DebugHelper
     {
         ImGui.Text(Name ?? "");
         ImGui.Separator();
-        if (ImGui.Button("Very Easy") && GenericHelpers.TryGetAddonByName<AtkUnitBase>("DifficultySelectYesNo", out var addon))
+        if (ImGui.Button("Very Easy") && ECommons.GenericHelpers.TryGetAddonByName<AtkUnitBase>("DifficultySelectYesNo", out var addon))
         {
             Callback.Fire(addon, true, 0, 2);
         }
@@ -65,7 +65,7 @@ public class QuestDebug : DebugHelper
         }
         ImGui.Separator();
         ImGuiEx.TextUnderlined("Accepted Quests");
-        Span<QuestWork> normalQuestsSpan = _qm->NormalQuestsSpan;
+        Span<QuestWork> normalQuestsSpan = _qm->NormalQuests;
         for (int i = 0; i < normalQuestsSpan.Length; i++)
         {
             QuestWork quest;

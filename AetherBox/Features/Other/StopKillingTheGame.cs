@@ -132,7 +132,7 @@ namespace AetherBox.Features.Other
             if (Svc.GameGui.GetAddonByName("Dialogue") != IntPtr.Zero && !Svc.Condition.Any())
             {
                 var addon = (AtkUnitBase*)Svc.GameGui.GetAddonByName("Dialogue");
-                if (!addon->IsVisible) return;
+                if (!addon->IsVisible()) return;
 
                 WindowsKeypress.SendKeypress(System.Windows.Forms.Keys.NumPad0);
             }

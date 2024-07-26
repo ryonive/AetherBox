@@ -123,7 +123,7 @@ internal static class IslandSanctuaryHelper
     {
         if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("MJICraftSchedule", out var addon))
         {
-            return addon->IsVisible;
+            return addon->IsVisible();
         }
         return false;
     }
@@ -132,14 +132,14 @@ internal static class IslandSanctuaryHelper
     {
         if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("MJICraftScheduleSetting", out var addon))
         {
-            return addon->IsVisible;
+            return addon->IsVisible();
         }
         return false;
     }
 
     public unsafe static int? GetOpenCycle()
     {
-        if (!GenericHelpers.TryGetAddonByName<AtkUnitBase>("MJICraftSchedule", out var addon) || !addon->IsVisible || addon->AtkValues->Type == (FFXIVClientStructs.FFXIV.Component.GUI.ValueType)0)
+        if (!GenericHelpers.TryGetAddonByName<AtkUnitBase>("MJICraftSchedule", out var addon) || !addon->IsVisible() || addon->AtkValues->Type == (FFXIVClientStructs.FFXIV.Component.GUI.ValueType)0)
         {
             return null;
         }

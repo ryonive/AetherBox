@@ -12,6 +12,7 @@ using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
+using ECommons.UIHelpers.AddonMasterImplementations;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Agent;
@@ -192,7 +193,7 @@ public class AutoSelectGardening : Feature
             {
                 AtkUnitBase* addon2;
                 addon2 = (AtkUnitBase*)Svc.GameGui.GetAddonByName("InventoryExpansion");
-                if (addon2->IsVisible)
+                if (addon2->IsVisible())
                 {
                     if (addon2->AtkValuesCount <= 5)
                     {
@@ -216,10 +217,10 @@ public class AutoSelectGardening : Feature
                         {
                             for (int i = 0; i < cont->Size; i++)
                             {
-                                if (cont->GetInventorySlot(i)->ItemID == Config.SelectedFertilizer)
+                                if (cont->GetInventorySlot(i)->ItemId == Config.SelectedFertilizer)
                                 {
                                     cont->GetInventorySlot(i);
-                                    AgentInventoryContext.Instance()->OpenForItemSlot(cont->Type, i, AgentModule.Instance()->GetAgentByInternalId(AgentId.Inventory)->GetAddonID());
+                                    AgentInventoryContext.Instance()->OpenForItemSlot(cont->Type, i, AgentModule.Instance()->GetAgentByInternalId(AgentId.Inventory)->GetAddonId());
                                     AtkUnitBase* contextMenu;
                                     contextMenu = (AtkUnitBase*)Svc.GameGui.GetAddonByName("ContextMenu");
                                     if (contextMenu != null)
@@ -281,9 +282,9 @@ public class AutoSelectGardening : Feature
                     int l;
                     for (l = 0; l < cont4->Size; l++)
                     {
-                        if (invSoil.Any((uint x) => cont4->GetInventorySlot(l)->ItemID == x))
+                        if (invSoil.Any((uint x) => cont4->GetInventorySlot(l)->ItemId == x))
                         {
-                            if (cont4->GetInventorySlot(l)->ItemID == Config.SelectedSoil)
+                            if (cont4->GetInventorySlot(l)->ItemId == Config.SelectedSoil)
                             {
                                 goto end_IL_03f5;
                             }
@@ -304,9 +305,9 @@ public class AutoSelectGardening : Feature
                     int m;
                     for (m = 0; m < cont5->Size; m++)
                     {
-                        if (invSoil.Any((uint x) => cont5->GetInventorySlot(m)->ItemID == x))
+                        if (invSoil.Any((uint x) => cont5->GetInventorySlot(m)->ItemId == x))
                         {
-                            if (cont5->GetInventorySlot(m)->ItemID == invSoil[0])
+                            if (cont5->GetInventorySlot(m)->ItemId == invSoil[0])
                             {
                                 goto end_IL_03f5;
                             }
@@ -332,9 +333,9 @@ public class AutoSelectGardening : Feature
                     int j;
                     for (j = 0; j < cont2->Size; j++)
                     {
-                        if (invSeeds.Any((uint x) => cont2->GetInventorySlot(j)->ItemID == x))
+                        if (invSeeds.Any((uint x) => cont2->GetInventorySlot(j)->ItemId == x))
                         {
-                            if (cont2->GetInventorySlot(j)->ItemID == Config.SelectedSeed)
+                            if (cont2->GetInventorySlot(j)->ItemId == Config.SelectedSeed)
                             {
                                 goto end_IL_05ab;
                             }
@@ -355,9 +356,9 @@ public class AutoSelectGardening : Feature
                     int k;
                     for (k = 0; k < cont3->Size; k++)
                     {
-                        if (invSeeds.Any((uint x) => cont3->GetInventorySlot(k)->ItemID == x))
+                        if (invSeeds.Any((uint x) => cont3->GetInventorySlot(k)->ItemId == x))
                         {
-                            if (cont3->GetInventorySlot(k)->ItemID == invSeeds[0])
+                            if (cont3->GetInventorySlot(k)->ItemId == invSeeds[0])
                             {
                                 goto end_IL_05ab;
                             }
@@ -386,7 +387,7 @@ public class AutoSelectGardening : Feature
                 {
                     return;
                 }
-                TaskManager.DelayNext("Gardening1", 100);
+                TaskManager.InsertDelay(100);
                 TaskManager.Enqueue(() => TryClickItem(addon, 1, soilIndex));
             }
             if (seedIndex != -1)
@@ -399,17 +400,17 @@ public class AutoSelectGardening : Feature
                 {
                     return;
                 }
-                TaskManager.DelayNext("Gardening2", 100);
+                TaskManager.InsertDelay(100);
                 TaskManager.Enqueue(() => TryClickItem(addon, 2, seedIndex));
             }
             if (Config.AutoConfirm)
             {
-                TaskManager.DelayNext("Confirming", 100);
-                TaskManager.Enqueue(delegate
-                {
+                TaskManager.InsertDelay(ms: 100);
+                TaskManager.Enqueue(() => TaskManager.Enqueue(() => ConfirmYesNo())
+                
                     Callback.Fire(addon, false, 0, 0, 0, 0, 0);
-                }, 300, abortOnTimeout: false);
-                TaskManager.Enqueue(() => ConfirmYesNo(), 300, abortOnTimeout: false);
+                300);
+                
             }
         }
         else
@@ -427,7 +428,7 @@ public class AutoSelectGardening : Feature
         }
         AtkUnitBase* contextMenu;
         contextMenu = (AtkUnitBase*)Svc.GameGui.GetAddonByName("ContextIconMenu");
-        if (contextMenu == null || !contextMenu->IsVisible)
+        if (contextMenu == null || !contextMenu->IsVisible())
         {
             int slot;
             slot = i - 1;
@@ -499,7 +500,7 @@ public class AutoSelectGardening : Feature
     private unsafe bool CloseItemDetail()
     {
         AtkUnitBase* itemDetail = (AtkUnitBase*)Svc.GameGui.GetAddonByName("ItemDetail");
-        if (itemDetail == null || !itemDetail->IsVisible)
+        if (itemDetail == null || !itemDetail->IsVisible())
         {
             return false;
         }
@@ -515,21 +516,16 @@ public class AutoSelectGardening : Feature
 
     internal unsafe static bool ConfirmYesNo()
     {
-        if (Svc.Condition[ConditionFlag.Occupied39])
+        if (Svc.Condition[ConditionFlag.Occupied39]) return false;
+        var hg = (AtkUnitBase*)Svc.GameGui.GetAddonByName("HousingGardening");
+        if (hg == null) return false;
+
+        if (hg->IsVisible && TryGetAddonByName<AddonSelectYesno>("SelectYesno", out var addon) && addon->AtkUnitBase.IsVisible && addon->YesButton->IsEnabled && addon->AtkUnitBase.UldManager.NodeList[15]->IsVisible())
         {
-            return false;
-        }
-        AtkUnitBase* hg;
-        hg = (AtkUnitBase*)Svc.GameGui.GetAddonByName("HousingGardening");
-        if (hg == null)
-        {
-            return false;
-        }
-        if (hg->IsVisible && GenericHelpers.TryGetAddonByName<AddonSelectYesno>("SelectYesno", out var addon) && addon->AtkUnitBase.IsVisible && addon->YesButton->IsEnabled && addon->AtkUnitBase.UldManager.NodeList[15]->IsVisible)
-        {
-            new ClickSelectYesNo((nint)addon).Yes();
+            new AddonMaster.SelectYesno((nint)addon).Yes();
             return true;
         }
+
         return false;
     }
 

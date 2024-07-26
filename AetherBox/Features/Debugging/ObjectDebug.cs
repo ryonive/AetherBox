@@ -9,7 +9,6 @@ using ECommons.GameFunctions;
 using FFXIVClientStructs.FFXIV.Client.Game.Event;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
-using FFXIVClientStructs.Interop.Attributes;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 
@@ -18,7 +17,7 @@ namespace AetherBox.Features.Debugging;
 public class ObjectDebug : DebugHelper
 {
     [StructLayout(LayoutKind.Explicit, Size = 416)]
-    [VTableAddress("48 8d 05 ?? ?? ?? ?? c7 81 80 00 00 00 00 00 00 00", 3, false)]
+    //[VTableAddress("48 8d 05 ?? ?? ?? ?? c7 81 80 00 00 00 00 00 00 00", 3, false)]
     public struct GameObject
     {
         [FieldOffset(16)]
@@ -114,13 +113,13 @@ public class ObjectDebug : DebugHelper
     {
         ImGui.Text(Name ?? "");
         ImGui.Separator();
-        foreach (Dalamud.Game.ClientState.Objects.Types.GameObject obj in Svc.Objects.Where((Dalamud.Game.ClientState.Objects.Types.GameObject o) => o.IsHostile()))
+        foreach (IGameObject obj in Svc.Objects.Where((IGameObject o) => o.IsHostile()))
         {
             FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject* csObj;
             csObj = (FFXIVClientStructs.FFXIV.Client.Game.Object.GameObject*)obj.Address;
-            ImGui.Text($"Name: {obj.Name} > {Vector3.Distance(Svc.ClientState.LocalPlayer.Position, obj.Position):f1}y > bnpcbase: {Svc.Data.GetExcelSheet<BNpcBase>().GetRow(obj.DataId).RowId} > {obj.Struct()->GetNpcID()}");
+            ImGui.Text($"Name: {obj.Name} > {Vector3.Distance(Svc.ClientState.LocalPlayer.Position, obj.Position):f1}y > bnpcbase: {Svc.Data.GetExcelSheet<BNpcBase>().GetRow(obj.DataId).RowId} > {obj.Struct()->GetGameObjectId()}");
             ImGui.PushItemWidth(200f);
-            ImGui.SliderFloat($"Hitbox Radius###{obj.Name}{obj.ObjectId}", ref ((GameObject*)obj.Address)->HitboxRadius, 0f, 100f);
+            ImGui.SliderFloat($"Hitbox Radius###{obj.Name}{obj.EntityId}", ref ((GameObject*)obj.Address)->HitboxRadius, 0f, 100f);
         }
     }
 }

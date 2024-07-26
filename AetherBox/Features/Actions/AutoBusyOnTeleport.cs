@@ -44,10 +44,10 @@ public class AutoBusyOnTeleport : Feature
 
     private bool busyOn = false;
 
-    private GameObject? player;
+    private IGameObject? player;
 
     private uint? playerObjectID;
-    private Dalamud.Game.ClientState.Objects.Types.GameObject? master;
+    private Dalamud.Game.ClientState.Objects.Types.IGameObject? master;
 
     public override string Name => "Auto Busy On Teleport";
 
@@ -156,7 +156,7 @@ public class AutoBusyOnTeleport : Feature
             if (Svc.ClientState.LocalPlayer != null)
             {
                 ImGuiHelper.AddTableRow("BusyOn: ", Config.AutoBusy.ToString());
-                var isBusy = Player.Object.OnlineStatus.Id == 12;
+                var isBusy = Helpers.Player.Object.OnlineStatus.Id == 12;
                 ImGuiHelper.AddTableRow("IsBusy: ", isBusy);
 
                 ImGui.TableNextColumn();
@@ -188,7 +188,7 @@ public class AutoBusyOnTeleport : Feature
 
     private unsafe void CheckForTeleport(IFramework framework)
     {
-        var localPlayer = Player.Object;
+        var localPlayer = Helpers.Player.Object;
         if (localPlayer == null || localPlayer.Struct()->Character.InCombat)  // if localplayer is null or enganged in combat we return
         {
             return;
@@ -199,19 +199,19 @@ public class AutoBusyOnTeleport : Feature
             if (!string.IsNullOrEmpty(tradeTargetName) && tradeTargetName != Svc.Targets.Target?.Name.ToString())
             {
                 Svc.Targets.Target = GameObjectHelper.Players.FirstOrDefault(chara =>
-                    chara is BattleChara battleChara &&
+                    chara is IBattleChara battleChara &&
                     battleChara.IsCasting &&
                     battleChara.CastActionId == (uint)ActionID.Teleport &&
                     chara.DistanceToPlayerCenter() < 5 &&
                     chara.Name.ToString() == tradeTargetName &&
-                    chara.ObjectId != lastTradeTargetId &&
-                    !Svc.ClientState.LocalPlayer);
+                    chara.EntityId!= lastTradeTargetId &&
+                    Svc.ClientState.LocalPlayer != null);
 
                 if (Svc.Targets.Target != null)
                 {
                     Chat.Instance.SendMessage("/e /trade");
                     PrintModuleMessage(tradeTargetName + " is trying to teleport. Let's stop that!");
-                    lastTradeTargetId = Svc.Targets.Target.ObjectId; // Update the last trade target's object ID
+                    lastTradeTargetId = Svc.Targets.Target.EntityId; // Update the last trade target's object ID
                 }
             }
         }
@@ -219,7 +219,7 @@ public class AutoBusyOnTeleport : Feature
 
     private unsafe void CheckForChange(ConditionFlag flag, bool value)
     {
-        var isBusy = Player.Object.OnlineStatus.Id == 12;
+        var isBusy = Helpers.Player.Object.OnlineStatus.Id == 12;
         if (Config.AutoBusy)
         {
             if (Config.AutoBusy && Svc.ClientState.LocalPlayer.IsCasting((uint)ActionID.Teleport) && !isBusy)
@@ -232,7 +232,7 @@ public class AutoBusyOnTeleport : Feature
         if (Config.AutoBusyOff)
         {
             // Check if you are not casting teleport and were previously in the "busy" state
-            if (flag == ConditionFlag.Casting && !Player.Object.IsCasting((uint)ActionID.Teleport) && isBusy)
+            if (flag == ConditionFlag.Casting && !Helpers.Player.Object.IsCasting((uint)ActionID.Teleport) && isBusy)
             {
                 Chat.Instance.SendMessage("/busy off");
                 busyOn = false;

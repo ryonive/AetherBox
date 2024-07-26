@@ -17,11 +17,14 @@ using EasyCombat.UI.Helpers;
 using ECommons;
 using ECommons.Automation;
 using ECommons.DalamudServices;
+using ECommons.GameHelpers;
 using ECommons.ImGuiMethods;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using ImGuiNET;
 using Lumina.Excel.GeneratedSheets;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using DGameObject = Dalamud.Game.ClientState.Objects.Types.IGameObject;
+using Player = AetherBox.Helpers.Player;
 
 namespace AetherBox.Features.Actions;
 
@@ -52,14 +55,15 @@ public class AutoFollow : Feature
 
         [FeatureConfigOption("Auto Jump (Highly Experimental)", "", 8, null)]
         public bool AutoJump;
+
+        public string AutoFollowName = string.Empty;
     }
 
     private readonly List<string> registeredCommands = new List<string>();
 
     private readonly OverrideMovement movement = new OverrideMovement();
 
-    private Dalamud.Game.ClientState.Objects.Types.GameObject? master;
-
+    private DGameObject? master;
     private uint? masterObjectID;
 
     public override string Name => "Auto Follow";
@@ -219,8 +223,8 @@ public class AutoFollow : Feature
 
 
         Vector3 targetPos;
-        Dalamud.Game.ClientState.Objects.Types.GameObject lastMaster;
-        Dalamud.Game.ClientState.Objects.Types.GameObject target;
+        Dalamud.Game.ClientState.Objects.Types.IGameObject lastMaster;
+        Dalamud.Game.ClientState.Objects.Types.IGameObject target;
         string str;
 
         lastMaster = Svc.Targets.PreviousTarget;
@@ -248,15 +252,15 @@ public class AutoFollow : Feature
             try
             {
                 lastMaster = Svc.Targets.PreviousTarget;
-                var masterObjectID = Svc.Targets?.Target?.ObjectId;
+                var masterObjectID = Svc.Targets?.Target?.EntityId;
                 if (master == null || lastMaster == null)
                 {
                     PrintModuleMessage($"Master is null!");
                 }
-                else if (master)
+                else if (master != null)
                 {
                     master = Svc.Targets?.Target;
-                    masterObjectID = Svc.Targets?.Target?.ObjectId;
+                    masterObjectID = Svc.Targets?.Target?.EntityId;
                     PrintModuleMessage($"Master is set to {master?.Name}");
                 }
             }
@@ -337,7 +341,7 @@ public class AutoFollow : Feature
         try
         {
             master = Svc.Targets?.Target;
-            masterObjectID = Svc.Targets?.Target?.ObjectId;
+            masterObjectID = Svc.Targets?.Target?.EntityId;
             PrintModuleMessage($"Master is set to {master?.Name}");
         }
         catch (Exception ex)
@@ -363,16 +367,18 @@ public class AutoFollow : Feature
 
     private unsafe void Follow(IFramework framework)
     {
-        master = Svc.Objects.FirstOrDefault((Dalamud.Game.ClientState.Objects.Types.GameObject x) => x.ObjectId == masterObjectID);
-        if (master == null)
-        {
-            movement.Enabled = false;
-            return;
-        }
+        if (!Player.Available) return;
+
+        master = Svc.Objects.FirstOrDefault(x => x.EntityId == masterObjectID || !Config.AutoFollowName.IsNullOrEmpty() && x.Name.TextValue.Equals(Config.AutoFollowName, StringComparison.InvariantCultureIgnoreCase));
+
+        if (master == null) { movement.Enabled = false; return; }
+        if (Config.disableIfFurtherThan > 0 && !Player.Object.IsNear(master, Config.disableIfFurtherThan)) { movement.Enabled = false; return; }
+        if (Config.OnlyInDuty && !Player.InDuty) { movement.Enabled = false; return; }
+        if (Svc.Condition[ConditionFlag.InFlight]) { TaskManager.Abort(); }
 
         if (Svc.ClientState.LocalPlayer != null)
         {
-            if (Config == null) {return;}
+            if (Config == null) { return; }
 
             if (Config.disableIfFurtherThan > 0 && Vector3.Distance(Svc.ClientState.LocalPlayer.Position, master.Position) > (float)Config.disableIfFurtherThan)
             {
@@ -403,7 +409,7 @@ public class AutoFollow : Feature
             if (Config.MountAndFly && ((FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)master.Address)->IsMounted() && CanMount())
             {
                 movement.Enabled = false;
-                TaskManager.DelayNext(300);
+                TaskManager.InsertDelay(300);
                 TaskManager.Enqueue(() => ActionManager.Instance()->UseAction(ActionType.GeneralAction, 9u, 3758096384uL, 0u, 0u, 0u, null));
                 return;
             }
@@ -411,15 +417,15 @@ public class AutoFollow : Feature
             {
                 movement.Enabled = false;
                 TaskManager.Enqueue(() => ActionManager.Instance()->UseAction(ActionType.GeneralAction, 2u, 3758096384uL, 0u, 0u, 0u, null));
-                TaskManager.DelayNext(50);
+                TaskManager.InsertDelay(50);
                 TaskManager.Enqueue(() => ActionManager.Instance()->UseAction(ActionType.GeneralAction, 2u, 3758096384uL, 0u, 0u, 0u, null));
                 return;
             }
-            if (!((FFXIVClientStructs.FFXIV.Client.Game.Character.Character*)master.Address)->IsMounted() && Svc.Condition[ConditionFlag.Mounted])
+            if (!(master.Character()->IsMounted() && Svc.Condition[ConditionFlag.Mounted]) && TerritorySupportsMounting())
             {
                 movement.Enabled = false;
-                ((FFXIVClientStructs.FFXIV.Client.Game.Character.BattleChara*)master.Address)->GetStatusManager->RemoveStatus(10, 0);
-                ActionManager.Instance()->UseAction(ActionType.GeneralAction, 9u, 3758096384uL, 0u, 0u, 0u, null);
+                master.BattleChara()->GetStatusManager()->RemoveStatus(10);
+                ActionManager.Instance()->UseAction(ActionType.GeneralAction, 9);
                 return;
             }
         }
@@ -473,6 +479,33 @@ public class AutoFollow : Feature
         return false;
     }
 
+    private static bool TerritorySupportsMounting() => Excel.GetRow<TerritoryType>(Player.Territory)?.Unknown32 != 0;
+
+    private void OnChatMessage(XivChatType type, int timestamp, ref SeString sender, ref SeString message, ref bool isHandled)
+    {
+        if (type != XivChatType.Party) return;
+        var player = sender.Payloads.SingleOrDefault(x => x is PlayerPayload) as PlayerPayload;
+        if (message.TextValue.ToLowerInvariant().Contains("autofollow"))
+        {
+            if (int.TryParse(message.TextValue.Split("autofollow")[1], out var distance))
+                Config.distanceToKeep = distance;
+            else if (message.TextValue.ToLowerInvariant().Contains("autofollow off"))
+                ClearMaster();
+            else
+            {
+                foreach (var actor in Svc.Objects)
+                {
+                    if (actor == null) continue;
+                    if (actor.Name.TextValue.Equals(player?.PlayerName))
+                    {
+                        Svc.Targets.Target = actor;
+                        SetMaster();
+                    }
+                }
+            }
+        }
+    }
+
     private unsafe void OnChatMessage(XivChatType type, uint senderId, ref SeString sender, ref SeString message, ref bool isHandled)
     {
 
@@ -495,7 +528,7 @@ public class AutoFollow : Feature
 
         if (lowerMessage.Contains("autofollow", StringComparison.CurrentCultureIgnoreCase))
         {
-            foreach (Dalamud.Game.ClientState.Objects.Types.GameObject actor in Svc.Objects)
+            foreach (Dalamud.Game.ClientState.Objects.Types.IGameObject actor in Svc.Objects)
             {
                 if (actor != null)
                 {
@@ -512,7 +545,7 @@ public class AutoFollow : Feature
 
         if (lowerMessage.Contains("autofollowoff", StringComparison.CurrentCultureIgnoreCase))
         {
-            foreach (Dalamud.Game.ClientState.Objects.Types.GameObject actor in Svc.Objects)
+            foreach (Dalamud.Game.ClientState.Objects.Types.IGameObject actor in Svc.Objects)
             {
                 if (actor != null)
                 {

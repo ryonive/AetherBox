@@ -3,18 +3,21 @@ using Dalamud.Interface.Utility;
 using ECommons.ImGuiMethods;
 using ECommons;
 using ImGuiNET;
+using Dalamud.Interface.ImGuiNotification;
 using System.Numerics;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using Dalamud.Interface;
-using Dalamud.Interface.Internal.Notifications;
 using ECommons.DalamudServices;
 using ECommons.Reflection;
 using EasyCombat.UI.Helpers;
 using Dalamud.Interface.Internal;
 using Lumina.Excel;
 using System.Collections;
+using Dalamud.Interface.Textures.TextureWraps;
+using static System.Windows.Forms.Design.AxImporter;
+using ECommons.Funding;
 
 namespace AetherBox.Helpers;
 
@@ -63,7 +66,7 @@ public static unsafe partial class ImGuiHelper
         if (ImGui.Button(buttonText.Replace("$COPY", copy)))
         {
             ImGui.SetClipboardText(copy);
-            Svc.PluginInterface.UiBuilder.AddNotification("Text copied to clipboard", null, NotificationType.Success);
+            Notify.Success("Text copied to clipboard");
         }
     }
 
@@ -616,8 +619,8 @@ public static unsafe partial class ImGuiHelper
             ImGui.GetWindowDrawList().AddCircleFilled(center, halfSize.X, ImGui.GetColorU32(ImGui.IsMouseDown(ImGuiMouseButton.Left) ? ImGuiCol.ButtonActive : ImGuiCol.ButtonHovered));
             if (ImGui.IsMouseReleased(options.MouseButton))
                 pressed = true;
-            if (options.ToastTooltipOnClick && ImGui.IsMouseReleased(options.ToastTooltipOnClickButton))
-                Svc.PluginInterface.UiBuilder.AddNotification(options.Tooltip!, null, NotificationType.Info);
+            if (options.ToastTooltipOnClick && ImGui.IsMouseReleased(options.ToastTooltipOnClickButton)) ;
+            Notify.Info($"{options.Tooltip}");
         }
 
         ImGui.SetCursorPos(buttonPos);
@@ -1081,7 +1084,7 @@ public static unsafe partial class ImGuiHelper
                 }
             }
         }
-        if (KoFiTransparent) KoFiButton.RightTransparentTab();
+        if (KoFiTransparent) PatreonBanner.RightTransparentTab();
         ImGui.EndTabBar();
     }
 
@@ -1396,7 +1399,7 @@ public static unsafe partial class ImGuiHelper
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
         {
             ImGui.SetClipboardText(text);
-            Svc.PluginInterface.UiBuilder.AddNotification("Text copied to clipboard", null, NotificationType.Success);
+            Notify.Success($"Text copied to clipboard");
         }
     }
 
@@ -1410,7 +1413,7 @@ public static unsafe partial class ImGuiHelper
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
         {
             ImGui.SetClipboardText(text);
-            Svc.PluginInterface.UiBuilder.AddNotification("Text copied to clipboard", DalamudReflector.GetPluginName(), NotificationType.Success);
+            Notify.Success($"Text copied to clipboard");
         }
     }
 
@@ -1424,7 +1427,7 @@ public static unsafe partial class ImGuiHelper
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
         {
             ImGui.SetClipboardText(text);
-            Svc.PluginInterface.UiBuilder.AddNotification("Text copied to clipboard", DalamudReflector.GetPluginName(), NotificationType.Success);
+            Notify.Success($"Text copied to clipboard");
         }
     }
 
