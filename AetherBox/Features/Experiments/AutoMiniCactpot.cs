@@ -118,7 +118,7 @@ internal class AutoMiniCactpot : Feature
 
 	private unsafe static bool? ClickRandomBlocks()
 	{
-		if (GenericHelpers.TryGetAddonByName<AddonLotteryDaily>("LotteryDaily", out var addon) && GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
+		if (ECommons.GenericHelpers.TryGetAddonByName<AddonLotteryDaily>("LotteryDaily", out var addon) && ECommons.GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
 		{
 			AtkUnitBase* ui;
 			ui = &addon->AtkUnitBase;
@@ -140,7 +140,7 @@ internal class AutoMiniCactpot : Feature
 
 	private unsafe static bool? ClickRandomLine()
 	{
-		if (GenericHelpers.TryGetAddonByName<AddonLotteryDaily>("LotteryDaily", out var addon) && GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
+		if (ECommons.GenericHelpers.TryGetAddonByName<AddonLotteryDaily>("LotteryDaily", out var addon) && ECommons.GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
 		{
 			AtkUnitBase* num;
 			num = &addon->AtkUnitBase;
@@ -161,7 +161,7 @@ internal class AutoMiniCactpot : Feature
 
 	private unsafe static bool? ClickExit()
 	{
-		if (GenericHelpers.TryGetAddonByName<AddonLotteryDaily>("LotteryDaily", out var addon) && GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
+		if (ECommons.GenericHelpers.TryGetAddonByName<AddonLotteryDaily>("LotteryDaily", out var addon) && ECommons.GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
 		{
 			Callback.Fire(&addon->AtkUnitBase, true, -1);
 			return true;
@@ -171,7 +171,7 @@ internal class AutoMiniCactpot : Feature
 
 	private unsafe static bool? ClickRecommendBlock()
 	{
-		if (GenericHelpers.TryGetAddonByName<AddonLotteryDaily>("LotteryDaily", out var addon) && GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
+		if (ECommons.GenericHelpers.TryGetAddonByName<AddonLotteryDaily>("LotteryDaily", out var addon) && ECommons.GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
 		{
 			AtkUnitBase* ui;
 			ui = &addon->AtkUnitBase;
@@ -192,7 +192,7 @@ internal class AutoMiniCactpot : Feature
 
 	private unsafe static bool? ClickRecommendLine()
 	{
-		if (GenericHelpers.TryGetAddonByName<AddonLotteryDaily>("LotteryDaily", out var addon) && GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
+		if (ECommons.GenericHelpers.TryGetAddonByName<AddonLotteryDaily>("LotteryDaily", out var addon) && ECommons.GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
 		{
 			AtkUnitBase* ui;
 			ui = &addon->AtkUnitBase;
@@ -227,11 +227,11 @@ internal class AutoMiniCactpot : Feature
 
 	private unsafe static bool? WaitLotteryDailyAddon()
 	{
-		if (GenericHelpers.TryGetAddonByName<AddonLotteryDaily>("LotteryDaily", out var addon) && GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
+		if (ECommons.GenericHelpers.TryGetAddonByName<AddonLotteryDaily>("LotteryDaily", out var addon) && ECommons.GenericHelpers.IsAddonReady(&addon->AtkUnitBase))
 		{
 			AtkUnitBase* ui;
 			ui = &addon->AtkUnitBase;
-			return !ui->GetImageNodeById(4u)->AtkResNode.IsVisible()() && !ui->GetTextNodeById(3u)->AtkResNode.IsVisible()() && !ui->GetTextNodeById(2u)->AtkResNode.IsVisible()();
+			return !ui->GetImageNodeById(4u)->AtkResNode.IsVisible() && !ui->GetTextNodeById(3u)->AtkResNode.IsVisible() && !ui->GetTextNodeById(2u)->AtkResNode.IsVisible();
 		}
 		return false;
 	}

@@ -4,6 +4,7 @@ using AetherBox.Helpers.Faloop;
 using AetherBox.Helpers.Faloop.Model;
 using Dalamud.Logging;
 using ECommons.DalamudServices;
+using ECommons.Logging;
 
 namespace AetherBox.Helpers.Faloop;
 
@@ -45,7 +46,7 @@ public class FaloopSession : IDisposable
         }
         catch (Exception exception)
         {
-            PluginLog.Error(exception, "LoginAsync: EmbedData.Initialize failed");
+            PluginLog.Error( $"LoginAsync: EmbedData.Initialize failed {exception}");
             return false;
         }
         IsLoggedIn = true;

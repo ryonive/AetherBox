@@ -193,7 +193,7 @@ public class AutoSelectGardening : Feature
             {
                 AtkUnitBase* addon2;
                 addon2 = (AtkUnitBase*)Svc.GameGui.GetAddonByName("InventoryExpansion");
-                if (addon2->IsVisible())
+                if (addon2->IsVisible)
                 {
                     if (addon2->AtkValuesCount <= 5)
                     {
@@ -406,11 +406,9 @@ public class AutoSelectGardening : Feature
             if (Config.AutoConfirm)
             {
                 TaskManager.InsertDelay(ms: 100);
-                TaskManager.Enqueue(() => TaskManager.Enqueue(() => ConfirmYesNo())
-                
-                    Callback.Fire(addon, false, 0, 0, 0, 0, 0);
-                300);
-                
+                TaskManager.Enqueue(() => ConfirmYesNo());
+                Callback.Fire(addon, false, 0, 0, 0, 0, 0, 300);
+
             }
         }
         else
@@ -428,70 +426,60 @@ public class AutoSelectGardening : Feature
         }
         AtkUnitBase* contextMenu;
         contextMenu = (AtkUnitBase*)Svc.GameGui.GetAddonByName("ContextIconMenu");
-        if (contextMenu == null || !contextMenu->IsVisible())
+        if (contextMenu == null || !contextMenu->IsVisible)
         {
             int slot;
             slot = i - 1;
             Svc.Log.Debug($"{slot}");
             AtkValue* values = stackalloc AtkValue[5];
-            *values = new AtkValue
-            {
+            *values = new AtkValue {
                 Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
                 Int = 2
             };
-            values[1] = new AtkValue
-            {
+            values[1] = new AtkValue {
                 Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt,
                 UInt = (uint)slot
             };
-            values[2] = new AtkValue
-            {
+            values[2] = new AtkValue {
                 Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
                 Int = 0
             };
-            values[3] = new AtkValue
-            {
+            values[3] = new AtkValue {
                 Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
                 Int = 0
             };
-            values[4] = new AtkValue
-            {
+            values[4] = new AtkValue {
                 Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt,
                 UInt = 1u
             };
-            addon->FireCallback(5, values, null);
+            addon->FireCallback(5, values, true);
             CloseItemDetail();
             return false;
         }
         uint value;
         value = ((i == 1) ? 27405u : 27451u);
         AtkValue* values2 = stackalloc AtkValue[5];
-        *values2 = new AtkValue
-        {
+        *values2 = new AtkValue {
             Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
             Int = 0
         };
-        values2[1] = new AtkValue
-        {
+        values2[1] = new AtkValue {
             Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
             Int = itemIndex
         };
-        values2[2] = new AtkValue
-        {
+        values2[2] = new AtkValue {
             Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt,
             UInt = value
         };
-        values2[3] = new AtkValue
-        {
+        values2[3] = new AtkValue {
             Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.UInt,
             UInt = 0u
         };
-        values2[4] = new AtkValue
-        {
+        values2[4] = new AtkValue {
             Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
             UInt = 0u
         };
-        contextMenu->FireCallback(5, values2, (void*)2476827163393uL);
+        contextMenu->FireCallback(5, values2, true);
         Svc.Log.Debug($"Filled slot {i}");
         SlotsFilled.Add(i);
         return true;
@@ -500,17 +488,16 @@ public class AutoSelectGardening : Feature
     private unsafe bool CloseItemDetail()
     {
         AtkUnitBase* itemDetail = (AtkUnitBase*)Svc.GameGui.GetAddonByName("ItemDetail");
-        if (itemDetail == null || !itemDetail->IsVisible())
+        if (itemDetail == null || !itemDetail->IsVisible)
         {
             return false;
         }
         AtkValue* values = stackalloc AtkValue[1];
-        *values = new AtkValue
-        {
+        *values = new AtkValue {
             Type = FFXIVClientStructs.FFXIV.Component.GUI.ValueType.Int,
             Int = -1
         };
-        itemDetail->FireCallback(1, values, null);
+        itemDetail->FireCallback(1, values, true);
         return true;
     }
 
@@ -520,7 +507,7 @@ public class AutoSelectGardening : Feature
         var hg = (AtkUnitBase*)Svc.GameGui.GetAddonByName("HousingGardening");
         if (hg == null) return false;
 
-        if (hg->IsVisible && TryGetAddonByName<AddonSelectYesno>("SelectYesno", out var addon) && addon->AtkUnitBase.IsVisible && addon->YesButton->IsEnabled && addon->AtkUnitBase.UldManager.NodeList[15]->IsVisible())
+        if (hg->IsVisible && GenericHelpers.TryGetAddonByName<AddonSelectYesno>("SelectYesno", out var addon) && addon->AtkUnitBase.IsVisible && addon->YesButton->IsEnabled && addon->AtkUnitBase.UldManager.NodeList[15]->IsVisible())
         {
             new AddonMaster.SelectYesno((nint)addon).Yes();
             return true;

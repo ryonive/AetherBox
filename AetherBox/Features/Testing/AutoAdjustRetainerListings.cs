@@ -7,7 +7,6 @@ using Dalamud.Game.ClientState.Keys;
 using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using Dalamud.Interface.ImGuiNotification;
-using Dalamud.Interface.Internal.Notifications;
 using Dalamud.Plugin.Services;
 using ECommons;
 using ECommons.Automation;
@@ -94,7 +93,7 @@ public class AutoAdjustRetainerListings : Feature
         {
             TaskManager.Abort();
             Chat.Instance.SendMessage("/e ConflictKey used on AutoAdjustRetainerListings <se.6>");
-            Svc.NotificationManager.AddNotification("ConflictKey used on AutoAdjustRetainerListings", "AetherBox", NotificationType.Success);
+            Svc.NotificationManager.AddNotification(new Notification { Content = "", Title = "", Type = NotificationType.Success });
         }
     }
 

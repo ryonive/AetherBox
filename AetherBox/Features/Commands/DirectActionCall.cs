@@ -5,6 +5,7 @@ using AetherBox.FeaturesSetup;
 using Dalamud.Logging;
 using ECommons;
 using ECommons.DalamudServices;
+using ECommons.Logging;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Lumina.Excel.GeneratedSheets;
 

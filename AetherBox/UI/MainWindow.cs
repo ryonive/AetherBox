@@ -675,7 +675,7 @@ public class MainWindow : Window
         }
         while (node != null)
         {
-            if (!(node->IsVisible()()))
+            if (!(node->IsVisible()))
             {
                 return false;
             }

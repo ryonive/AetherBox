@@ -14,6 +14,7 @@ using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.UI;
 using FFXIVClientStructs.FFXIV.Client.UI.Misc;
 using ImGuiNET;
+using static FFXIVClientStructs.FFXIV.Client.UI.Misc.RaptureHotbarModule;
 namespace AetherBox.Features.Disabled;
 public class BlueMagePresets : Feature
 {
@@ -125,26 +126,26 @@ public class BlueMagePresets : Feature
             return true;
         }
 
-        private unsafe void ApplyToHotbar(int id, uint[] aozActions)
-        {
-            RaptureHotbarModule* hotbarModule;
-            hotbarModule = RaptureHotbarModule.Instance();
-            for (int i = 0; i < 12; i++)
-            {
-                uint normalAction;
-                normalAction = Misc.AozToNormal(aozActions[i]);
-                HotBarSlot* slot;
-                slot = hotbarModule->GetSlotById((uint)(id - 1), (uint)i);
-                if (normalAction == 0)
-                {
-                    slot->Set(HotbarSlotType.Empty, 0u);
-                }
-                else
-                {
-                    slot->Set(HotbarSlotType.Action, normalAction);
-                }
-            }
-        }
+        //private unsafe void ApplyToHotbar(int id, uint[] aozActions)
+        //{
+        //    RaptureHotbarModule* hotbarModule;
+        //    hotbarModule = RaptureHotbarModule.Instance();
+        //    for (int i = 0; i < 12; i++)
+        //    {
+        //        uint normalAction;
+        //        normalAction = Misc.AozToNormal(aozActions[i]);
+        //        RaptureHotbarModule.Hotbar* slot;
+        //        slot = (RaptureHotbarModule.Hotbar*)hotbarModule->GetSlotById((uint)(id - 1), (uint)i);
+        //        if (normalAction == 0)
+        //        {
+        //            slot->(HotbarSlotType.Empty, 0u);
+        //        }
+        //        else
+        //        {
+        //            slot->Set(HotbarSlotType.Action, normalAction);
+        //        }
+        //    }
+        //}
     }
 
     public override string Name => "Blue Mage Presets";

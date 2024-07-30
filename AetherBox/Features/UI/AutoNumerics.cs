@@ -329,7 +329,7 @@ public class AutoNumerics : Feature
         fcChest = (AtkUnitBase*)Svc.GameGui.GetAddonByName("FreeCompanyChest");
         if (fcChest != null)
         {
-            return fcChest->IsVisible();
+            return fcChest->IsVisible;
         }
         return false;
     }
@@ -340,7 +340,7 @@ public class AutoNumerics : Feature
         fcBank = (AtkUnitBase*)Svc.GameGui.GetAddonByName("Bank");
         if (fcBank != null)
         {
-            return fcBank->IsVisible();
+            return fcBank->IsVisible;
         }
         return false;
     }
@@ -351,7 +351,7 @@ public class AutoNumerics : Feature
         mail = (AtkUnitBase*)Svc.GameGui.GetAddonByName("LetterList");
         if (mail != null)
         {
-            return mail->IsVisible();
+            return mail->IsVisible;
         }
         return false;
     }
@@ -362,7 +362,7 @@ public class AutoNumerics : Feature
         trans = (AtkUnitBase*)Svc.GameGui.GetAddonByName("TradeMultiple");
         if (trans != null)
         {
-            return trans->IsVisible();
+            return trans->IsVisible;
         }
         return false;
     }

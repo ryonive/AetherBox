@@ -32,7 +32,7 @@ public class DefaultChatChannel : Feature
     {
         try
         {
-            if (GenericHelpers.TryGetAddonByName<AtkUnitBase>("ChatLog", out var AddonPtr))
+            if (ECommons.GenericHelpers.TryGetAddonByName<AtkUnitBase>("ChatLog", out var AddonPtr))
             {
                 List<string> list;
                 list = new List<string>();
@@ -86,7 +86,7 @@ public class DefaultChatChannel : Feature
 
     private unsafe void OnLogin()
     {
-        if (Config.OnLogin && GenericHelpers.TryGetAddonByName<AtkUnitBase>("ChatLog", out var addon))
+        if (Config.OnLogin && ECommons.GenericHelpers.TryGetAddonByName<AtkUnitBase>("ChatLog", out var addon))
         {
             Callback.Fire(addon, false, 4, Config.SelectedChannel, Config.SelectedChannel, 0);
         }
@@ -94,7 +94,7 @@ public class DefaultChatChannel : Feature
 
     private unsafe void OnZoneChange(ushort obj)
     {
-        if (Config.OnZoneChange && GenericHelpers.TryGetAddonByName<AtkUnitBase>("ChatLog", out var addon))
+        if (Config.OnZoneChange && ECommons.GenericHelpers.TryGetAddonByName<AtkUnitBase>("ChatLog", out var addon))
         {
             Callback.Fire(addon, false, 4, Config.SelectedChannel, Config.SelectedChannel, 0);
         }
